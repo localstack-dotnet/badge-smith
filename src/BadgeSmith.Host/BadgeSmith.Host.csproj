@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.4.1"/>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>6e989bd7-8ac0-4354-94a3-1b3978ac65d3</UserSecretsId>
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>    <!-- AWS CDK packages are not signed -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost"/>
+    <PackageReference Include="LocalStack.Aspire.Hosting"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj"/>
+  </ItemGroup>
+
+</Project>
