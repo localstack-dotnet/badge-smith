@@ -3,6 +3,8 @@ using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace BadgeSmith.Api;
 
@@ -10,7 +12,11 @@ internal static class Function
 {
     private static async Task Main()
     {
-        var handler = FunctionHandlerAsync;
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.Services.AddScoped<Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttpApiV2ProxyResponse>>>(_ => FunctionHandlerAsync);
+
+        // var handler = FunctionHandlerAsync;
 
         await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<Json.LambdaFunctionJsonSerializerContext>())
             .Build()

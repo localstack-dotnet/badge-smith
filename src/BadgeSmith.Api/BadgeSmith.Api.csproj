@@ -25,4 +25,7 @@
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents"/>
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\BadgeSmith.Core.ServiceDefaults\BadgeSmith.Core.ServiceDefaults.csproj" />
+  </ItemGroup>
 </Project>

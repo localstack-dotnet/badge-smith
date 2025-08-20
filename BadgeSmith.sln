@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadgeSmith.Api", "src\Badge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadgeSmith.Api.Tests", "tests\BadgeSmith.Api.Tests\BadgeSmith.Api.Tests.csproj", "{3BCA21AD-AF9D-4109-BBC6-95D359BB5C4B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{3575CF7F-31B7-4ADD-8CB6-6B9D9C078832}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadgeSmith.Core.ServiceDefaults", "src\Core\BadgeSmith.Core.ServiceDefaults\BadgeSmith.Core.ServiceDefaults.csproj", "{94A2DC9A-202A-4CE9-A544-794E964CD217}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,8 @@ Global
 		{78B25445-561F-43F3-8F39-694002A59B68} = {8D4B8CC2-BC23-41FA-84E7-ECACDC79E9F4}
 		{156C13BC-584B-4535-9348-C5796B26B688} = {8D4B8CC2-BC23-41FA-84E7-ECACDC79E9F4}
 		{3BCA21AD-AF9D-4109-BBC6-95D359BB5C4B} = {A170FF5C-846B-451D-BBD1-F0CDECAA193A}
+		{3575CF7F-31B7-4ADD-8CB6-6B9D9C078832} = {8D4B8CC2-BC23-41FA-84E7-ECACDC79E9F4}
+		{94A2DC9A-202A-4CE9-A544-794E964CD217} = {3575CF7F-31B7-4ADD-8CB6-6B9D9C078832}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{78B25445-561F-43F3-8F39-694002A59B68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -39,5 +45,9 @@ Global
 		{3BCA21AD-AF9D-4109-BBC6-95D359BB5C4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BCA21AD-AF9D-4109-BBC6-95D359BB5C4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BCA21AD-AF9D-4109-BBC6-95D359BB5C4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94A2DC9A-202A-4CE9-A544-794E964CD217}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94A2DC9A-202A-4CE9-A544-794E964CD217}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94A2DC9A-202A-4CE9-A544-794E964CD217}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94A2DC9A-202A-4CE9-A544-794E964CD217}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
