@@ -12,7 +12,7 @@
     <StripSymbols>true</StripSymbols>
     <!-- TrimMode partial will only trim assemblies marked as trimmable. To reduce package size make all assemblies trimmable and set TrimMode to full.
     If there are trim warnings during build, you can hit errors at runtime.-->
-    <TrimMode>full</TrimMode>
+    <TrimMode>partial</TrimMode>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -26,8 +26,12 @@
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
 
     <PackageReference Include="Microsoft.Extensions.Hosting"/>
+
+    <PackageReference Include="JetBrains.Annotations" />
+    <PackageReference Include="ZLinq" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\libs\BadgeSmith.Domain\BadgeSmith.Domain.csproj" />
     <ProjectReference Include="..\..\libs\BadgeSmith.ServiceDefaults\BadgeSmith.ServiceDefaults.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -37,5 +41,8 @@
     <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs" />
   </ItemGroup>
 </Project>

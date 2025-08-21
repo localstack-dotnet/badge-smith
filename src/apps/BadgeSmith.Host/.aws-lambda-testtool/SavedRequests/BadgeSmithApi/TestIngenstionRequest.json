@@ -1,0 +1,47 @@
+{
+  "version": "2.0",
+  "routeKey": "$default",
+  "rawPath": "/tests/results",
+  "rawQueryString": "",
+  "cookies": [],
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock",
+    "User-Agent": "ci-runner/2.4.0"
+  },
+  "queryStringParameters": null,
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "authentication": {},
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "sub": "user-123",
+          "aud": "badgesmith-api",
+          "scope": "tests:write"
+        },
+        "scopes": ["tests:write"]
+      }
+    },
+    "domainName": "id.execute-api.us-east-1.amazonaws.com",
+    "domainPrefix": "domain-id",
+    "http": {
+      "method": "POST",
+      "path": "/tests/results",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "203.0.113.200",
+      "userAgent": "ci-runner/2.4.0"
+    },
+    "requestId": "req-tests-ingest-001",
+    "routeId": "route-tests-ingest",
+    "routeKey": "$default",
+    "stage": "$default",
+    "time": "21/Aug/2025:09:08:00 +0000",
+    "timeEpoch": 1755776880000
+  },
+  "body": "{\"platform\":\"linux\",\"owner\":\"dotnet\",\"repo\":\"runtime\",\"branch\":\"main\",\"status\":\"passed\",\"summary\":{\"total\":458,\"passed\":458,\"failed\":0,\"durationMs\":129345}}",
+  "pathParameters": {},
+  "isBase64Encoded": false,
+  "stageVariables": null
+}

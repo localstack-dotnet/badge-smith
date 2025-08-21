@@ -1,0 +1,41 @@
+{
+  "version": "2.0",
+  "routeKey": "$default",
+  "rawPath": "/badges/packages/github/dotnet/runtime",
+  "rawQueryString": "",
+  "cookies": [],
+  "headers": {
+    "Accept": "image/svg+xml",
+    "User-Agent": "badge-smith-client/1.0"
+  },
+  "queryStringParameters": null,
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "authentication": {},
+    "authorizer": {},
+    "domainName": "id.execute-api.us-east-1.amazonaws.com",
+    "domainPrefix": "domain-id",
+    "http": {
+      "method": "GET",
+      "path": "/badges/packages/github/dotnet/runtime",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "198.51.100.23",
+      "userAgent": "badge-smith-client/1.0"
+    },
+    "requestId": "req-pkg-with-org-001",
+    "routeId": "route-pkg-with-org",
+    "routeKey": "$default",
+    "stage": "$default",
+    "time": "21/Aug/2025:09:06:00 +0000",
+    "timeEpoch": 1755776760000
+  },
+  "body": null,
+  "pathParameters": {
+    "provider": "github",
+    "org": "dotnet",
+    "package": "runtime"
+  },
+  "isBase64Encoded": false,
+  "stageVariables": null
+}

@@ -3,4 +3,8 @@
     <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json"/>
+  </ItemGroup>
 </Project>

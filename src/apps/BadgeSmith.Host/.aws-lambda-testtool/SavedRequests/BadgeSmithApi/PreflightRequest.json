@@ -1,0 +1,43 @@
+{
+  "version": "2.0",
+  "routeKey": "$default",
+  "rawPath": "/badges/tests/linux/dotnet/runtime/main",
+  "rawQueryString": "",
+  "cookies": [],
+  "headers": {
+    "Origin": "https://example.com",
+    "Access-Control-Request-Method": "GET",
+    "Access-Control-Request-Headers": "authorization,content-type"
+  },
+  "queryStringParameters": null,
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "authentication": {},
+    "authorizer": {},
+    "domainName": "id.execute-api.us-east-1.amazonaws.com",
+    "domainPrefix": "domain-id",
+    "http": {
+      "method": "OPTIONS",
+      "path": "/badges/tests/linux/dotnet/runtime/main",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "203.0.113.55",
+      "userAgent": "browser"
+    },
+    "requestId": "req-cors-001",
+    "routeId": "route-cors",
+    "routeKey": "$default",
+    "stage": "$default",
+    "time": "21/Aug/2025:09:10:00 +0000",
+    "timeEpoch": 1755777000000
+  },
+  "body": null,
+  "pathParameters": {
+    "platform": "linux",
+    "owner": "dotnet",
+    "repo": "runtime",
+    "branch": "main"
+  },
+  "isBase64Encoded": false,
+  "stageVariables": null
+}

@@ -11,26 +11,34 @@
     <PackageVersion Include="SecurityCodeScan.VS2019" Version="5.6.7"/>
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848"/>
     <PackageVersion Include="xunit.analyzers" Version="1.23.0"/>
+
     <!-- aspire packages -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1"/>
     <PackageVersion Include="LocalStack.Aspire.Hosting" Version="9.4.0-rc.1"/>
+
     <!-- aws packages -->
+    <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1"/>
+    <PackageVersion Include="Amazon.Lambda.Core" Version="2.7.0"/>
+    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.13.1"/>
+    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4"/>
+    <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="3.0.0"/>
     <PackageVersion Include="AWSSDK.Core" Version="4.0.0.20"/>
     <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.3.3"/>
     <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.2.1"/>
-    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.13.1"/>
-    <PackageVersion Include="Amazon.Lambda.Core" Version="2.7.0"/>
-    <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="3.0.0"/>
-    <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1"/>
-    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4"/>
+
     <!-- localstack packages -->
     <PackageVersion Include="LocalStack.Client" Version="2.0.0"/>
     <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.0"/>
+
     <!-- microsoft packages -->
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0"/>
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.7.0"/>
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Dns" Version="9.4.0"/>
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0"/>
+
+    <!-- system packages -->
+    <PackageVersion Include="System.Text.Json" Version="9.0.8"/>
+
     <!-- opentelemetry packages -->
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0"/>
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0"/>
@@ -39,14 +47,19 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.12.0"/>
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0"/>
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0"/>
+
     <!--Serilog packages -->
     <PackageVersion Include="Serilog" Version="4.3.0"/>
-    <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0"/>
-    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Context" Version="4.6.5"/>
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0"/>
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0"/>
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0"/>
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
+
     <!-- third-party packages -->
+    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.0" />
+    <PackageVersion Include="ZLinq" Version="1.5.2" />
+
     <!-- test packages -->
     <PackageVersion Include="Aspire.Hosting.Testing" Version="9.4.0"/>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1"/>

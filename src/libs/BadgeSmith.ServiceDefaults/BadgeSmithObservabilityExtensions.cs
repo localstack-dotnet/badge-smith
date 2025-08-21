@@ -10,6 +10,7 @@ using OpenTelemetry.Instrumentation.AWSLambda;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
+using Serilog.Formatting.Json;
 using Serilog.Sinks.OpenTelemetry;
 
 namespace Microsoft.Extensions.Hosting;
@@ -42,10 +43,10 @@ public static class BadgeSmithObservabilityExtensions
     {
         builder.Logging.ClearProviders();
 
-        // Add LambdaContext provider, Version, cloudwatch logs etc.
         builder.Services.AddSerilog(configuration =>
         {
             var consoleLogging = builder.Configuration.GetSection("LoggingDestinations:ConsoleLogging").Value;
+            var enableJsonLogging = builder.Configuration.GetSection("LoggingDestinations:EnableJsonLogging").Value;
             var openTelemetry = builder.Configuration.GetSection("LoggingDestinations:OpenTelemetry").Value;
 
             configuration.ReadFrom.Configuration(builder.Configuration)
@@ -55,7 +56,14 @@ public static class BadgeSmithObservabilityExtensions
 
             if (bool.TryParse(consoleLogging, out var useConsoleLogging) && useConsoleLogging)
             {
-                configuration.WriteTo.Console(formatProvider: CultureInfo.InvariantCulture);
+                if (bool.TryParse(enableJsonLogging, out var useEnableJsonLogging) && useEnableJsonLogging)
+                {
+                    configuration.WriteTo.Console(new JsonFormatter(renderMessage: true));
+                }
+                else
+                {
+                    configuration.WriteTo.Console(formatProvider: CultureInfo.InvariantCulture);
+                }
             }
 
             if (bool.TryParse(openTelemetry, out var useOpenTelemetry) && useOpenTelemetry)
@@ -69,6 +77,7 @@ public static class BadgeSmithObservabilityExtensions
                             (StringComparer.Ordinal)
                             {
                                 { "service.name", builder.Environment.ApplicationName },
+                                { "deployment.environment", builder.Environment.EnvironmentName },
                             };
                 });
             }
@@ -100,7 +109,8 @@ public static class BadgeSmithObservabilityExtensions
                     .AddHttpClientInstrumentation()
                     .AddAWSInstrumentation()
                     .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
-                    .AddSource(BadgeSmithInfrastructureActivitySource.ActivitySourceName);
+                    .AddSource(BadgeSmithInfrastructureActivitySource.ActivitySourceName)
+                    .AddSource(BadgeSmithApiActivitySource.ActivitySourceName);
             });
 
         builder.AddOpenTelemetryExporters();

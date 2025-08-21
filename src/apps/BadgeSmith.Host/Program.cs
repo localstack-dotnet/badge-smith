@@ -17,7 +17,12 @@ var localstack = builder
         container.LogLevel = LocalStackLogLevel.Debug;
     });
 
-var badgeSmithApi = builder.AddAWSLambdaFunction<Projects.BadgeSmith_Api>("BadgeSmithApi", "BadgeSmith.Api");
+var badgeSmithApi = builder
+    .AddAWSLambdaFunction<Projects.BadgeSmith_Api>(
+        name: "BadgeSmithApi",
+        lambdaHandler: "BadgeSmith.Api")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithEnvironment("DOTNET_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 builder.AddAWSAPIGatewayEmulator("APIGatewayEmulator", APIGatewayType.HttpV2)
     .WithReference(badgeSmithApi, Method.Any, "/{proxy+}");

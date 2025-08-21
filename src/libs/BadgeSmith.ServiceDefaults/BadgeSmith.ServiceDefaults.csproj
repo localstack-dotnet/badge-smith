@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithInfrastructureActivitySource.cs" Link="ActivitySources\BadgeSmithInfrastructureActivitySource.cs" />
+    <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs" />
   </ItemGroup>
 
 </Project>

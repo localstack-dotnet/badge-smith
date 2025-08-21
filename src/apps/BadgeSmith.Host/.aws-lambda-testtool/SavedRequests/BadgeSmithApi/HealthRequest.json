@@ -1,0 +1,38 @@
+{
+  "version": "2.0",
+  "routeKey": "$default",
+  "rawPath": "/health",
+  "rawQueryString": "",
+  "cookies": [],
+  "headers": {
+    "Host": "id.execute-api.us-east-1.amazonaws.com",
+    "Accept": "*/*",
+    "User-Agent": "curl/8.7.1"
+  },
+  "queryStringParameters": null,
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "authentication": {},
+    "authorizer": {},
+    "domainName": "id.execute-api.us-east-1.amazonaws.com",
+    "domainPrefix": "domain-id",
+    "http": {
+      "method": "GET",
+      "path": "/health",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "203.0.113.10",
+      "userAgent": "curl/8.7.1"
+    },
+    "requestId": "req-health-001",
+    "routeId": "route-health",
+    "routeKey": "$default",
+    "stage": "$default",
+    "time": "21/Aug/2025:09:00:00 +0000",
+    "timeEpoch": 1755776400000
+  },
+  "body": null,
+  "pathParameters": {},
+  "isBase64Encoded": false,
+  "stageVariables": null
+}
