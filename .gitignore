@@ -420,3 +420,4 @@ FodyWeavers.xsd
 *.msp
 
 internal-docs/
+artifacts/

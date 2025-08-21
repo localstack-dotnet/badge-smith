@@ -2,7 +2,7 @@
   <ItemGroup>
     <!-- third-party analyzers -->
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.210"/>
-    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0"/>
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.11.0-beta1.24454.1"/>
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0"/>
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15"/>
     <PackageVersion Include="Roslynator.Analyzers" Version="4.14.0"/>
@@ -27,6 +27,7 @@
     <PackageVersion Include="LocalStack.Client" Version="2.0.0"/>
     <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.0"/>
     <!-- microsoft packages -->
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0"/>
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.7.0"/>
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Dns" Version="9.4.0"/>
@@ -38,6 +39,13 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.12.0"/>
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0"/>
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0"/>
+    <!--Serilog packages -->
+    <PackageVersion Include="Serilog" Version="4.3.0"/>
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0"/>
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.Context" Version="4.6.5"/>
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0"/>
+    <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
     <!-- third-party packages -->
     <!-- test packages -->
     <PackageVersion Include="Aspire.Hosting.Testing" Version="9.4.0"/>

@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj"/>
+    <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj" />
   </ItemGroup>
 
 </Project>

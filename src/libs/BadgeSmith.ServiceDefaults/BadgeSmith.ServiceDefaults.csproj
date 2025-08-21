@@ -4,22 +4,34 @@
     <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <OutputType>Library</OutputType>
     <IsPackable>false</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsAspireSharedProject>true</IsAspireSharedProject>
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    <!--    <FrameworkReference Include="Microsoft.AspNetCore.App"/>-->
 
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore"/>
+    <!--    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore"/>-->
     <PackageReference Include="OpenTelemetry.Instrumentation.AWS"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.AWSLambda"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime"/>
 
+    <PackageReference Include="Serilog"/>
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Enrichers.Context"/>
+    <PackageReference Include="Serilog.Sinks.Console"/>
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry"/>
+
     <PackageReference Include="Microsoft.Extensions.Http.Resilience"/>
     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Dns"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithInfrastructureActivitySource.cs" Link="ActivitySources\BadgeSmithInfrastructureActivitySource.cs" />
   </ItemGroup>
 
 </Project>

@@ -11,6 +11,6 @@
     <PackageReference Include="xunit.runner.visualstudio"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BadgeSmith.Api\BadgeSmith.Api.csproj"/>
+    <ProjectReference Include="..\..\src\apps\BadgeSmith.Api\BadgeSmith.Api.csproj" />
   </ItemGroup>
 </Project>

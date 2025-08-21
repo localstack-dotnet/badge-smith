@@ -3,8 +3,6 @@ using Amazon.Lambda.APIGatewayEvents;
 
 namespace BadgeSmith.Api.Json;
 
-[JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(APIGatewayHttpApiV2ProxyRequest))]
 [JsonSerializable(typeof(APIGatewayHttpApiV2ProxyResponse))]
-[JsonSerializable(typeof(HelloResponse))]
 internal partial class LambdaFunctionJsonSerializerContext : JsonSerializerContext;

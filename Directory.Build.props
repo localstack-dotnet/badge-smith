@@ -38,6 +38,9 @@
     <NoWarn>$(NoWarn)</NoWarn>
     <NoError>$(NoError)</NoError>
 
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <SharedDir>$(RepoRoot)src\shared</SharedDir>
+
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
