@@ -16,6 +16,12 @@ internal static class ServiceCollectionExtensions
 
         services.AddTransient<IApiRouter, ApiRouter>();
         services.AddTransient<IRouteResolver, RouteResolver>();
+
+        services.AddTransient<INugetPackageBadgeHandler, NugetPackageBadgeHandler>();
+        services.AddTransient<IGithubPackagesBadgeHandler, GithubPackagesBadgeHandler>();
+        services.AddTransient<ITestResultsBadgeHandler, TestResultsBadgeHandler>();
+        services.AddTransient<ITestResultIngestionHandler, TestResultIngestionHandler>();
+        services.AddTransient<ITestResultRedirectionHandler, TestResultRedirectionHandler>();
         services.AddTransient<IHealthCheckHandler, HealthCheckHandler>();
 
         return services;

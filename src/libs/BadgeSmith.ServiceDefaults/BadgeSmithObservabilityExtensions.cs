@@ -39,7 +39,7 @@ public static class BadgeSmithObservabilityExtensions
         return builder;
     }
 
-    public static TBuilder ConfigureSerilog<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    private static TBuilder ConfigureSerilog<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Logging.ClearProviders();
 
@@ -49,9 +49,28 @@ public static class BadgeSmithObservabilityExtensions
             var enableJsonLogging = builder.Configuration.GetSection("LoggingDestinations:EnableJsonLogging").Value;
             var openTelemetry = builder.Configuration.GetSection("LoggingDestinations:OpenTelemetry").Value;
 
-            configuration.ReadFrom.Configuration(builder.Configuration)
+            if (builder.Environment.IsProduction())
+            {
+                configuration.MinimumLevel.Information()
+                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Error)
+                    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Error);
+            }
+            else if (builder.Environment.IsDevelopment())
+            {
+                configuration.MinimumLevel.Information()
+                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+                    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Information)
+                    .MinimumLevel.Override("Serilog", Serilog.Events.LogEventLevel.Information)
+                    .MinimumLevel.Override("AWSSDK", Serilog.Events.LogEventLevel.Information);
+            }
+            else
+            {
+                configuration.MinimumLevel.Information();
+            }
+
+            configuration
                 .Enrich.FromLogContext()
-                .Enrich.WithEnvironment("OTEL_RESOURCE_ATTRIBUTES")
+                .Enrich.WithProperty("OtelResourceAttributes", builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"])
                 .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName);
 
             if (bool.TryParse(consoleLogging, out var useConsoleLogging) && useConsoleLogging)
@@ -86,7 +105,7 @@ public static class BadgeSmithObservabilityExtensions
         return builder;
     }
 
-    public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    private static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         // builder.Logging.AddOpenTelemetry(logging =>
         // {
@@ -106,7 +125,43 @@ public static class BadgeSmithObservabilityExtensions
             {
                 // .AddAspNetCoreInstrumentation()
                 tracing
-                    .AddHttpClientInstrumentation()
+                    .AddHttpClientInstrumentation(options =>
+                    {
+                        var runtimeAuthority = Environment.GetEnvironmentVariable("AWS_LAMBDA_RUNTIME_API");
+                        string? runtimeHost = null;
+                        int? runtimePort = null;
+
+                        if (!string.IsNullOrWhiteSpace(runtimeAuthority))
+                        {
+                            var parts = runtimeAuthority.Split(':', 2, StringSplitOptions.TrimEntries);
+                            runtimeHost = parts.Length > 0 ? parts[0] : null;
+
+                            if (parts.Length == 2 && int.TryParse(parts[1], CultureInfo.InvariantCulture, out var p))
+                            {
+                                runtimePort = p;
+                            }
+                        }
+
+                        options.FilterHttpRequestMessage = request =>
+                        {
+                            var uri = request.RequestUri;
+                            if (uri is null)
+                            {
+                                return true;
+                            }
+
+                            // 1) Compare to env-provided host:port (preferred)
+                            if (!string.IsNullOrWhiteSpace(runtimeHost) &&
+                                uri.Host.Equals(runtimeHost, StringComparison.OrdinalIgnoreCase) &&
+                                (!runtimePort.HasValue || uri.Port == runtimePort.Value))
+                            {
+                                return false;
+                            }
+
+                            // 2) Fallback: any Lambda Runtime API path (covers if host compare failed)
+                            return !uri.AbsolutePath.StartsWith("/2018-06-01/runtime/", StringComparison.Ordinal);
+                        };
+                    })
                     .AddAWSInstrumentation()
                     .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
                     .AddSource(BadgeSmithInfrastructureActivitySource.ActivitySourceName)

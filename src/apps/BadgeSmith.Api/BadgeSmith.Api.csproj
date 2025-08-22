@@ -13,6 +13,10 @@
     <!-- TrimMode partial will only trim assemblies marked as trimmable. To reduce package size make all assemblies trimmable and set TrimMode to full.
     If there are trim warnings during build, you can hit errors at runtime.-->
     <TrimMode>partial</TrimMode>
+
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <IlcInvariantGlobalization>true</IlcInvariantGlobalization>
+    <EventSourceSupport>false</EventSourceSupport>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

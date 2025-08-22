@@ -3,7 +3,6 @@ using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
-using BadgeSmith;
 using BadgeSmith.Api.Extensions;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing.Contracts;
@@ -35,33 +34,76 @@ return;
 
 async Task<APIGatewayHttpApiV2ProxyResponse> FunctionHandlerAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
 {
-    var httpMethod = request.RequestContext.Http.Method;
-    var path = request.RequestContext.Http.Path;
-    using var main = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{httpMethod} {path}");
+    // Pull values up-front
+    var httpMethod = request.RequestContext.Http.Method ?? "UNKNOWN";
+    var path = request.RequestContext.Http.Path ?? "/";
+    var routeKey = request.RequestContext.RouteKey; // e.g. "GET /badges/{id}"
+    var route = routeKey?.IndexOf(' ', StringComparison.OrdinalIgnoreCase) is { } idx and >= 0 ? routeKey[(idx + 1)..] : null;
 
     return await AWSLambdaWrapper.TraceAsync(traceProvider, async (req, ctx) =>
     {
-        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity(nameof(FunctionHandlerAsync));
+        var span = Activity.Current;
 
-        using var contextLog = request.PushApiGatewayContext(includeHeaders: true);
+        // Rename it early so child spans inherit a good parent name
+        if (span != null)
+        {
+            span.DisplayName = $"{httpMethod} {route ?? path}";
+        }
+
+        // Use stable HTTP semantic conventions
+        span?.SetTag("http.request.method", httpMethod);
+        span?.SetTag("url.path", path);
+        if (!string.IsNullOrEmpty(route) && span != null)
+        {
+            span.SetTag("http.route", route);
+        }
+
+        // (optional) a few more useful, low-cardinality attrs
+        if (request.Headers?.TryGetValue("host", out var hostHeader) == true && span != null)
+        {
+            span.SetTag("server.address", hostHeader);
+        }
+
+        if (request.Headers?.TryGetValue("x-forwarded-proto", out var proto) == true && span != null)
+        {
+            span.SetTag("url.scheme", proto);
+        }
+
+        if (request.RequestContext?.Stage is { } stage && span != null)
+        {
+            span.SetTag("server.port", string.Equals(stage, "$default", StringComparison.OrdinalIgnoreCase) ? null : stage); // or stash stage in a custom attr
+        }
+
+        using var contextLog = req.PushApiGatewayContext(includeHeaders: true);
         using var scope = logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal)
         {
-            ["AwsRequestId"] = context.AwsRequestId,
-            ["FunctionName"] = context.FunctionName,
-            ["RemainingTimeMs"] = context.RemainingTime.TotalMilliseconds,
+            ["AwsRequestId"] = ctx.AwsRequestId,
+            ["FunctionName"] = ctx.FunctionName,
+            ["RemainingTimeMs"] = ctx.RemainingTime.TotalMilliseconds,
         });
 
-        logger.LogInformation("Handling {Method} {Path}", request.RequestContext.Http.Method, request.RequestContext.Http.Path);
+        logger.LogInformation("Handling {Method} {Path}", httpMethod, path);
+
+        APIGatewayHttpApiV2ProxyResponse? response = null;
 
         try
         {
-            return await apiRouter.RouteAsync(req, host.Services).ConfigureAwait(false);
+            response = await apiRouter.RouteAsync(req, host.Services).ConfigureAwait(false);
+            return response;
         }
         catch (Exception ex)
         {
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            ctx.Logger.LogError($"Error processing request: {ex}");
-            return ResponseHelper.InternalServerError("An error occurred processing the request");
+            span?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            logger.LogError(ex, "Unhandled error");
+            response = ResponseHelper.InternalServerError("An error occurred processing the request");
+            return response;
         }
-    }, request, context, main?.Context ?? default).ConfigureAwait(false);
+        finally
+        {
+            if (Activity.Current is { } s && response is not null)
+            {
+                s.SetTag("http.response.status_code", response.StatusCode);
+            }
+        }
+    }, request, context).ConfigureAwait(false);
 }

@@ -50,9 +50,7 @@
 
     <!--Serilog packages -->
     <PackageVersion Include="Serilog" Version="4.3.0"/>
-    <PackageVersion Include="Serilog.Enrichers.Context" Version="4.6.5"/>
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0"/>
-    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0"/>
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0"/>
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
 

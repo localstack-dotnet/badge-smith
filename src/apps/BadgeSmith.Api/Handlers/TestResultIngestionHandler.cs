@@ -23,8 +23,6 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
 
         _logger.LogInformation("Test result ingest badge request received");
 
-        return Task.FromResult(ResponseHelper.Redirect(
-            location: "https://github.com/localstack-dotnet/localstack-dotnet-client/runs/46719603897",
-            cacheControl: "public, max-age=60"));
+        return Task.FromResult(ResponseHelper.Created("""{"test_result_id":"badge-smith-test-result-id"}"""));
     }
 }

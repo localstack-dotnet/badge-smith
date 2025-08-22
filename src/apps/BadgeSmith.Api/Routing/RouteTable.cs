@@ -81,6 +81,6 @@ internal static partial class RouteTable
         new("/tests/results", TestIngestionRegex(), typeof(ITestResultIngestionHandler), "POST", RequiresAuth: true),
 
         // Test redirect
-        new("/redirect/test-results/{platform}/{owner}/{repo}/{branch}", TestRedirectRegex(), typeof(object), "GET", RequiresAuth: false),
+        new("/redirect/test-results/{platform}/{owner}/{repo}/{branch}", TestRedirectRegex(), typeof(ITestResultRedirectionHandler), "GET", RequiresAuth: false),
     ];
 }
