@@ -1,37 +1,59 @@
 #pragma warning disable CA1502
 
-using System.Collections.Frozen;
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
-using BadgeSmith.Api.Handlers;
+using BadgeSmith.Api;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Helpers;
+using BadgeSmith.Api.Routing.Patterns;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Instrumentation.AWSLambda;
 using OpenTelemetry.Trace;
+using ZLinq;
 
-var routeResolver = new RouteResolver(RouteTable.Routes.ToFrozenSet());
-var handlerFactory = new HandlerFactory();
-var apiRouter = new ApiRouter(routeResolver, handlerFactory);
+BootTimer.Mark(ctx: null, "program-start");
+
+// Build router during init instead of on first request for better cold start
+var apiRouter = BuildRouter();
+BootTimer.Mark(ctx: null, "api-router-built");
 
 var _ = bool.TryParse(Environment.GetEnvironmentVariable("ObservabilityOptions:EnableOtel"), out var enableOtel);
+BootTimer.Mark(ctx: null, "enable-otel-init");
 
 var handler = BuildHandler(apiRouter, enableOtel);
+BootTimer.Mark(ctx: null, "handler-built");
 
-await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>())
-    .Build()
-    .RunAsync()
-    .ConfigureAwait(false);
+var jsonSerializer = new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>();
+BootTimer.Mark(ctx: null, "json-serializer-created");
+
+var lambdaBootstrap = LambdaBootstrapBuilder.Create(handler, jsonSerializer)
+    .Build();
+BootTimer.Mark(ctx: null, "lambda-bootstrap-init");
+
+await lambdaBootstrap.RunAsync().ConfigureAwait(false);
 
 return;
 
+static ApiRouter BuildRouter()
+{
+    BootTimer.Mark(null, "router-build-start");
+    var exactPattern = RouteTableV2.Routes.AsValueEnumerable().Where(descriptor => descriptor.Pattern is ExactPattern).ToArray();
+    var notExactPattern = RouteTableV2.Routes.AsValueEnumerable().Where(descriptor => descriptor.Pattern is not ExactPattern).ToArray();
+    var routeResolver = new RouteResolverV2(exactPattern, notExactPattern);
+    // Use pre-initialized handler registry instead of factory pattern
+    var r = new ApiRouter(routeResolver);
+    BootTimer.Mark(null, "router-build-end");
+    return r;
+}
+
 static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttpApiV2ProxyResponse>> BuildHandler(ApiRouter apiRouter, bool enableOtel)
 {
+    BootTimer.Mark(null, "handler-builder-entry");
     var lazyProvider = new Lazy<TracerProvider?>(CreateTracerProvider);
 
     if (enableOtel && lazyProvider.Value is not null)
@@ -48,6 +70,7 @@ static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttp
 
 static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context, ApiRouter apiRouter)
 {
+    BootTimer.Mark(context, "first-handler-entry");
     var httpMethod = request.RequestContext.Http.Method ?? "UNKNOWN";
     var path = request.RequestContext.Http.Path ?? "/";
     var routeKey = request.RequestContext.RouteKey; // e.g., "GET /badges/{id}"
@@ -89,8 +112,10 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
 
     try
     {
-        response = await apiRouter.RouteAsync(request, context).ConfigureAwait(false);
-        return response;
+        using (BootTimer.Measure(context, "route-dispatch"))
+        {
+            return await apiRouter.RouteAsync(request, context).ConfigureAwait(false);
+        }
     }
     catch (Exception ex)
     {
@@ -110,10 +135,7 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
 
 static TracerProvider CreateTracerProvider()
 {
-    // var config = new ConfigurationBuilder()
-    //     .AddEnvironmentVariables()
-    //     .Build();
-
+    BootTimer.Mark(ctx: null, "create-tracer-provider-init-start");
     var env = new EnvFromVariables();
     var services = new ServiceCollection();
 
@@ -123,6 +145,8 @@ static TracerProvider CreateTracerProvider()
     {
         ValidateScopes = false,
     });
-
-    return serviceProvider.GetRequiredService<TracerProvider>();
+    BootTimer.Mark(ctx: null, "create-tracer-provider-init-end");
+    var tracerProvider = serviceProvider.GetRequiredService<TracerProvider>();
+    BootTimer.Mark(ctx: null, "create-tracer-provider-created");
+    return tracerProvider;
 }

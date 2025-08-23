@@ -13,7 +13,7 @@ internal class HandlerFactory : IHandlerFactory
     {
         ArgumentNullException.ThrowIfNull(handlerType);
 
-        if (handlerType.IsAssignableFrom(typeof(IRouteHandler)))
+        if (!typeof(IRouteHandler).IsAssignableFrom(handlerType))
         {
             throw new InvalidOperationException($"Handler type {handlerType} does not implement {nameof(IRouteHandler)}");
         }

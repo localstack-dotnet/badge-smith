@@ -14,13 +14,11 @@ namespace BadgeSmith.Api.Routing;
 /// </summary>
 internal class ApiRouter : IApiRouter
 {
-    private readonly IRouteResolver _routeResolver;
-    private readonly IHandlerFactory _handlerFactory;
+    private readonly IRouteResolverV2 _routeResolver;
 
-    public ApiRouter(IRouteResolver routeResolver, IHandlerFactory handlerFactory)
+    public ApiRouter(IRouteResolverV2 routeResolver)
     {
         _routeResolver = routeResolver;
-        _handlerFactory = handlerFactory;
     }
 
     /// <summary>
@@ -58,30 +56,28 @@ internal class ApiRouter : IApiRouter
                 return CorsHelper.BuildPreflightResponse(_routeResolver, path, acrm?.Trim(), acrh?.Trim(), origin?.Trim());
             }
 
-            var resolvedRoute = _routeResolver.ResolveRoute(path, method);
-            if (resolvedRoute == null)
+            var resolved = _routeResolver.TryResolve(method, path, out var routeMatch);
+
+            if (!resolved)
             {
                 return ResponseHelper.NotFound($"Route not found: {method} {path}");
             }
 
             // Check authentication requirements
-            if (resolvedRoute.RequiresAuth)
+            if (routeMatch.Descriptor.RequiresAuth)
             {
                 // Implement authentication check
                 // For now, just continue
             }
 
-            if (_handlerFactory.CreateHandler(resolvedRoute.Handler) is not { } handler)
+            if (HandlerRegistry.GetHandler(routeMatch.Descriptor.HandlerType) is not { } handler)
             {
-                throw new InvalidOperationException($"Handler not found: {resolvedRoute.Handler}");
+                throw new InvalidOperationException($"Handler not found: {routeMatch.Descriptor.HandlerType}");
             }
 
-            if (resolvedRoute.Match == null)
-            {
-                throw new InvalidOperationException("Route match is null");
-            }
+            var routeContextV2 = new RouteContextV2(method, path, routeMatch);
 
-            return await handler.HandleAsync(new RouteContext(request, lambdaContext, resolvedRoute.Match), ct).ConfigureAwait(false);
+            return await handler.HandleAsync(routeContextV2, lambdaContext, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

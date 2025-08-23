@@ -1,4 +1,5 @@
 using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
@@ -9,14 +10,8 @@ internal interface ITestResultRedirectionHandler : IRouteHandler;
 
 internal class TestResultRedirectionHandler : ITestResultRedirectionHandler
 {
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextV2 routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(routeContext);
-        ArgumentNullException.ThrowIfNull(routeContext.LambdaContext);
-        ArgumentNullException.ThrowIfNull(routeContext.Request);
-        ArgumentNullException.ThrowIfNull(routeContext.RouteMatch);
-
-        var (_, lambdaContext, _) = routeContext;
         var logger = lambdaContext.Logger;
 
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultRedirectionHandler)}.{nameof(HandleAsync)}");

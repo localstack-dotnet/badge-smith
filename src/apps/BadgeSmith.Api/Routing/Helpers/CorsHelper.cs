@@ -98,7 +98,7 @@ internal static class CorsHelper
     /// <param name="options">CORS configuration options. Uses Default if not specified.</param>
     /// <returns>Dictionary of CORS headers to include in the preflight response.</returns>
     public static IDictionary<string, string> BuildPreflightHeaders(
-        IRouteResolver resolver,
+        IRouteResolverV2 resolver,
         string path,
         string? requestedMethod,
         string? requestedHeaders,
@@ -199,7 +199,7 @@ internal static class CorsHelper
     /// <param name="options">CORS configuration options. Uses Default if not specified.</param>
     /// <returns>Complete API Gateway response with 204 No Content status and appropriate CORS headers.</returns>
     public static APIGatewayHttpApiV2ProxyResponse BuildPreflightResponse(
-        IRouteResolver resolver,
+        IRouteResolverV2 resolver,
         string path,
         string? requestedMethod,
         string? requestedHeaders,

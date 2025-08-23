@@ -1,4 +1,5 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
@@ -11,14 +12,8 @@ internal interface IGithubPackagesBadgeHandler : IRouteHandler;
 
 internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
 {
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextV2 routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(routeContext);
-        ArgumentNullException.ThrowIfNull(routeContext.LambdaContext);
-        ArgumentNullException.ThrowIfNull(routeContext.Request);
-        ArgumentNullException.ThrowIfNull(routeContext.RouteMatch);
-
-        var (_, lambdaContext, _) = routeContext;
         var logger = lambdaContext.Logger;
 
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(GithubPackagesBadgeHandler)}.{nameof(HandleAsync)}");
