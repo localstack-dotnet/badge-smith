@@ -109,7 +109,7 @@ internal static class CorsHelper
 
         options ??= Default;
 
-        var headers = new Dictionary<string, string>(StringComparer.Ordinal);
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         if (!string.IsNullOrEmpty(origin))
         {

@@ -57,7 +57,7 @@ internal static class BadgeSmithObservabilityExtensions
                         }
 
                         // 2) Fallback: any Lambda Runtime API path (covers if host compare failed)
-                        return !requestRequestUri.AbsolutePath.StartsWith("/2018-06-01/runtime/", StringComparison.Ordinal);
+                        return !requestRequestUri.AbsolutePath.StartsWith("/2018-06-01/runtime/", StringComparison.OrdinalIgnoreCase);
                     };
                 });
 

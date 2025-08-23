@@ -9,5 +9,5 @@ internal sealed class ExactPattern : IRoutePattern
     public ExactPattern(string literal) => Literal = literal;
 
     public bool TryMatch(ReadOnlySpan<char> path, ref RouteValues values) =>
-        path.Equals(Literal.AsSpan(), StringComparison.Ordinal);
+        path.Equals(Literal.AsSpan(), StringComparison.OrdinalIgnoreCase);
 }

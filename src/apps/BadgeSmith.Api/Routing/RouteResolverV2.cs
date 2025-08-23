@@ -1,63 +1,51 @@
 ﻿using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Patterns;
-using ZLinq;
 
 namespace BadgeSmith.Api.Routing;
 
 internal sealed class RouteResolverV2 : IRouteResolverV2
 {
-    private readonly Dictionary<(string method, string path), RouteDescriptor> _exact;
-    private readonly RouteDescriptor[] _patterns;
+    private readonly RouteDescriptor[] _routes;
 
-    public RouteResolverV2(RouteDescriptor[] exactDescriptors, RouteDescriptor[] patternDescriptors)
+    public RouteResolverV2(RouteDescriptor[] allRoutes)
     {
-        _exact = new Dictionary<(string, string), RouteDescriptor>(exactDescriptors.Length);
-        foreach (var d in exactDescriptors)
-        {
-            if (d.Pattern is ExactPattern ep)
-            {
-                _exact[(Normalize(d.Method), ep.Literal)] = d;
-            }
-            else
-            {
-                throw new InvalidOperationException($"Expected ExactPattern for exact descriptor but got {d.Pattern.GetType().Name}");
-            }
-        }
-
-        _patterns = patternDescriptors;
+        _routes = allRoutes;
     }
 
     public bool TryResolve(string method, string path, out RouteMatch match)
     {
         var norm = Normalize(method);
-        if (_exact.TryGetValue((norm, path), out var desc))
-        {
-            // Use heap-allocated array for exact matches since no params expected
-            var buffer = Array.Empty<(string, int, int)>();
-            var values = new RouteValues(path.AsSpan(), buffer.AsSpan());
-            match = new RouteMatch(desc, values);
-            return true;
-        }
 
-        // Use heap-allocated array for pattern matching
-        var paramBuffer = new (string, int, int)[8];
-        var routeValues = new RouteValues(path.AsSpan(), paramBuffer.AsSpan());
-
-        foreach (var d in _patterns)
+        // Iterate through routes in order - exact patterns first for performance
+        foreach (var d in _routes)
         {
-            if (!string.Equals(Normalize(d.Method), norm, StringComparison.Ordinal))
+            if (!string.Equals(Normalize(d.Method), norm, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
+            // Handle exact pattern matching inline
+            if (d.Pattern is ExactPattern ep)
+            {
+                if (string.Equals(ep.Literal, path, StringComparison.Ordinal))
+                {
+                    // No parameters for exact matches
+                    var buffer = Array.Empty<(string, int, int)>();
+                    var values = new RouteValues(path.AsSpan(), buffer.AsSpan());
+                    match = new RouteMatch(d, values);
+                    return true;
+                }
+                continue;
+            }
+
+            // Handle pattern matching (templates, regex, etc.)
+            var paramBuffer = new (string, int, int)[8];
+            var routeValues = new RouteValues(path.AsSpan(), paramBuffer.AsSpan());
             if (d.Pattern.TryMatch(path.AsSpan(), ref routeValues))
             {
                 match = new RouteMatch(d, routeValues);
                 return true;
             }
-
-            // Reset for next pattern
-            routeValues = new RouteValues(path.AsSpan(), paramBuffer.AsSpan());
         }
 
         match = default;
@@ -67,18 +55,22 @@ internal sealed class RouteResolverV2 : IRouteResolverV2
     public IReadOnlyList<string> GetAllowedMethods(string path)
     {
         var methods = new List<string>();
+        var paramBuffer = new (string, int, int)[8];
 
-        var foundMethods = _exact
-            .AsValueEnumerable()
-            .Where(kv => string.Equals(kv.Key.path, path, StringComparison.Ordinal))
-            .Select(kv => kv.Value.Method);
-
-        methods.AddRange(foundMethods.ToArray());
-
-        // Check pattern matches
-        foreach (var d in _patterns)
+        // Check all routes in order
+        foreach (var d in _routes)
         {
-            var paramBuffer = new (string, int, int)[8];
+            // Handle exact pattern matching inline
+            if (d.Pattern is ExactPattern ep)
+            {
+                if (string.Equals(ep.Literal, path, StringComparison.Ordinal))
+                {
+                    methods.Add(d.Method);
+                }
+                continue;
+            }
+
+            // Handle pattern matching
             var vals = new RouteValues(path.AsSpan(), paramBuffer.AsSpan());
             if (d.Pattern.TryMatch(path.AsSpan(), ref vals))
             {

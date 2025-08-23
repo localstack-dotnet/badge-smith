@@ -12,7 +12,7 @@ namespace BadgeSmith.Api.Routing.Helpers;
 /// </summary>
 internal static class ResponseHelper
 {
-    private static readonly Dictionary<string, string> DefaultHeaders = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, string> DefaultHeaders = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Content-Type"] = "application/json",
         ["Access-Control-Allow-Origin"] = "*",
@@ -244,7 +244,7 @@ internal static class ResponseHelper
             throw new ArgumentException("Location cannot be null, empty, or whitespace.", nameof(location));
         }
 
-        var headers = new Dictionary<string, string>(StringComparer.Ordinal)
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["Location"] = location,
         };

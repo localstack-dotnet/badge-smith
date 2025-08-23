@@ -9,12 +9,10 @@ using BadgeSmith.Api;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Helpers;
-using BadgeSmith.Api.Routing.Patterns;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Instrumentation.AWSLambda;
 using OpenTelemetry.Trace;
-using ZLinq;
 
 BootTimer.Mark(ctx: null, "program-start");
 
@@ -42,9 +40,8 @@ return;
 static ApiRouter BuildRouter()
 {
     BootTimer.Mark(null, "router-build-start");
-    var exactPattern = RouteTableV2.Routes.AsValueEnumerable().Where(descriptor => descriptor.Pattern is ExactPattern).ToArray();
-    var notExactPattern = RouteTableV2.Routes.AsValueEnumerable().Where(descriptor => descriptor.Pattern is not ExactPattern).ToArray();
-    var routeResolver = new RouteResolverV2(exactPattern, notExactPattern);
+    // Use single route array - RouteResolverV2 splits internally while preserving order
+    var routeResolver = new RouteResolverV2(RouteTableV2.Routes);
     // Use pre-initialized handler registry instead of factory pattern
     var r = new ApiRouter(routeResolver);
     BootTimer.Mark(null, "router-build-end");
