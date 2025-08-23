@@ -2,7 +2,6 @@
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
-using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -10,18 +9,19 @@ internal interface IHealthCheckHandler : IRouteHandler;
 
 internal class HealthCheckHandler : IHealthCheckHandler
 {
-    private readonly ILogger<HealthCheckHandler> _logger;
-
-    public HealthCheckHandler(ILogger<HealthCheckHandler> logger)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
-        _logger = logger;
-    }
+        ArgumentNullException.ThrowIfNull(routeContext);
+        ArgumentNullException.ThrowIfNull(routeContext.LambdaContext);
+        ArgumentNullException.ThrowIfNull(routeContext.Request);
+        ArgumentNullException.ThrowIfNull(routeContext.RouteMatch);
 
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext context, CancellationToken ct = default)
-    {
+        var (_, lambdaContext, _) = routeContext;
+        var logger = lambdaContext.Logger;
+
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(HealthCheckHandler)}.{nameof(HandleAsync)}");
 
-        _logger.LogInformation("Health check request received");
+        logger.LogInformation("Health check request received");
 
         return Task.FromResult(ResponseHelper.OkHealth("Healthy", DateTimeOffset.UtcNow));
     }

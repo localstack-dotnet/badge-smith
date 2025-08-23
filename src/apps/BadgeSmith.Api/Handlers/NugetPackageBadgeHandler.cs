@@ -4,7 +4,6 @@ using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
 using BadgeSmith.Domain.Models;
-using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -12,18 +11,19 @@ internal interface INugetPackageBadgeHandler : IRouteHandler;
 
 internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
 {
-    private readonly ILogger<NugetPackageBadgeHandler> _logger;
-
-    public NugetPackageBadgeHandler(ILogger<NugetPackageBadgeHandler> logger)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
-        _logger = logger;
-    }
+        ArgumentNullException.ThrowIfNull(routeContext);
+        ArgumentNullException.ThrowIfNull(routeContext.LambdaContext);
+        ArgumentNullException.ThrowIfNull(routeContext.Request);
+        ArgumentNullException.ThrowIfNull(routeContext.RouteMatch);
 
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext context, CancellationToken ct = default)
-    {
+        var (_, lambdaContext, _) = routeContext;
+        var logger = lambdaContext.Logger;
+
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}");
 
-        _logger.LogInformation("Nuget packages badge request received");
+        logger.LogInformation("Nuget packages badge request received");
 
         var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "nuget", "1.0.0", "blue", NamedLogo: "nuget");
 

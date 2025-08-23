@@ -20,6 +20,7 @@
     <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1"/>
     <PackageVersion Include="Amazon.Lambda.Core" Version="2.7.0"/>
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.13.1"/>
+    <PackageVersion Include="Amazon.Lambda.Logging.AspNetCore" Version="4.1.0" />
     <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4"/>
     <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="3.0.0"/>
     <PackageVersion Include="AWSSDK.Core" Version="4.0.0.20"/>
@@ -31,6 +32,8 @@
     <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.0"/>
 
     <!-- microsoft packages -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.7.0"/>
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Dns" Version="9.4.0"/>

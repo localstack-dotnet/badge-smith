@@ -4,7 +4,6 @@ using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
 using BadgeSmith.Domain.Models;
-using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -12,18 +11,19 @@ internal interface ITestResultsBadgeHandler : IRouteHandler;
 
 internal class TestResultsBadgeHandler : ITestResultsBadgeHandler
 {
-    private readonly ILogger<TestResultsBadgeHandler> _logger;
-
-    public TestResultsBadgeHandler(ILogger<TestResultsBadgeHandler> logger)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
-        _logger = logger;
-    }
+        ArgumentNullException.ThrowIfNull(routeContext);
+        ArgumentNullException.ThrowIfNull(routeContext.LambdaContext);
+        ArgumentNullException.ThrowIfNull(routeContext.Request);
+        ArgumentNullException.ThrowIfNull(routeContext.RouteMatch);
 
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext context, CancellationToken ct = default)
-    {
+        var (_, lambdaContext, _) = routeContext;
+        var logger = lambdaContext.Logger;
+
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultsBadgeHandler)}.{nameof(HandleAsync)}");
 
-        _logger.LogInformation("Test results badge request received");
+        logger.LogInformation("Test results badge request received");
 
         var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "tests", "100 passed", "green");
 

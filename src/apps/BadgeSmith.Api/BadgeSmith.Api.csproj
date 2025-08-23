@@ -29,22 +29,21 @@
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents"/>
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
 
-    <PackageReference Include="Microsoft.Extensions.Hosting"/>
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.AWS"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.AWSLambda"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime"/>
+
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience"/>
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Dns"/>
 
     <PackageReference Include="JetBrains.Annotations" />
     <PackageReference Include="ZLinq" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libs\BadgeSmith.Domain\BadgeSmith.Domain.csproj" />
-    <ProjectReference Include="..\..\libs\BadgeSmith.ServiceDefaults\BadgeSmith.ServiceDefaults.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="appsettings.Development.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs" />

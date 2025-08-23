@@ -2,7 +2,6 @@
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
-using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -10,18 +9,19 @@ internal interface ITestResultIngestionHandler : IRouteHandler;
 
 internal class TestResultIngestionHandler : ITestResultIngestionHandler
 {
-    private readonly ILogger<TestResultIngestionHandler> _logger;
-
-    public TestResultIngestionHandler(ILogger<TestResultIngestionHandler> logger)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
-        _logger = logger;
-    }
+        ArgumentNullException.ThrowIfNull(routeContext);
+        ArgumentNullException.ThrowIfNull(routeContext.LambdaContext);
+        ArgumentNullException.ThrowIfNull(routeContext.Request);
+        ArgumentNullException.ThrowIfNull(routeContext.RouteMatch);
 
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext context, CancellationToken ct = default)
-    {
+        var (_, lambdaContext, _) = routeContext;
+        var logger = lambdaContext.Logger;
+
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultIngestionHandler)}.{nameof(HandleAsync)}");
 
-        _logger.LogInformation("Test result ingest badge request received");
+        logger.LogInformation("Test result ingest badge request received");
 
         return Task.FromResult(ResponseHelper.Created("""{"test_result_id":"badge-smith-test-result-id"}"""));
     }

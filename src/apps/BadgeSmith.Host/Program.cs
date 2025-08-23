@@ -22,7 +22,8 @@ var badgeSmithApi = builder
         name: "BadgeSmithApi",
         lambdaHandler: "BadgeSmith.Api")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
-    .WithEnvironment("DOTNET_ENVIRONMENT", builder.Environment.EnvironmentName);
+    .WithEnvironment("DOTNET_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithEnvironment("ObservabilityOptions:EnableOtel", "true");
 
 builder.AddAWSAPIGatewayEmulator("APIGatewayEmulator", APIGatewayType.HttpV2)
     .WithReference(badgeSmithApi, Method.Any, "/{proxy+}");

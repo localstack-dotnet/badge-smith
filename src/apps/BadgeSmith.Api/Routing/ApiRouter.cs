@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
+using BadgeSmith.Api.Handlers;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BadgeSmith.Api.Routing;
 
@@ -14,10 +15,12 @@ namespace BadgeSmith.Api.Routing;
 internal class ApiRouter : IApiRouter
 {
     private readonly IRouteResolver _routeResolver;
+    private readonly IHandlerFactory _handlerFactory;
 
-    public ApiRouter(IRouteResolver routeResolver)
+    public ApiRouter(IRouteResolver routeResolver, IHandlerFactory handlerFactory)
     {
         _routeResolver = routeResolver;
+        _handlerFactory = handlerFactory;
     }
 
     /// <summary>
@@ -25,19 +28,18 @@ internal class ApiRouter : IApiRouter
     /// Handles CORS preflight requests, authentication requirements, and error scenarios.
     /// </summary>
     /// <param name="request">The API Gateway HTTP request containing path, method, headers, and body</param>
-    /// <param name="services">Service provider for dependency injection and handler resolution</param>
+    /// <param name="lambdaContext"> The Lambda context containing logger, request ID, and execution environment.</param>
     /// <param name="ct">Cancellation token to support request cancellation and timeout handling</param>
     /// <returns>An API Gateway HTTP response with appropriate status code, headers, and body</returns>
     /// <exception cref="ArgumentNullException">Thrown when required parameters (request, context, or services) are null</exception>
     /// <exception cref="InvalidOperationException">Thrown when route resolution succeeds, but match data is unexpectedly null</exception>
-    public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(APIGatewayHttpApiV2ProxyRequest request, IServiceProvider services, CancellationToken ct = default)
+    public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext lambdaContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(ApiRouter)}.{nameof(RouteAsync)}");
 
         try
         {
             ArgumentNullException.ThrowIfNull(request);
-            ArgumentNullException.ThrowIfNull(services);
 
             var path = request.RequestContext.Http.Path;
             var method = request.RequestContext.Http.Method;
@@ -69,7 +71,7 @@ internal class ApiRouter : IApiRouter
                 // For now, just continue
             }
 
-            if (services.GetRequiredService(resolvedRoute.Handler) is not IRouteHandler handler)
+            if (_handlerFactory.CreateHandler(resolvedRoute.Handler) is not { } handler)
             {
                 throw new InvalidOperationException($"Handler not found: {resolvedRoute.Handler}");
             }
@@ -79,7 +81,7 @@ internal class ApiRouter : IApiRouter
                 throw new InvalidOperationException("Route match is null");
             }
 
-            return await handler.HandleAsync(new RouteContext(request, resolvedRoute.Match), ct).ConfigureAwait(false);
+            return await handler.HandleAsync(new RouteContext(request, lambdaContext, resolvedRoute.Match), ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

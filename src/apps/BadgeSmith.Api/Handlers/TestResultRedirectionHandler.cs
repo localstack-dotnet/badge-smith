@@ -2,7 +2,6 @@ using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
-using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -10,18 +9,19 @@ internal interface ITestResultRedirectionHandler : IRouteHandler;
 
 internal class TestResultRedirectionHandler : ITestResultRedirectionHandler
 {
-    private readonly ILogger<TestResultRedirectionHandler> _logger;
-
-    public TestResultRedirectionHandler(ILogger<TestResultRedirectionHandler> logger)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
-        _logger = logger;
-    }
+        ArgumentNullException.ThrowIfNull(routeContext);
+        ArgumentNullException.ThrowIfNull(routeContext.LambdaContext);
+        ArgumentNullException.ThrowIfNull(routeContext.Request);
+        ArgumentNullException.ThrowIfNull(routeContext.RouteMatch);
 
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext context, CancellationToken ct = default)
-    {
+        var (_, lambdaContext, _) = routeContext;
+        var logger = lambdaContext.Logger;
+
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultRedirectionHandler)}.{nameof(HandleAsync)}");
 
-        _logger.LogInformation("Test result redirection request received");
+        logger.LogInformation("Test result redirection request received");
 
         return Task.FromResult(ResponseHelper.Redirect(
             location: "https://github.com/localstack-dotnet/localstack-dotnet-client/runs/46719603897",

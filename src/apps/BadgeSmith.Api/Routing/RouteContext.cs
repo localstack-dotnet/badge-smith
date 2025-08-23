@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
 
 namespace BadgeSmith.Api.Routing;
 
@@ -9,8 +10,9 @@ namespace BadgeSmith.Api.Routing;
 /// from the matched URL pattern for request processing.
 /// </summary>
 /// <param name="Request">The original API Gateway HTTP API v2 proxy request containing headers, body, query parameters, path, and HTTP method.</param>
+/// <param name="LambdaContext"> The Lambda context containing logger, request ID, and execution environment.</param>
 /// <param name="RouteMatch">Regex match result containing captured route parameters and named groups extracted from the matched URL pattern.</param>
-internal record RouteContext(APIGatewayHttpApiV2ProxyRequest Request, Match RouteMatch)
+internal record RouteContext(APIGatewayHttpApiV2ProxyRequest Request, ILambdaContext LambdaContext, Match RouteMatch)
 {
     /// <summary>
     /// Attempts to retrieve a route parameter value by name from the matched URL pattern.

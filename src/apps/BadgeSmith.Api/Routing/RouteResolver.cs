@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using BadgeSmith.Api.Routing.Contracts;
-using Microsoft.Extensions.DependencyInjection;
 using ZLinq;
 
 namespace BadgeSmith.Api.Routing;
@@ -13,7 +12,7 @@ internal class RouteResolver : IRouteResolver
 {
     private readonly FrozenSet<RouteEntry> _routeEntries;
 
-    public RouteResolver([FromKeyedServices("routeEntries")] FrozenSet<RouteEntry> routeEntries)
+    public RouteResolver(FrozenSet<RouteEntry> routeEntries)
     {
         _routeEntries = routeEntries;
     }
