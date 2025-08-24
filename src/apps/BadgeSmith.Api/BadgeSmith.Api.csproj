@@ -13,40 +13,46 @@
     <StripSymbols>true</StripSymbols>
     <!-- TrimMode partial will only trim assemblies marked as trimmable. To reduce package size make all assemblies trimmable and set TrimMode to full.
     If there are trim warnings during build, you can hit errors at runtime.-->
-    <TrimMode>partial</TrimMode>
+    <TrimMode>full</TrimMode>
 
     <InvariantGlobalization>true</InvariantGlobalization>
     <IlcInvariantGlobalization>true</IlcInvariantGlobalization>
     <EventSourceSupport>false</EventSourceSupport>
+
+    <EnableTelemetry>true</EnableTelemetry>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(EnableTelemetry)' == 'true'">
+    <DefineConstants>$(DefineConstants);ENABLE_TELEMETRY</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>BadgeSmith.Api.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.RuntimeSupport"/>
     <PackageReference Include="Amazon.Lambda.Core"/>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents"/>
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
 
+    <PackageReference Include="ZLinq"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(EnableTelemetry)' == 'true'">
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.AWS"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.AWSLambda"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime"/>
+  </ItemGroup>
 
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience"/>
-    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Dns"/>
-
-    <PackageReference Include="JetBrains.Annotations" />
-    <PackageReference Include="ZLinq" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\libs\BadgeSmith.Domain\BadgeSmith.Domain.csproj"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\libs\BadgeSmith.Domain\BadgeSmith.Domain.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs" />
+    <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs"/>
   </ItemGroup>
 </Project>

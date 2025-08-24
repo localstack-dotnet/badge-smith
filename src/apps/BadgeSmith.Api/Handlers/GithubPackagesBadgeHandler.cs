@@ -12,7 +12,7 @@ internal interface IGithubPackagesBadgeHandler : IRouteHandler;
 
 internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
 {
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextV2 routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
     {
         var logger = lambdaContext.Logger;
 

@@ -10,7 +10,7 @@ internal interface ITestResultRedirectionHandler : IRouteHandler;
 
 internal class TestResultRedirectionHandler : ITestResultRedirectionHandler
 {
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextV2 routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
     {
         var logger = lambdaContext.Logger;
 

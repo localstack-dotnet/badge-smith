@@ -1,6 +1,6 @@
 ﻿namespace BadgeSmith.Api.Routing.Contracts;
 
-internal interface IRouteResolverV2
+internal interface IRouteResolver
 {
     public bool TryResolve(string method, string path, out RouteMatch match);
 

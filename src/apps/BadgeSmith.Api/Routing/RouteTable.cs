@@ -3,7 +3,7 @@ using BadgeSmith.Api.Routing.Patterns;
 
 namespace BadgeSmith.Api.Routing;
 
-internal static class RouteTableV2
+internal static class RouteTable
 {
     public static RouteDescriptor[] Routes { get; set; } =
     [

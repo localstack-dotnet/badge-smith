@@ -3,11 +3,11 @@ using BadgeSmith.Api.Routing.Patterns;
 
 namespace BadgeSmith.Api.Routing;
 
-internal sealed class RouteResolverV2 : IRouteResolverV2
+internal sealed class RouteResolver : IRouteResolver
 {
     private readonly RouteDescriptor[] _routes;
 
-    public RouteResolverV2(RouteDescriptor[] allRoutes)
+    public RouteResolver(RouteDescriptor[] allRoutes)
     {
         _routes = allRoutes;
     }
@@ -35,6 +35,7 @@ internal sealed class RouteResolverV2 : IRouteResolverV2
                     match = new RouteMatch(d, values);
                     return true;
                 }
+
                 continue;
             }
 
@@ -67,6 +68,7 @@ internal sealed class RouteResolverV2 : IRouteResolverV2
                 {
                     methods.Add(d.Method);
                 }
+
                 continue;
             }
 

@@ -1,8 +1,8 @@
 ﻿namespace BadgeSmith.Api.Routing;
 
-internal readonly ref struct RouteContextV2
+internal readonly ref struct RouteContext
 {
-    public RouteContextV2(string method, string path, RouteMatch match)
+    public RouteContext(string method, string path, RouteMatch match)
     {
         Method = method;
         Path = path;

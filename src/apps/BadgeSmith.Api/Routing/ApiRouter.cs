@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using Amazon.Lambda.APIGatewayEvents;
+﻿using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using BadgeSmith.Api.Handlers;
+using BadgeSmith.Api.Observability;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
 
@@ -14,9 +14,9 @@ namespace BadgeSmith.Api.Routing;
 /// </summary>
 internal class ApiRouter : IApiRouter
 {
-    private readonly IRouteResolverV2 _routeResolver;
+    private readonly IRouteResolver _routeResolver;
 
-    public ApiRouter(IRouteResolverV2 routeResolver)
+    public ApiRouter(IRouteResolver routeResolver)
     {
         _routeResolver = routeResolver;
     }
@@ -33,7 +33,7 @@ internal class ApiRouter : IApiRouter
     /// <exception cref="InvalidOperationException">Thrown when route resolution succeeds, but match data is unexpectedly null</exception>
     public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext lambdaContext, CancellationToken ct = default)
     {
-        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(ApiRouter)}.{nameof(RouteAsync)}");
+        using var operation = Tracer.StartOperation($"{nameof(ApiRouter)}.{nameof(RouteAsync)}", lambdaContext, BadgeSmithApiActivitySource.ActivitySource.StartActivity());
 
         try
         {
@@ -75,13 +75,14 @@ internal class ApiRouter : IApiRouter
                 throw new InvalidOperationException($"Handler not found: {routeMatch.Descriptor.HandlerType}");
             }
 
-            var routeContextV2 = new RouteContextV2(method, path, routeMatch);
+            var routeContextV2 = new RouteContext(method, path, routeMatch);
 
             return await handler.HandleAsync(routeContextV2, lambdaContext, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            operation?.AddException(ex);
+            lambdaContext.Logger.LogError(ex, "An error occurred while handling API route");
             return ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
         }
     }
