@@ -1,8 +1,10 @@
-﻿using System.Diagnostics;
+﻿#pragma warning disable CA2254
+
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using Amazon.Lambda.Core;
 using BadgeSmith.Api.Observability.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Observability.Tracing;
 
@@ -12,17 +14,17 @@ namespace BadgeSmith.Api.Observability.Tracing;
 internal sealed class TimerOperation : IObservabilityOperation
 {
     private readonly string _operationName;
-    private readonly ILambdaContext? _context;
+    private readonly ILogger? _logger;
     private readonly Stopwatch _stopwatch;
     private readonly Dictionary<string, object?> _tags = new(StringComparer.OrdinalIgnoreCase);
     private string? _status;
     private string? _displayName;
     private Exception? _exception;
 
-    public TimerOperation(string operationName, ILambdaContext? context)
+    public TimerOperation(string operationName, ILogger? logger = null)
     {
         _operationName = operationName;
-        _context = context;
+        _logger = logger;
         _stopwatch = Stopwatch.StartNew();
     }
 
@@ -56,15 +58,15 @@ internal sealed class TimerOperation : IObservabilityOperation
 
         var message = BuildCompletionMessage();
 
-        if (_context != null)
+        if (_logger != null)
         {
             if (_exception != null)
             {
-                _context.Logger.LogError(_exception, message);
+                _logger.LogError(_exception, message);
             }
             else
             {
-                _context.Logger.LogLine(message);
+                _logger.LogInformation(message);
             }
         }
         else

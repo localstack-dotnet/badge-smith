@@ -33,7 +33,7 @@ internal class ApiRouter : IApiRouter
     /// <exception cref="InvalidOperationException">Thrown when route resolution succeeds, but match data is unexpectedly null</exception>
     public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext lambdaContext, CancellationToken ct = default)
     {
-        using var operation = Tracer.StartOperation($"{nameof(ApiRouter)}.{nameof(RouteAsync)}", lambdaContext, BadgeSmithApiActivitySource.ActivitySource.StartActivity());
+        using var operation = Tracer.StartOperation($"{nameof(ApiRouter)}.{nameof(RouteAsync)}", currentActivity: BadgeSmithApiActivitySource.ActivitySource.StartActivity());
 
         try
         {

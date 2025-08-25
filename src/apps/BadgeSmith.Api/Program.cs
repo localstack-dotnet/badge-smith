@@ -1,18 +1,21 @@
 #pragma warning disable CA1502
 
+using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
-using BadgeSmith;
 using BadgeSmith.Api.Json;
-using BadgeSmith.Api.Observability;
 using BadgeSmith.Api.Observability.Contracts;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Helpers;
+using Microsoft.Extensions.Logging;
+using LoggerFactory = BadgeSmith.Api.Observability.LoggerFactory;
 using Tracer = BadgeSmith.Api.Observability.Tracer;
 
 #if ENABLE_TELEMETRY
+using BadgeSmith;
+using BadgeSmith.Api.Observability;
 using static BadgeSmith.Api.Observability.ObservabilitySettings;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Instrumentation.AWSLambda;
@@ -27,19 +30,27 @@ using (var _ = Tracer.StartOperation("lambda-initialization", currentActivity: i
 using (var _ = Tracer.StartOperation("lambda-initialization"))
 #endif
 {
-    Tracer.Mark("program-start");
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    var logger = LoggerFactory.CreateLogger<Program>();
+    Console.WriteLine($"Logger created: {stopwatch.ElapsedMilliseconds} ms");
+    Tracer.Mark("program-start", logger: logger);
 
     var apiRouter = BuildRouter();
-    Tracer.Mark("api-router-built");
+    Tracer.Mark("api-router-built", logger: logger);
 
-    var handler = BuildHandler(tracerProvider, apiRouter);
-    Tracer.Mark("handler-built");
+#if ENABLE_TELEMETRY
+    var handler = BuildHandler(tracerProvider, logger, apiRouter);
+#else
+    var handler = BuildHandler(logger, apiRouter);
+#endif
+    Tracer.Mark("handler-built", logger: logger);
 
     var jsonSerializer = new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>();
-    Tracer.Mark("json-serializer-created");
+    Tracer.Mark("json-serializer-created", logger: logger);
 
     lambdaBootstrap = LambdaBootstrapBuilder.Create(handler, jsonSerializer).Build();
-    Tracer.Mark("lambda-bootstrap-init");
+    Tracer.Mark("lambda-bootstrap-init", logger: logger);
 }
 
 await lambdaBootstrap.RunAsync().ConfigureAwait(false);
@@ -58,31 +69,37 @@ static ApiRouter BuildRouter()
     return router;
 }
 
-static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttpApiV2ProxyResponse>> BuildHandler(TracerProvider tracerProvider, ApiRouter apiRouter)
-{
-    using var operation = Tracer.StartOperation("build-handler");
-    Tracer.Mark("build-handler-entry");
-
 #if ENABLE_TELEMETRY
+static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttpApiV2ProxyResponse>> BuildHandler(TracerProvider tracerProvider, ILogger logger,
+    ApiRouter apiRouter)
+{
+    using var operation = Tracer.StartOperation("build-handler", logger: logger);
+    Tracer.Mark("build-handler-entry", logger: logger);
+
     if (EnableOtel)
     {
-        operation.AddTag("telemetry-enabled", value: true);
         return (req, ctx) =>
             AWSLambdaWrapper.TraceAsync(
                 tracerProvider,
-                (wrappedReq, wrappedCtx) => FunctionCoreAsync(wrappedReq, wrappedCtx, apiRouter),
+                (wrappedReq, wrappedCtx) => FunctionCoreAsync(wrappedReq, wrappedCtx, logger, apiRouter),
                 req, ctx);
     }
+
+    return (req, ctx) => FunctionCoreAsync(req, ctx, logger, apiRouter);
+}
+#else
+static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttpApiV2ProxyResponse>> BuildHandler(ILogger logger, ApiRouter apiRouter)
+{
+    using var operation = Tracer.StartOperation("build-handler");
+    Tracer.Mark("build-handler-entry");
+    return (req, ctx) => FunctionCoreAsync(req, ctx, logger, apiRouter);
+}
 #endif
 
-    operation.AddTag("telemetry-enabled", value: false);
-    return (req, ctx) => FunctionCoreAsync(req, ctx, apiRouter);
-}
-
-static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context, ApiRouter apiRouter)
+static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context, ILogger logger, ApiRouter apiRouter)
 {
-    using var operation = Tracer.StartOperation("main-handler-total", context);
-    Tracer.Mark("main-handler-entry", context);
+    using var operation = Tracer.StartOperation("main-handler-total", logger: logger);
+    Tracer.Mark("main-handler-entry", logger: logger);
 
     var (httpMethod, path) = SetHttpTags(operation, request, context);
 
@@ -90,7 +107,7 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
 
     try
     {
-        using var routeOperation = Tracer.StartOperation("route-dispatch", context);
+        using var routeOperation = Tracer.StartOperation("route-dispatch", logger: logger);
         var apiResponse = await apiRouter.RouteAsync(request, context).ConfigureAwait(false);
 
         routeOperation.AddTag("response.status", apiResponse.StatusCode);
@@ -103,7 +120,7 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
         // Use our unified observability for error handling
         operation.AddException(ex).SetStatus("error");
 
-        context.Logger.LogError(ex, "Unhandled error");
+        logger.LogError(ex, "Unhandled error");
         return ResponseHelper.InternalServerError("An error occurred processing the request");
     }
 }

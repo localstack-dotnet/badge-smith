@@ -1,7 +1,7 @@
 #if ENABLE_TELEMETRY
 using System.Diagnostics;
-using Amazon.Lambda.Core;
 using BadgeSmith.Api.Observability.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Observability.Tracing;
 
@@ -18,22 +18,22 @@ internal sealed class ActivityTracker : IObservabilityTracker
         _currentActivity = currentActivity;
     }
 
-    public IObservabilityOperation StartOperation(string operationName, ILambdaContext? context = null)
+    public IObservabilityOperation StartOperation(string operationName, ILogger? logger = null)
     {
         // Don't create new activities - enhance the current one
         // For nested operations, we could create child spans, but for now keep it simple
         return new ActivityOperation(_currentActivity, operationName);
     }
 
-    public void Mark(string eventName, ILambdaContext? context = null)
+    public void Mark(string eventName, ILogger? logger = null)
     {
         // Add event to current activity if available
         _currentActivity?.AddEvent(new ActivityEvent(eventName));
 
         // Also log for immediate visibility in Lambda logs
-        if (context != null)
+        if (logger != null)
         {
-            context.Logger.LogLine($"event: {eventName}");
+            logger.LogInformation("event: {EventName}", eventName);
         }
         else
         {

@@ -1,8 +1,9 @@
 using System.Diagnostics;
 using BadgeSmith.Api.Observability.Contracts;
 using BadgeSmith.Api.Observability.Tracing;
+using Microsoft.Extensions.Logging;
 
-#pragma warning disable CA1859
+#pragma warning disable CA1859, RCS1163
 
 namespace BadgeSmith.Api.Observability;
 
@@ -39,24 +40,24 @@ internal static class Tracer
     /// Convenience method for starting an operation with `Activity.Current` integration.
     /// </summary>
     /// <param name="operationName">The name of the operation</param>
-    /// <param name="context">Optional Lambda context</param>
+    /// <param name="logger">Optional Logger</param>
     /// <param name="currentActivity">Optional specific activity to enhance, defaults to `Activity.Current`</param>
     /// <returns>An observability operation that can be tagged and disposed</returns>
-    public static IObservabilityOperation StartOperation(string operationName, Amazon.Lambda.Core.ILambdaContext? context = null, Activity? currentActivity = null)
+    public static IObservabilityOperation StartOperation(string operationName, ILogger? logger = null, Activity? currentActivity = null)
     {
         var tracker = CreateTracker(currentActivity);
-        return tracker.StartOperation(operationName, context);
+        return tracker.StartOperation(operationName, logger);
     }
 
     /// <summary>
     /// Convenience method for marking an event with `Activity.Current` integration.
     /// </summary>
     /// <param name="eventName">The name of the event/mark</param>
-    /// <param name="context">Optional Lambda context</param>
+    /// <param name="logger">Optional Logger</param>
     /// <param name="currentActivity">Optional specific activity to enhance, defaults to Activity.Current</param>
-    public static void Mark(string eventName, Amazon.Lambda.Core.ILambdaContext? context = null, Activity? currentActivity = null)
+    public static void Mark(string eventName, ILogger? logger = null, Activity? currentActivity = null)
     {
         var tracker = CreateTracker(currentActivity);
-        tracker.Mark(eventName, context);
+        tracker.Mark(eventName, logger);
     }
 }

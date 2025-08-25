@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Amazon.Lambda.Core;
 using BadgeSmith.Api.Observability.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Observability.Tracing;
 
@@ -15,23 +15,22 @@ internal sealed class TimerTracker : IObservabilityTracker
     private static double MsSince(long ticks) =>
         (Stopwatch.GetTimestamp() - ticks) * 1000.0 / Stopwatch.Frequency;
 
-    public IObservabilityOperation StartOperation(string operationName, ILambdaContext? context = null)
+    public IObservabilityOperation StartOperation(string operationName, ILogger? logger = null)
     {
-        return new TimerOperation(operationName, context);
+        return new TimerOperation(operationName, logger);
     }
 
-    public void Mark(string eventName, ILambdaContext? context = null)
+    public void Mark(string eventName, ILogger? logger = null)
     {
         var ms = MsSince(T0);
-        var message = $"mark: {eventName} +{ms:F1} ms";
 
-        if (context != null)
+        if (logger != null)
         {
-            context.Logger.LogLine(message);
+            logger.LogInformation("mark: {EventName} +{Ms:F1} ms", eventName, ms);
         }
         else
         {
-            Console.WriteLine(message);
+            Console.WriteLine($"mark: {eventName} +{ms:F1} ms");
         }
     }
 }
