@@ -1,32 +1,73 @@
-﻿using BadgeSmith.Api.Routing.Contracts;
+﻿#pragma warning disable S125, RCS1093
+
+using BadgeSmith.Api.Observability;
 
 namespace BadgeSmith.Api.Handlers;
 
 internal interface IHandlerFactory
 {
-    public IRouteHandler? CreateHandler(Type handlerType);
+    public IHealthCheckHandler HealthCheckHandler { get; }
+    public INugetPackageBadgeHandler NugetPackageBadgeHandler { get; }
+    public IGithubPackagesBadgeHandler GithubPackagesBadgeHandler { get; }
+    public ITestResultsBadgeHandler TestResultsBadgeHandler { get; }
+    public ITestResultRedirectionHandler TestResultRedirectionHandler { get; }
+    public ITestResultIngestionHandler TestResultIngestionHandler { get; }
 }
 
 internal class HandlerFactory : IHandlerFactory
 {
-    public IRouteHandler? CreateHandler(Type handlerType)
+    private static readonly Lazy<IHealthCheckHandler> HealthCheckHandlerLazy = new(CreateHealthCheckHandler);
+    private static readonly Lazy<INugetPackageBadgeHandler> NugetPackageBadgeHandlerLazy = new(CreateNugetPackageBadgeHandler);
+    private static readonly Lazy<IGithubPackagesBadgeHandler> GithubPackagesBadgeHandlerLazy = new(CreateGithubPackagesBadgeHandler);
+    private static readonly Lazy<ITestResultsBadgeHandler> TestResultsBadgeHandlerLazy = new(CreateTestResultsBadgeHandler);
+    private static readonly Lazy<ITestResultRedirectionHandler> TestResultRedirectionHandlerLazy = new(CreateTestResultRedirectionHandler);
+    private static readonly Lazy<ITestResultIngestionHandler> TestResultIngestionHandlerLazy = new(CreateTestResultIngestionHandler);
+
+    public IHealthCheckHandler HealthCheckHandler => HealthCheckHandlerLazy.Value;
+
+    public INugetPackageBadgeHandler NugetPackageBadgeHandler => NugetPackageBadgeHandlerLazy.Value;
+
+    public IGithubPackagesBadgeHandler GithubPackagesBadgeHandler => GithubPackagesBadgeHandlerLazy.Value;
+
+    public ITestResultsBadgeHandler TestResultsBadgeHandler => TestResultsBadgeHandlerLazy.Value;
+
+    public ITestResultRedirectionHandler TestResultRedirectionHandler => TestResultRedirectionHandlerLazy.Value;
+
+    public ITestResultIngestionHandler TestResultIngestionHandler => TestResultIngestionHandlerLazy.Value;
+
+    private static HealthCheckHandler CreateHealthCheckHandler()
     {
-        ArgumentNullException.ThrowIfNull(handlerType);
+        var logger = LoggerFactory.CreateLogger<HealthCheckHandler>();
+        return new HealthCheckHandler(logger);
+    }
 
-        if (!typeof(IRouteHandler).IsAssignableFrom(handlerType))
-        {
-            throw new InvalidOperationException($"Handler type {handlerType} does not implement {nameof(IRouteHandler)}");
-        }
+    private static NugetPackageBadgeHandler CreateNugetPackageBadgeHandler()
+    {
+        var logger = LoggerFactory.CreateLogger<NugetPackageBadgeHandler>();
+        return new NugetPackageBadgeHandler(logger);
+    }
 
-        return handlerType switch
-        {
-            _ when handlerType.IsAssignableTo(typeof(IHealthCheckHandler)) => new HealthCheckHandler(),
-            _ when handlerType.IsAssignableTo(typeof(INugetPackageBadgeHandler)) => new NugetPackageBadgeHandler(),
-            _ when handlerType.IsAssignableTo(typeof(IGithubPackagesBadgeHandler)) => new GithubPackagesBadgeHandler(),
-            _ when handlerType.IsAssignableTo(typeof(ITestResultsBadgeHandler)) => new TestResultsBadgeHandler(),
-            _ when handlerType.IsAssignableTo(typeof(ITestResultRedirectionHandler)) => new TestResultRedirectionHandler(),
-            _ when handlerType.IsAssignableTo(typeof(ITestResultIngestionHandler)) => new TestResultIngestionHandler(),
-            _ => null,
-        };
+    private static GithubPackagesBadgeHandler CreateGithubPackagesBadgeHandler()
+    {
+        var logger = LoggerFactory.CreateLogger<GithubPackagesBadgeHandler>();
+        return new GithubPackagesBadgeHandler(logger);
+    }
+
+    private static TestResultsBadgeHandler CreateTestResultsBadgeHandler()
+    {
+        var logger = LoggerFactory.CreateLogger<TestResultsBadgeHandler>();
+        return new TestResultsBadgeHandler(logger);
+    }
+
+    private static TestResultRedirectionHandler CreateTestResultRedirectionHandler()
+    {
+        var logger = LoggerFactory.CreateLogger<TestResultRedirectionHandler>();
+        return new TestResultRedirectionHandler(logger);
+    }
+
+    private static TestResultIngestionHandler CreateTestResultIngestionHandler()
+    {
+        var logger = LoggerFactory.CreateLogger<TestResultIngestionHandler>();
+        return new TestResultIngestionHandler(logger);
     }
 }

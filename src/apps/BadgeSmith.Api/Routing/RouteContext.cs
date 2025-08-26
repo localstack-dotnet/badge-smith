@@ -18,6 +18,9 @@ internal readonly ref struct RouteContext
 
     public RouteDescriptor Descriptor { get; }
 
-    public bool TryGetRouteValue(string name, out string value) => Values.TryGetString(name, out value);
+    public bool TryGetRouteValue(string name, out string? value) => Values.TryGetString(name, out value);
+
     public bool TryGetRouteSpan(string name, out ReadOnlySpan<char> span) => Values.TryGetSpan(name, out span);
+
+    public RouteContextSnapshot ToSnapshot() => RouteContextSnapshot.FromValues(Method, Path, Descriptor, Values);
 }

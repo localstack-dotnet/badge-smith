@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 
 namespace BadgeSmith.Api.Routing;
 
@@ -17,7 +18,14 @@ internal ref struct RouteValues
     }
 
     public void Set(string key, int start, int len)
-        => _pairs[_count++] = (key, start, len);
+    {
+        if (_count >= _pairs.Length)
+        {
+            throw new InvalidOperationException("RouteValues buffer is full.");
+        }
+
+        _pairs[_count++] = (key, start, len);
+    }
 
     public readonly bool TryGetSpan(string name, out ReadOnlySpan<char> value)
     {
@@ -36,7 +44,7 @@ internal ref struct RouteValues
         return false;
     }
 
-    public readonly bool TryGetString(string name, out string value)
+    public readonly bool TryGetString(string name, out string? value)
     {
         if (TryGetSpan(name, out var s))
         {
@@ -44,7 +52,20 @@ internal ref struct RouteValues
             return true;
         }
 
-        value = string.Empty;
+        value = null;
         return false;
+    }
+
+    public readonly IReadOnlyDictionary<string, string> ToImmutableDictionary()
+    {
+        var b = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        for (var i = 0; i < _count; i++)
+        {
+            var (key, start, len) = _pairs[i];
+            b[key] = _path.Slice(start, len).ToString(); // overwrite if duplicate
+        }
+
+        return b.ToImmutable();
     }
 }

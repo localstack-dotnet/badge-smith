@@ -1,10 +1,10 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
-using Amazon.Lambda.Core;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
 using BadgeSmith.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -12,16 +12,23 @@ internal interface IGithubPackagesBadgeHandler : IRouteHandler;
 
 internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
 {
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
-    {
-        var logger = lambdaContext.Logger;
+    private readonly ILogger<GithubPackagesBadgeHandler> _logger;
 
+    public GithubPackagesBadgeHandler(ILogger<GithubPackagesBadgeHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default)
+    {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(GithubPackagesBadgeHandler)}.{nameof(HandleAsync)}");
 
-        logger.LogInformation("Github packages badge request received");
+        _logger.LogInformation("Github packages badge request received");
 
         var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "github", "1.0.0", "green", NamedLogo: "github");
 
-        return Task.FromResult(ResponseHelper.Ok(shieldsBadgeResponse, LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse));
+        await Task.Yield(); // Ensure we're truly async
+
+        return ResponseHelper.Ok(shieldsBadgeResponse, LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse);
     }
 }

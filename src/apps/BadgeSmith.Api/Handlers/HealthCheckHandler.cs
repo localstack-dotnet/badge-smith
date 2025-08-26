@@ -1,8 +1,8 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
-using Amazon.Lambda.Core;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -10,14 +10,21 @@ internal interface IHealthCheckHandler : IRouteHandler;
 
 internal class HealthCheckHandler : IHealthCheckHandler
 {
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
-    {
-        var logger = lambdaContext.Logger;
+    private readonly ILogger<HealthCheckHandler> _logger;
 
+    public HealthCheckHandler(ILogger<HealthCheckHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default)
+    {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(HealthCheckHandler)}.{nameof(HandleAsync)}");
 
-        logger.LogInformation("Health check request received");
+        _logger.LogInformation("Health check request received");
 
-        return Task.FromResult(ResponseHelper.OkHealth("Healthy", DateTimeOffset.UtcNow));
+        await Task.Yield(); // Ensure we're truly async
+
+        return ResponseHelper.OkHealth("Healthy", DateTimeOffset.UtcNow);
     }
 }

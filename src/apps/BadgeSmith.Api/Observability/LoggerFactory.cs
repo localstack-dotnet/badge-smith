@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 #if ENABLE_TELEMETRY
 using static System.Environment;
@@ -13,28 +15,47 @@ namespace BadgeSmith.Api.Observability;
 /// </summary>
 internal static class LoggerFactory
 {
-    private static readonly ILoggerFactory Factory = CreateFactory();
+    private static readonly Lazy<ILoggerFactory> Factory = new(CreateFactory());
 
     /// <summary>
     /// Creates a typed logger instance for the specified type.
     /// </summary>
     /// <typeparam name="T">The type to create a logger for</typeparam>
     /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
-    public static ILogger<T> CreateLogger<T>() => Factory.CreateLogger<T>();
+    public static ILogger<T> CreateLogger<T>()
+    {
+        var t0 = Stopwatch.GetTimestamp();
+
+        var logger = Factory.Value.CreateLogger<T>();
+
+        SimplePerfLogger.Log($"Logger {typeof(T).Name} Created", t0, typeof(LoggerFactory).FullName);
+
+        return logger;
+    }
 
     /// <summary>
     /// Creates a logger instance for the specified category name.
     /// </summary>
     /// <param name="categoryName">The category name for the logger</param>
     /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
-    public static ILogger CreateLogger(string categoryName) => Factory.CreateLogger(categoryName);
+    public static ILogger CreateLogger(string categoryName)
+    {
+        var t0 = Stopwatch.GetTimestamp();
+
+        var logger = Factory.Value.CreateLogger(categoryName);
+
+        SimplePerfLogger.Log($"Logger {categoryName} Created", t0, typeof(LoggerFactory).FullName);
+
+        return logger;
+    }
 
     /// <summary>
     /// Creates the internal logger factory with appropriate providers based on compilation settings.
     /// </summary>
     private static ILoggerFactory CreateFactory()
     {
-        return Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+        var t0 = Stopwatch.GetTimestamp();
+        var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
         {
             if (string.Equals(ObservabilitySettings.DotNetEnvironment, "Production", StringComparison.Ordinal))
             {
@@ -55,7 +76,14 @@ internal static class LoggerFactory
 
             builder.Configure(options => options.ActivityTrackingOptions = ActivityTrackingOptions.SpanId | ActivityTrackingOptions.TraceId);
 
-            builder.AddConsole();
+            builder.AddSimpleConsole(options =>
+            {
+                options.SingleLine = true;
+                options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ\t";
+                options.UseUtcTimestamp = true;
+                options.IncludeScopes = true;
+                options.ColorBehavior = LoggerColorBehavior.Disabled;
+            });
 
 #if ENABLE_TELEMETRY
             if (ObservabilitySettings.EnableOtel)
@@ -77,5 +105,9 @@ internal static class LoggerFactory
             }
 #endif
         });
+
+        SimplePerfLogger.Log("Logger Factory Created", t0, typeof(LoggerFactory).FullName);
+
+        return loggerFactory;
     }
 }

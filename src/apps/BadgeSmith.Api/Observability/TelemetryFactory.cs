@@ -1,4 +1,5 @@
 #if ENABLE_TELEMETRY
+using System.Diagnostics;
 using System.Globalization;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
@@ -22,9 +23,11 @@ internal static class TelemetryFactory
     /// <param name="serviceName">The service name for resource identification</param>
     /// <param name="serviceVersion">Optional service version</param>
     /// <returns>Configured TracerProvider instance</returns>
-    public static TracerProvider CreateProvider(string serviceName, string? serviceVersion = null)
+    public static TracerProvider CreateTracerProvider(string serviceName, string? serviceVersion = null)
     {
-        return Sdk.CreateTracerProviderBuilder()
+        var t0 = Stopwatch.GetTimestamp();
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetResourceBuilder(ResourceBuilder.CreateEmpty()
                 .AddService(serviceName, serviceVersion)
                 .AddAttributes([
@@ -36,6 +39,10 @@ internal static class TelemetryFactory
             .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
             .AddOtlpExporter(ConfigureOtlpExporter)
             .Build();
+
+        SimplePerfLogger.Log("TracerProvider Created", t0, typeof(TelemetryFactory).FullName);
+
+        return tracerProvider;
     }
 
     private static void ConfigureHttpInstrumentation(HttpClientTraceInstrumentationOptions options)

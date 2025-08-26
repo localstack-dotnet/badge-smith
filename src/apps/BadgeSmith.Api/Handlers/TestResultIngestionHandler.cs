@@ -1,8 +1,8 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
-using Amazon.Lambda.Core;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
@@ -10,14 +10,21 @@ internal interface ITestResultIngestionHandler : IRouteHandler;
 
 internal class TestResultIngestionHandler : ITestResultIngestionHandler
 {
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, ILambdaContext lambdaContext, CancellationToken ct = default)
-    {
-        var logger = lambdaContext.Logger;
+    private readonly ILogger<TestResultIngestionHandler> _logger;
 
+    public TestResultIngestionHandler(ILogger<TestResultIngestionHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default)
+    {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultIngestionHandler)}.{nameof(HandleAsync)}");
 
-        logger.LogInformation("Test result ingest badge request received");
+        _logger.LogInformation("Test result ingest badge request received");
 
-        return Task.FromResult(ResponseHelper.Created("""{"test_result_id":"badge-smith-test-result-id"}"""));
+        await Task.Yield(); // Ensure we're truly async
+
+        return ResponseHelper.Created("""{"test_result_id":"badge-smith-test-result-id"}""");
     }
 }

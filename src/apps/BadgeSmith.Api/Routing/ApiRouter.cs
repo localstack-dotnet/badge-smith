@@ -1,9 +1,9 @@
-﻿using Amazon.Lambda.APIGatewayEvents;
-using Amazon.Lambda.Core;
+﻿using System.Diagnostics;
+using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Handlers;
-using BadgeSmith.Api.Observability;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Routing;
 
@@ -14,33 +14,27 @@ namespace BadgeSmith.Api.Routing;
 /// </summary>
 internal class ApiRouter : IApiRouter
 {
+    private readonly ILogger<ApiRouter> _logger;
     private readonly IRouteResolver _routeResolver;
+    private readonly IHandlerFactory _handlerFactory;
 
-    public ApiRouter(IRouteResolver routeResolver)
+    public ApiRouter(ILogger<ApiRouter> logger, IRouteResolver routeResolver, IHandlerFactory handlerFactory)
     {
+        _logger = logger;
         _routeResolver = routeResolver;
+        _handlerFactory = handlerFactory;
     }
 
-    /// <summary>
-    /// Routes an incoming HTTP request to the appropriate handler based on path and method matching.
-    /// Handles CORS preflight requests, authentication requirements, and error scenarios.
-    /// </summary>
-    /// <param name="request">The API Gateway HTTP request containing path, method, headers, and body</param>
-    /// <param name="lambdaContext"> The Lambda context containing logger, request ID, and execution environment.</param>
-    /// <param name="ct">Cancellation token to support request cancellation and timeout handling</param>
-    /// <returns>An API Gateway HTTP response with appropriate status code, headers, and body</returns>
-    /// <exception cref="ArgumentNullException">Thrown when required parameters (request, context, or services) are null</exception>
-    /// <exception cref="InvalidOperationException">Thrown when route resolution succeeds, but match data is unexpectedly null</exception>
-    public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext lambdaContext, CancellationToken ct = default)
+    public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(string path, string method, IDictionary<string, string>? headers, CancellationToken ct = default)
     {
-        using var operation = Tracer.StartOperation($"{nameof(ApiRouter)}.{nameof(RouteAsync)}", currentActivity: BadgeSmithApiActivitySource.ActivitySource.StartActivity());
+        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(ApiRouter)}.{nameof(RouteAsync)}");
 
         try
         {
-            ArgumentNullException.ThrowIfNull(request);
+            _logger.LogInformation("API route request received");
 
-            var path = request.RequestContext.Http.Path;
-            var method = request.RequestContext.Http.Method;
+            ArgumentNullException.ThrowIfNull(path);
+            ArgumentNullException.ThrowIfNull(method);
 
             // Handle CORS preflight
             if (method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
@@ -49,9 +43,9 @@ internal class ApiRouter : IApiRouter
                 string? acrh = null;
                 string? origin = null;
 
-                request.Headers?.TryGetValue("Access-Control-Request-Method", out acrm);
-                request.Headers?.TryGetValue("Access-Control-Request-Headers", out acrh);
-                request.Headers?.TryGetValue("Origin", out origin);
+                headers?.TryGetValue("Access-Control-Request-Method", out acrm);
+                headers?.TryGetValue("Access-Control-Request-Headers", out acrh);
+                headers?.TryGetValue("Origin", out origin);
 
                 return CorsHelper.BuildPreflightResponse(_routeResolver, path, acrm?.Trim(), acrh?.Trim(), origin?.Trim());
             }
@@ -70,19 +64,17 @@ internal class ApiRouter : IApiRouter
                 // For now, just continue
             }
 
-            if (HandlerRegistry.GetHandler(routeMatch.Descriptor.HandlerType) is not { } handler)
-            {
-                throw new InvalidOperationException($"Handler not found: {routeMatch.Descriptor.HandlerType}");
-            }
+            var routeHandler = routeMatch.Descriptor.HandlerFactory(_handlerFactory);
 
-            var routeContextV2 = new RouteContext(method, path, routeMatch);
+            var routeContextSnapshot = RouteContextSnapshot.FromMatch(method, path, routeMatch);
 
-            return await handler.HandleAsync(routeContextV2, lambdaContext, ct).ConfigureAwait(false);
+            return await routeHandler.HandleAsync(routeContextSnapshot, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            operation?.AddException(ex);
-            lambdaContext.Logger.LogError(ex, "An error occurred while handling API route");
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+            _logger.LogError(ex, "An error occurred while handling API route");
             return ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
         }
     }

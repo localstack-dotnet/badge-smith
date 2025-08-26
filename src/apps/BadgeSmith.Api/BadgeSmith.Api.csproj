@@ -2,7 +2,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
-    <LangVersion>preview</LangVersion>
+    <AssemblyName>bootstrap</AssemblyName>
+    <LangVersion>latest</LangVersion>
     <AWSProjectType>Lambda</AWSProjectType>
     <!-- This property makes the build directory similar to a publish directory and helps the AWS .NET Lambda Mock Test Tool find project dependencies. -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -13,7 +14,7 @@
     <StripSymbols>true</StripSymbols>
     <!-- TrimMode partial will only trim assemblies marked as trimmable. To reduce package size make all assemblies trimmable and set TrimMode to full.
     If there are trim warnings during build, you can hit errors at runtime.-->
-    <TrimMode>full</TrimMode>
+    <TrimMode>partial</TrimMode>
 
     <InvariantGlobalization>true</InvariantGlobalization>
     <IlcInvariantGlobalization>true</IlcInvariantGlobalization>
@@ -37,14 +38,14 @@
     <PackageReference Include="Amazon.Lambda.Core"/>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents"/>
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
-    
+
     <PackageReference Include="Microsoft.Extensions.Logging.Console"/>
     <PackageReference Include="ZLinq"/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(EnableTelemetry)' == 'true'">
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.AWS"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.AWSLambda"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http"/>
@@ -56,5 +57,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
   </ItemGroup>
 </Project>

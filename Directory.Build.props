@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <DefaultTargetFramework>net8.0</DefaultTargetFramework>
-    <AllTargetFrameworks>$(DefaultTargetFramework);net9.0</AllTargetFrameworks>
+    <DefaultTargetFramework>net9.0</DefaultTargetFramework>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
