@@ -1,6 +1,7 @@
 #if ENABLE_TELEMETRY
 using System.Diagnostics;
 using System.Globalization;
+using BadgeSmith.Api.Observability.Loggers;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.AWSLambda;
@@ -92,5 +93,4 @@ internal static class TelemetryFactory
         }
     }
 }
-
 #endif

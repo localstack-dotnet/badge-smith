@@ -8,19 +8,19 @@ internal static class ObservabilitySettings
 
     private const string DefaultAppName = "badge-smith-api";
     private static readonly string DefaultAppVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+
     private const string DefaultDotNetEnvironment = "Production";
-    private const bool DefaultEnableOtel = true;
     private const bool DefaulEnableTelemetryFactoryPerfLogs = true;
 
     private static string? _applicationName;
     private static string? _applicationVersion;
     private static string? _dotNetEnvironment;
-    private static bool? _enableOtel;
     private static bool? _enableTelemetryFactoryPerfLogs;
 
     public static string ApplicationName => _applicationName ??= GetEnvironmentVariable("APP_NAME") ?? DefaultAppName;
+
     public static string ApplicationVersion => _applicationVersion ??= GetEnvironmentVariable("APP_VERSION") ?? DefaultAppVersion;
-    public static bool EnableOtel => _enableOtel ??= ParseEnvironmentVariable("APP_ENABLE_OTEL") ?? DefaultEnableOtel;
+
     public static bool TelemetryFactoryPerfLogs => _enableTelemetryFactoryPerfLogs ??= ParseEnvironmentVariable("APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS") ?? DefaulEnableTelemetryFactoryPerfLogs;
 
     public static string DotNetEnvironment => _dotNetEnvironment ??= DotNetEnvironmentFromEnv ?? DefaultDotNetEnvironment;

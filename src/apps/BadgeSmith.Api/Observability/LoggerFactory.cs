@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BadgeSmith.Api.Observability.Loggers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -86,23 +87,20 @@ internal static class LoggerFactory
             });
 
 #if ENABLE_TELEMETRY
-            if (ObservabilitySettings.EnableOtel)
+            builder.AddOpenTelemetry(options =>
             {
-                builder.AddOpenTelemetry(options =>
+                options.AddOtlpExporter(exporterOptions =>
                 {
-                    options.AddOtlpExporter(exporterOptions =>
+                    var endpoint = GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+                    if (!string.IsNullOrWhiteSpace(endpoint) && Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
                     {
-                        var endpoint = GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
-                        if (!string.IsNullOrWhiteSpace(endpoint) && Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
-                        {
-                            exporterOptions.Endpoint = uri;
-                        }
-                    });
-
-                    options.IncludeFormattedMessage = true;
-                    options.IncludeScopes = true;
+                        exporterOptions.Endpoint = uri;
+                    }
                 });
-            }
+
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
+            });
 #endif
         });
 
