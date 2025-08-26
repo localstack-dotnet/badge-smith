@@ -2,7 +2,6 @@
 using System.Globalization;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Routing.Contracts;
-using ZLinq;
 
 namespace BadgeSmith.Api.Routing.Helpers;
 
@@ -284,7 +283,7 @@ internal static class CorsHelper
             return null;
         }
 
-        var accepted = parts.AsValueEnumerable().Where(allowList.Contains).ToArray();
+        var accepted = parts.Where(allowList.Contains).ToArray();
 
         return accepted.Length > 0 ? string.Join(", ", accepted) : null;
     }
