@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);CA1707;CA1303</NoWarn>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\apps\BadgeSmith.Api\BadgeSmith.Api.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -2,16 +2,17 @@ using Xunit;
 
 namespace BadgeSmith.Api.Tests;
 
-public class FunctionTest
+/// <summary>
+/// Integration tests for the main Lambda function entry point.
+/// Will be implemented once handlers are fully developed.
+/// </summary>
+public sealed class FunctionTest
 {
     [Fact]
-    public void TestToUpperFunction()
+    public void PlaceholderShouldPassTemporarily()
     {
+        // Placeholder test until Lambda function handlers are implemented
+        // This ensures the test project builds and runs correctly
         Assert.True(true);
-        // Invoke the lambda function and confirm the string was upper cased.
-        // var context = new TestLambdaContext();
-        // var upperCase = Function.FunctionHandlerAsync("hello world", context);
-        //
-        // Assert.Equal("HELLO WORLD", upperCase);
     }
 }
