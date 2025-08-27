@@ -47,7 +47,7 @@ internal sealed class TemplatePattern : IRoutePattern
 
             if (_literals[segIdx].Length > 0)
             {
-                if (!seg.Equals(_literals[segIdx].AsSpan(), StringComparison.Ordinal))
+                if (!seg.Equals(_literals[segIdx].AsSpan(), StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }

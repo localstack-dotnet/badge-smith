@@ -159,6 +159,57 @@ public sealed class RegexPatternTests
         Assert.True(result);
     }
 
+    [Theory]
+    [InlineData("/badges/packages/nuget/Package%20With%20Spaces", "nuget", "Package%20With%20Spaces")]
+    [InlineData("/badges/packages/nuget/Package%2EWith%2EDots", "nuget", "Package%2EWith%2EDots")]
+    [InlineData("/badges/packages/nuget/Package%2DWith%2DDashes", "nuget", "Package%2DWith%2DDashes")]
+    [InlineData("/badges/packages/nuget/Package%5FWith%5FUnderscores", "nuget", "Package%5FWith%5FUnderscores")]
+    [InlineData("/badges/packages/nuget/Package%2BWith%2BPlus", "nuget", "Package%2BWith%2BPlus")]
+    [InlineData("/badges/packages/nuget/Package%26With%26Ampersand", "nuget", "Package%26With%26Ampersand")]
+    [InlineData("/badges/packages/nuget/Package%3DWith%3DEquals", "nuget", "Package%3DWith%3DEquals")]
+    [InlineData("/badges/packages/nuget/Package%3FWith%3FQuestion", "nuget", "Package%3FWith%3FQuestion")]
+    [InlineData("/badges/packages/nuget/Package%23With%23Hash", "nuget", "Package%23With%23Hash")]
+    [InlineData("/badges/packages/nuget/Microsoft%2EExtensions%2EHttp", "nuget", "Microsoft%2EExtensions%2EHttp")]
+    public void TryMatch_Should_HandleUrlEncodedPackageNames(string path, string expectedProvider, string expectedPackage)
+    {
+        // Arrange - Use a more permissive regex that accepts URL-encoded characters
+        var pattern = new RegexPattern(() => new Regex(@"^/badges/packages/(?<provider>\w+)/(?<package>[\w.%+-]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled));
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        // Act
+        var result = pattern.TryMatch(path.AsSpan(), ref values);
+
+        // Assert
+        Assert.True(result, $"Path {path} should match the regex pattern");
+        Assert.Equal(expectedProvider, values.GetParameterValue("provider"));
+        Assert.Equal(expectedPackage, values.GetParameterValue("package"));
+    }
+
+    [Theory]
+    [InlineData("/badges/tests/linux/org/repo/feature%2Fbug%2Dfix", "linux", "org", "repo", "feature%2Fbug%2Dfix")]
+    [InlineData("/badges/tests/windows/org/repo/branch%20with%20spaces", "windows", "org", "repo", "branch%20with%20spaces")]
+    [InlineData("/badges/tests/macos/org/repo/release%2F2024%2D01%2D15", "macos", "org", "repo", "release%2F2024%2D01%2D15")]
+    [InlineData("/badges/tests/linux/org/repo/hotfix%2Fissue%23123", "linux", "org", "repo", "hotfix%2Fissue%23123")]
+    [InlineData("/badges/tests/windows/org/repo/feature%2Fadd%2Bsupport", "windows", "org", "repo", "feature%2Fadd%2Bsupport")]
+    public void TryMatch_Should_HandleUrlEncodedBranchNames(string path, string expectedPlatform, string expectedOwner, string expectedRepo, string expectedBranch)
+    {
+        // Arrange - Use a regex that accepts URL-encoded characters in branch names
+        var pattern = new RegexPattern(() => new Regex(
+            @"^/badges/tests/(?<platform>\w+)/(?<owner>[\w-]+)/(?<repo>[\w.-]+)/(?<branch>[\w.%+-]+)$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled));
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        // Act
+        var result = pattern.TryMatch(path.AsSpan(), ref values);
+
+        // Assert
+        Assert.True(result, $"Path {path} should match the regex pattern");
+        Assert.Equal(expectedPlatform, values.GetParameterValue("platform"));
+        Assert.Equal(expectedOwner, values.GetParameterValue("owner"));
+        Assert.Equal(expectedRepo, values.GetParameterValue("repo"));
+        Assert.Equal(expectedBranch, values.GetParameterValue("branch"));
+    }
+
     [Fact]
     public void TryMatch_Should_HandleComplexPackageNames()
     {
@@ -173,6 +224,8 @@ public sealed class RegexPatternTests
             "/badges/packages/nuget/Microsoft.Extensions.DependencyInjection.Abstractions",
             "/badges/packages/nuget/System.Text.Json",
             "/badges/packages/github/some.complex.package-name",
+            "/badges/packages/123provider/valid-package",  // Providers starting with numbers are valid for URL parsing
+            "/badges/packages/2024registry/my.package",     // Business validation happens in handlers, not routing
         };
 
         foreach (var path in complexPaths)
@@ -193,7 +246,6 @@ public sealed class RegexPatternTests
 
     [Theory]
     [InlineData("/badges/packages/nuget/Package With Spaces")]  // Spaces not allowed in \w
-    [InlineData("/badges/packages/123invalid/package")]         // Provider starting with number
     [InlineData("/badges/packages//package")]                   // Empty provider
     [InlineData("/badges/packages/provider/")]                  // Empty package
     public void TryMatch_Should_RejectInvalidPatterns(string path)

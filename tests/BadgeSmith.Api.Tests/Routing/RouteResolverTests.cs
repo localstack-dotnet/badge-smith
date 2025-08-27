@@ -220,7 +220,7 @@ public sealed class RouteResolverTests
 
     [Theory]
     [InlineData("/health", new[] { "GET", "HEAD", "OPTIONS" })]
-    [InlineData("/tests/results", new[] { "POST", "HEAD", "OPTIONS" })]
+    [InlineData("/tests/results", new[] { "POST", "OPTIONS" })]  // POST routes don't support HEAD per HTTP standards
     [InlineData("/badges/packages/nuget/Newtonsoft.Json", new[] { "GET", "HEAD", "OPTIONS" })]
     [InlineData("/badges/tests/linux/owner/repo/main", new[] { "GET", "HEAD", "OPTIONS" })]
     [InlineData("/nonexistent/path", new[] { "OPTIONS" })]  // Non-matching paths still get OPTIONS
@@ -288,6 +288,58 @@ public sealed class RouteResolverTests
         // Assert
         var headCount = allowedMethods.Count(m => m.Equals("HEAD", StringComparison.OrdinalIgnoreCase));
         Assert.Equal(1, headCount);
+    }
+
+    [Theory]
+    [InlineData("POST", "/api/data")]
+    [InlineData("PUT", "/api/data/123")]
+    [InlineData("DELETE", "/api/data/123")]
+    [InlineData("PATCH", "/api/data/123")]
+    public void GetAllowedMethods_Should_NotIncludeHeadForNonGetMethods(string method, string path)
+    {
+        // Arrange - Create routes with non-GET methods
+        var routes = new[]
+        {
+            RouteTestBuilder.CreateRouteDescriptor("PostData", "POST", RouteTestBuilder.CreateExactPattern("/api/data")),
+            RouteTestBuilder.CreateRouteDescriptor("PutData", "PUT", RouteTestBuilder.CreateTemplatePattern("/api/data/{id}")),
+            RouteTestBuilder.CreateRouteDescriptor("DeleteData", "DELETE", RouteTestBuilder.CreateTemplatePattern("/api/data/{id}")),
+            RouteTestBuilder.CreateRouteDescriptor("PatchData", "PATCH", RouteTestBuilder.CreateTemplatePattern("/api/data/{id}")),
+        };
+        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
+
+        // Act
+        var allowedMethods = resolver.GetAllowedMethods(path);
+
+        // Assert
+        Assert.DoesNotContain("HEAD", allowedMethods, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("OPTIONS", allowedMethods, StringComparer.OrdinalIgnoreCase); // Should still have OPTIONS
+        Assert.Contains(method, allowedMethods, StringComparer.OrdinalIgnoreCase); // Should have the actual method
+    }
+
+    [Fact]
+    public void GetAllowedMethods_Should_OnlyAddHeadForGetRoutes()
+    {
+        // Arrange - Mixed route methods for the same path pattern
+        var routes = new[]
+        {
+            RouteTestBuilder.CreateRouteDescriptor("GetUser", "GET", RouteTestBuilder.CreateTemplatePattern("/users/{id}")),
+            RouteTestBuilder.CreateRouteDescriptor("PostUser", "POST", RouteTestBuilder.CreateExactPattern("/users")),
+            RouteTestBuilder.CreateRouteDescriptor("PutUser", "PUT", RouteTestBuilder.CreateTemplatePattern("/users/{id}")),
+        };
+        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
+
+        // Act & Assert for GET route (should include HEAD)
+        var getRouteAllowedMethods = resolver.GetAllowedMethods("/users/123");
+        Assert.Contains("GET", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("HEAD", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("PUT", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("OPTIONS", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
+
+        // Act & Assert for POST route (should NOT include HEAD for POST specifically)
+        var postRouteAllowedMethods = resolver.GetAllowedMethods("/users");
+        Assert.Contains("POST", postRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("HEAD", postRouteAllowedMethods, StringComparer.OrdinalIgnoreCase); // No GET route matches this path
+        Assert.Contains("OPTIONS", postRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
     }
 
     [Theory]

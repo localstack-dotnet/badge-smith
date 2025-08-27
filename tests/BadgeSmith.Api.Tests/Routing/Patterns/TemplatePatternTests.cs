@@ -126,6 +126,9 @@ public sealed class TemplatePatternTests
     [InlineData("/badges/tests/linux/localstack-dotnet/localstack.client/feature%2Fawesome-badge", "feature%2Fawesome-badge")]
     [InlineData("/badges/tests/linux/dotnet/aspnetcore/release%2F8.0", "release%2F8.0")]
     [InlineData("/badges/tests/windows/myorg/myrepo/hotfix%2Fbug-123", "hotfix%2Fbug-123")]
+    [InlineData("/badges/tests/linux/org/repo/feature%2Fbug%2Dfix", "feature%2Fbug%2Dfix")]
+    [InlineData("/badges/tests/windows/org/repo/branch%20with%20spaces", "branch%20with%20spaces")]
+    [InlineData("/badges/tests/macos/org/repo/release%2F2024%2D01%2D15", "release%2F2024%2D01%2D15")]
     public void TryMatch_Should_HandleUrlEncodedBranches(string path, string expectedBranch)
     {
         // Arrange
@@ -138,6 +141,32 @@ public sealed class TemplatePatternTests
         // Assert
         Assert.True(result);
         Assert.Equal(expectedBranch, values.GetParameterValue("branch"));
+    }
+
+    [Theory]
+    [InlineData("/badges/packages/nuget/Package%20With%20Spaces", "Package%20With%20Spaces")]
+    [InlineData("/badges/packages/nuget/Package%2EWith%2EDots", "Package%2EWith%2EDots")]
+    [InlineData("/badges/packages/nuget/Package%2DWith%2DDashes", "Package%2DWith%2DDashes")]
+    [InlineData("/badges/packages/nuget/Package%5FWith%5FUnderscores", "Package%5FWith%5FUnderscores")]
+    [InlineData("/badges/packages/nuget/Package%2BWith%2BPlus", "Package%2BWith%2BPlus")]
+    [InlineData("/badges/packages/nuget/Package%26With%26Ampersand", "Package%26With%26Ampersand")]
+    [InlineData("/badges/packages/nuget/Package%3DWith%3DEquals", "Package%3DWith%3DEquals")]
+    [InlineData("/badges/packages/nuget/Package%3FWith%3FQuestion", "Package%3FWith%3FQuestion")]
+    [InlineData("/badges/packages/nuget/Package%23With%23Hash", "Package%23With%23Hash")]
+    [InlineData("/badges/packages/nuget/Microsoft%2EExtensions%2EHttp", "Microsoft%2EExtensions%2EHttp")]
+    public void TryMatch_Should_HandleUrlEncodedPackageNames(string path, string expectedPackage)
+    {
+        // Arrange
+        var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}");
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        // Act
+        var result = pattern.TryMatch(path.AsSpan(), ref values);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal("nuget", values.GetParameterValue("provider"));
+        Assert.Equal(expectedPackage, values.GetParameterValue("package"));
     }
 
     [Theory]

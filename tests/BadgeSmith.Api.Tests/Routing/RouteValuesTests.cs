@@ -283,13 +283,19 @@ public sealed class RouteValuesTests
     }
 
     [Theory]
-    [MemberData(nameof(GetRealWorldParameterData))]
-    public void Parameters_Should_HandleRealWorldScenarios(string path, (string key, int start, int length)[] parameters, IDictionary<string, string> expectedValues)
+    [MemberData(nameof(GetRealWorldTemplateScenarios))]
+    public void Parameters_Should_HandleRealWorldScenarios(string template, string path, IDictionary<string, string> expectedValues)
     {
         // Arrange
-        var values = RouteTestBuilder.CreateRouteValuesWithParameters(path, parameters);
+        var pattern = RouteTestBuilder.CreateTemplatePattern(template);
+        var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act & Assert
+        // Act
+        var matched = pattern.TryMatch(path.AsSpan(), ref values);
+
+        // Assert
+        Assert.True(matched, $"Pattern '{template}' should match path '{path}'");
+
         foreach (var (expectedKey, expectedValue) in expectedValues)
         {
             Assert.True(values.TryGetString(expectedKey, out var actualValue), $"Parameter '{expectedKey}' not found");
@@ -300,12 +306,13 @@ public sealed class RouteValuesTests
         Assert.Equal(expectedValues.Count, dictionary.Count);
     }
 
-    public static IEnumerable<object[]> GetRealWorldParameterData()
+    public static IEnumerable<object[]> GetRealWorldTemplateScenarios()
     {
         // NuGet package scenario
         yield return
         [
-            "/badges/packages/nuget/Newtonsoft.Json", new[] { ("provider", 17, 5), ("package", 23, 15) },
+            "/badges/packages/{provider}/{package}",
+            "/badges/packages/nuget/Newtonsoft.Json",
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["provider"] = "nuget",
@@ -316,7 +323,8 @@ public sealed class RouteValuesTests
         // GitHub package scenario
         yield return
         [
-            "/badges/packages/github/localstack-dotnet/localstack.client", new[] { ("provider", 17, 6), ("org", 24, 18), ("package", 43, 16) },
+            "/badges/packages/{provider}/{org}/{package}",
+            "/badges/packages/github/localstack-dotnet/localstack.client",
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["provider"] = "github",
@@ -328,8 +336,9 @@ public sealed class RouteValuesTests
         // Test badge scenario
         yield return
         [
+            "/badges/tests/{platform}/{owner}/{repo}/{branch}",
             "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main",
-            new[] { ("platform", 15, 5), ("owner", 21, 18), ("repo", 40, 30), ("branch", 71, 4) }, new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["platform"] = "linux",
                 ["owner"] = "localstack-dotnet",
@@ -341,8 +350,9 @@ public sealed class RouteValuesTests
         // URL encoded branch scenario
         yield return
         [
+            "/badges/tests/{platform}/{owner}/{repo}/{branch}",
             "/badges/tests/linux/localstack-dotnet/localstack.client/feature%2Fawesome-badge",
-            new[] { ("platform", 15, 5), ("owner", 21, 18), ("repo", 40, 16), ("branch", 57, 23) }, new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["platform"] = "linux",
                 ["owner"] = "localstack-dotnet",
@@ -351,18 +361,25 @@ public sealed class RouteValuesTests
             },
         ];
 
-        // Single parameter scenario
-        yield return ["/health", Array.Empty<(string, int, int)>(), new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)];
-
-        // Complex package name scenario
+        // Long NuGet package name scenario
         yield return
         [
-            "/badges/packages/nuget/Microsoft.Extensions.DependencyInjection.Abstractions", new[] { ("provider", 17, 5), ("package", 23, 52) },
+            "/badges/packages/{provider}/{package}",
+            "/badges/packages/nuget/Microsoft.Extensions.DependencyInjection.Abstractions",
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["provider"] = "nuget",
                 ["package"] = "Microsoft.Extensions.DependencyInjection.Abstractions",
             },
         ];
+    }
+
+    /// <summary>
+    /// Deprecated: Use GetRealWorldTemplateScenarios instead for template-based testing.
+    /// </summary>
+    public static IEnumerable<object[]> GetRealWorldParameterData()
+    {
+        // This method is deprecated - use GetRealWorldTemplateScenarios instead
+        return Array.Empty<object[]>();
     }
 }

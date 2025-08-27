@@ -27,7 +27,7 @@ internal sealed class RouteResolver : IRouteResolver
             // Handle exact pattern matching inline
             if (d.Pattern is ExactPattern ep)
             {
-                if (string.Equals(ep.Literal, path, StringComparison.Ordinal))
+                if (string.Equals(ep.Literal, path, StringComparison.OrdinalIgnoreCase))
                 {
                     // No parameters for exact matches
                     var buffer = Array.Empty<(string, int, int)>();
@@ -64,7 +64,7 @@ internal sealed class RouteResolver : IRouteResolver
             // Handle exact pattern matching inline
             if (d.Pattern is ExactPattern ep)
             {
-                if (string.Equals(ep.Literal, path, StringComparison.Ordinal))
+                if (string.Equals(ep.Literal, path, StringComparison.OrdinalIgnoreCase))
                 {
                     methods.Add(d.Method);
                 }
