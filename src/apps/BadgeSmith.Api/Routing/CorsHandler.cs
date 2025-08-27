@@ -143,6 +143,18 @@ internal sealed class CorsHandler : ICorsHandler
             // Build preflight headers using our comprehensive logic
             var corsHeaders = BuildPreflightHeaders(path, requestMethod, requestHeaders, origin);
 
+            // For credentials-enabled APIs with rejected origins, return a response without default CORS headers
+            if (_options.AllowCredentials && !string.IsNullOrEmpty(origin) && !corsHeaders.ContainsKey("Access-Control-Allow-Origin"))
+            {
+                return new APIGatewayHttpApiV2ProxyResponse
+                {
+                    StatusCode = 204,
+                    Body = string.Empty,
+                    Headers = corsHeaders, // Only our explicitly set headers, no defaults
+                    IsBase64Encoded = false,
+                };
+            }
+
             return ResponseHelper.OptionsResponse(corsHeaders);
         }
         catch (Exception ex)
@@ -187,7 +199,7 @@ internal sealed class CorsHandler : ICorsHandler
                 }
             }
         }
-        else if (!_options.AllowCredentials && _options.UseWildcardWhenNoCredentials)
+        else if (_options is { AllowCredentials: false, UseWildcardWhenNoCredentials: true })
         {
             responseHeaders["Access-Control-Allow-Origin"] = "*";
         }
@@ -259,7 +271,7 @@ internal sealed class CorsHandler : ICorsHandler
                 headers["Access-Control-Allow-Methods"] = methodsHeader;
             }
 
-            // Since response depends on the requested method, add Vary
+            // Since the response depends on the requested method, add Vary
             AppendVary(headers, "Access-Control-Request-Method");
         }
 
@@ -296,9 +308,9 @@ internal sealed class CorsHandler : ICorsHandler
 
     private bool IsOriginAllowed(string origin)
     {
-        if (_options.AllowedOrigins is { Count: > 0 } set && set.Contains(origin))
+        if (_options.AllowedOrigins is { Count: > 0 } set)
         {
-            return true;
+            return set.Contains(origin);
         }
 
         if (_options.OriginAllowed is not null)
@@ -306,7 +318,7 @@ internal sealed class CorsHandler : ICorsHandler
             return _options.OriginAllowed(origin);
         }
 
-        return true; // default public API
+        return true; // default public API (no restrictions configured)
     }
 
     private static void AppendVary(IDictionary<string, string> headers, string token)

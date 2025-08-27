@@ -10,6 +10,7 @@
     <PackageReference Include="Amazon.Lambda.TestUtilities"/>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="Moq" />
     <PackageReference Include="xunit.v3"/>
     <PackageReference Include="xunit.runner.visualstudio"/>
     <PackageReference Include="BenchmarkDotNet"/>
