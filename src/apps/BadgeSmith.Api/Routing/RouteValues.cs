@@ -48,12 +48,23 @@ internal ref struct RouteValues
     {
         if (TryGetSpan(name, out var s))
         {
-            value = s.ToString();
+            value = System.Web.HttpUtility.UrlDecode(s.ToString());
             return true;
         }
 
         value = null;
         return false;
+    }
+
+    /// <summary>
+    /// Gets a route parameter value as a URL-decoded string.
+    /// This is the preferred method for extracting route parameters as it handles URL encoding automatically.
+    /// </summary>
+    /// <param name="name">The parameter name (case-insensitive)</param>
+    /// <returns>The URL-decoded parameter value, or null if the parameter doesn't exist</returns>
+    public readonly string? GetString(string name)
+    {
+        return TryGetString(name, out var value) ? value : null;
     }
 
     public readonly IReadOnlyDictionary<string, string> ToImmutableDictionary()
@@ -63,7 +74,8 @@ internal ref struct RouteValues
         for (var i = 0; i < _count; i++)
         {
             var (key, start, len) = _pairs[i];
-            b[key] = _path.Slice(start, len).ToString(); // overwrite if duplicate
+            var rawValue = _path.Slice(start, len).ToString();
+            b[key] = System.Web.HttpUtility.UrlDecode(rawValue); // URL decode and overwrite if duplicate
         }
 
         return b.ToImmutable();

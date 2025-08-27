@@ -225,8 +225,8 @@ public sealed class RouteValuesTests
     [InlineData("/badges/packages/nuget/Package.With.Dots", "package", "Package.With.Dots")]
     [InlineData("/badges/packages/nuget/Package-With-Dashes", "package", "Package-With-Dashes")]
     [InlineData("/badges/packages/nuget/Package_With_Underscores", "package", "Package_With_Underscores")]
-    [InlineData("/badges/tests/linux/owner/repo/feature%2Fawesome", "branch", "feature%2Fawesome")]
-    [InlineData("/badges/tests/linux/owner/repo/release%2F8.0", "branch", "release%2F8.0")]
+    [InlineData("/badges/tests/linux/owner/repo/feature%2Fawesome", "branch", "feature/awesome")]
+    [InlineData("/badges/tests/linux/owner/repo/release%2F8.0", "branch", "release/8.0")]
     public void Parameters_Should_HandleSpecialCharacters(string path, string paramName, string expectedValue)
     {
         // Arrange - We need to calculate positions dynamically for these tests
@@ -251,7 +251,8 @@ public sealed class RouteValuesTests
             values.Set("owner", 21, 5); // "owner"
             values.Set("repo", 27, 4); // "repo"
             var branchStart = fullPath.LastIndexOf('/') + 1;
-            values.Set("branch", branchStart, expectedValue.Length);
+            var branchLength = fullPath.Length - branchStart; // Use actual URL-encoded length
+            values.Set("branch", branchStart, branchLength);
         }
 
         // Act
@@ -357,7 +358,7 @@ public sealed class RouteValuesTests
                 ["platform"] = "linux",
                 ["owner"] = "localstack-dotnet",
                 ["repo"] = "localstack.client",
-                ["branch"] = "feature%2Fawesome-badge",
+                ["branch"] = "feature/awesome-badge",
             },
         ];
 

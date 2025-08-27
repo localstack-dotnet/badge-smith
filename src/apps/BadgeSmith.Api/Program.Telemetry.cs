@@ -6,7 +6,6 @@ using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
-using BadgeSmith.Api.Handlers;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Observability;
 using BadgeSmith.Api.Routing;
@@ -25,12 +24,7 @@ using var tracerProvider = TelemetryFactory.CreateTracerProvider(ApplicationName
 LambdaBootstrap lambdaBootstrap;
 using (var _ = BadgeSmithApiActivitySource.ActivitySource.StartActivity("Lambda Initialization"))
 {
-    var logger = LoggerFactory.CreateLogger<ApiRouter>();
-
-    var routeResolver = new RouteResolver(RouteTable.Routes);
-    var handlerFactory = new HandlerFactory();
-    var apiRouter = new ApiRouter(logger, routeResolver, handlerFactory);
-
+    var apiRouter = ApiRouterBuilder.BuildApiRouter();
     var handler = BuildHandler(tracerProvider, apiRouter);
 
     var jsonSerializer = new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>();
@@ -111,5 +105,4 @@ static void SetHttpTags(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext 
         activity?.AddTag("server.port", string.Equals(stage, "$default", StringComparison.OrdinalIgnoreCase) ? null : stage);
     }
 }
-
 #endif

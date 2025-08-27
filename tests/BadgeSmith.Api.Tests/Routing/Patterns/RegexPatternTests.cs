@@ -160,16 +160,16 @@ public sealed class RegexPatternTests
     }
 
     [Theory]
-    [InlineData("/badges/packages/nuget/Package%20With%20Spaces", "nuget", "Package%20With%20Spaces")]
-    [InlineData("/badges/packages/nuget/Package%2EWith%2EDots", "nuget", "Package%2EWith%2EDots")]
-    [InlineData("/badges/packages/nuget/Package%2DWith%2DDashes", "nuget", "Package%2DWith%2DDashes")]
-    [InlineData("/badges/packages/nuget/Package%5FWith%5FUnderscores", "nuget", "Package%5FWith%5FUnderscores")]
-    [InlineData("/badges/packages/nuget/Package%2BWith%2BPlus", "nuget", "Package%2BWith%2BPlus")]
-    [InlineData("/badges/packages/nuget/Package%26With%26Ampersand", "nuget", "Package%26With%26Ampersand")]
-    [InlineData("/badges/packages/nuget/Package%3DWith%3DEquals", "nuget", "Package%3DWith%3DEquals")]
-    [InlineData("/badges/packages/nuget/Package%3FWith%3FQuestion", "nuget", "Package%3FWith%3FQuestion")]
-    [InlineData("/badges/packages/nuget/Package%23With%23Hash", "nuget", "Package%23With%23Hash")]
-    [InlineData("/badges/packages/nuget/Microsoft%2EExtensions%2EHttp", "nuget", "Microsoft%2EExtensions%2EHttp")]
+    [InlineData("/badges/packages/nuget/Package%20With%20Spaces", "nuget", "Package With Spaces")]
+    [InlineData("/badges/packages/nuget/Package%2EWith%2EDots", "nuget", "Package.With.Dots")]
+    [InlineData("/badges/packages/nuget/Package%2DWith%2DDashes", "nuget", "Package-With-Dashes")]
+    [InlineData("/badges/packages/nuget/Package%5FWith%5FUnderscores", "nuget", "Package_With_Underscores")]
+    [InlineData("/badges/packages/nuget/Package%2BWith%2BPlus", "nuget", "Package+With+Plus")]
+    [InlineData("/badges/packages/nuget/Package%26With%26Ampersand", "nuget", "Package&With&Ampersand")]
+    [InlineData("/badges/packages/nuget/Package%3DWith%3DEquals", "nuget", "Package=With=Equals")]
+    [InlineData("/badges/packages/nuget/Package%3FWith%3FQuestion", "nuget", "Package?With?Question")]
+    [InlineData("/badges/packages/nuget/Package%23With%23Hash", "nuget", "Package#With#Hash")]
+    [InlineData("/badges/packages/nuget/Microsoft%2EExtensions%2EHttp", "nuget", "Microsoft.Extensions.Http")]
     public void TryMatch_Should_HandleUrlEncodedPackageNames(string path, string expectedProvider, string expectedPackage)
     {
         // Arrange - Use a more permissive regex that accepts URL-encoded characters
@@ -186,11 +186,11 @@ public sealed class RegexPatternTests
     }
 
     [Theory]
-    [InlineData("/badges/tests/linux/org/repo/feature%2Fbug%2Dfix", "linux", "org", "repo", "feature%2Fbug%2Dfix")]
-    [InlineData("/badges/tests/windows/org/repo/branch%20with%20spaces", "windows", "org", "repo", "branch%20with%20spaces")]
-    [InlineData("/badges/tests/macos/org/repo/release%2F2024%2D01%2D15", "macos", "org", "repo", "release%2F2024%2D01%2D15")]
-    [InlineData("/badges/tests/linux/org/repo/hotfix%2Fissue%23123", "linux", "org", "repo", "hotfix%2Fissue%23123")]
-    [InlineData("/badges/tests/windows/org/repo/feature%2Fadd%2Bsupport", "windows", "org", "repo", "feature%2Fadd%2Bsupport")]
+    [InlineData("/badges/tests/linux/org/repo/feature%2Fbug%2Dfix", "linux", "org", "repo", "feature/bug-fix")]
+    [InlineData("/badges/tests/windows/org/repo/branch%20with%20spaces", "windows", "org", "repo", "branch with spaces")]
+    [InlineData("/badges/tests/macos/org/repo/release%2F2024%2D01%2D15", "macos", "org", "repo", "release/2024-01-15")]
+    [InlineData("/badges/tests/linux/org/repo/hotfix%2Fissue%23123", "linux", "org", "repo", "hotfix/issue#123")]
+    [InlineData("/badges/tests/windows/org/repo/feature%2Fadd%2Bsupport", "windows", "org", "repo", "feature/add+support")]
     public void TryMatch_Should_HandleUrlEncodedBranchNames(string path, string expectedPlatform, string expectedOwner, string expectedRepo, string expectedBranch)
     {
         // Arrange - Use a regex that accepts URL-encoded characters in branch names

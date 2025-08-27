@@ -2,7 +2,6 @@
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Handlers;
 using BadgeSmith.Api.Routing.Contracts;
-using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Routing;
@@ -17,12 +16,14 @@ internal class ApiRouter : IApiRouter
     private readonly ILogger<ApiRouter> _logger;
     private readonly IRouteResolver _routeResolver;
     private readonly IHandlerFactory _handlerFactory;
+    private readonly ICorsHandler _corsHandler;
 
-    public ApiRouter(ILogger<ApiRouter> logger, IRouteResolver routeResolver, IHandlerFactory handlerFactory)
+    public ApiRouter(ILogger<ApiRouter> logger, IRouteResolver routeResolver, IHandlerFactory handlerFactory, ICorsHandler corsHandler)
     {
         _logger = logger;
         _routeResolver = routeResolver;
         _handlerFactory = handlerFactory;
+        _corsHandler = corsHandler;
     }
 
     public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(string path, string method, IDictionary<string, string>? headers, CancellationToken ct = default)
@@ -36,25 +37,18 @@ internal class ApiRouter : IApiRouter
             ArgumentNullException.ThrowIfNull(path);
             ArgumentNullException.ThrowIfNull(method);
 
-            // Handle CORS preflight
+            // Handle CORS preflight FIRST (before authentication)
             if (method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
-                string? acrm = null;
-                string? acrh = null;
-                string? origin = null;
-
-                headers?.TryGetValue("Access-Control-Request-Method", out acrm);
-                headers?.TryGetValue("Access-Control-Request-Headers", out acrh);
-                headers?.TryGetValue("Origin", out origin);
-
-                return CorsHelper.BuildPreflightResponse(_routeResolver, path, acrm?.Trim(), acrh?.Trim(), origin?.Trim());
+                _logger.LogDebug("CORS preflight request for path: {Path}", path);
+                return _corsHandler.HandlePreflight(headers, path);
             }
 
             var resolved = _routeResolver.TryResolve(method, path, out var routeMatch);
 
             if (!resolved)
             {
-                return ResponseHelper.NotFound($"Route not found: {method} {path}");
+                return BadgeSmith.Api.Routing.Helpers.ResponseHelper.NotFound($"Route not found: {method} {path}");
             }
 
             // Check authentication requirements
@@ -75,7 +69,7 @@ internal class ApiRouter : IApiRouter
             activity?.SetStatus(ActivityStatusCode.Error);
             activity?.AddException(ex);
             _logger.LogError(ex, "An error occurred while handling API route");
-            return ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
+            return BadgeSmith.Api.Routing.Helpers.ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
         }
     }
 }

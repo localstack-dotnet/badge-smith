@@ -156,7 +156,7 @@ public sealed class RouteResolverTests
         Assert.Equal("TestsBadge", match.Descriptor.Name);
 
         var parameters = match.Values.ToDictionary();
-        Assert.Equal("feature%2Fawesome-badge", parameters["branch"]);
+        Assert.Equal("feature/awesome-badge", parameters["branch"]);
     }
 
     [Theory]

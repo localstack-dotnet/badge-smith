@@ -15,6 +15,7 @@ internal sealed class RouteResolver : IRouteResolver
     public bool TryResolve(string method, string path, out RouteMatch match)
     {
         var norm = Normalize(method);
+        var paramBuffer = new (string, int, int)[8]; // Shared buffer for all route checks
 
         // Iterate through routes in order - exact patterns first for performance
         foreach (var d in _routes)
@@ -39,8 +40,7 @@ internal sealed class RouteResolver : IRouteResolver
                 continue;
             }
 
-            // Handle pattern matching (templates, regex, etc.)
-            var paramBuffer = new (string, int, int)[8];
+            // Handle pattern matching (templates, regex, etc.) - reuse shared buffer
             var routeValues = new RouteValues(path.AsSpan(), paramBuffer.AsSpan());
             if (d.Pattern.TryMatch(path.AsSpan(), ref routeValues))
             {
