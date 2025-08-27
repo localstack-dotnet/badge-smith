@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\build\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj" IsAspireProjectResource="false"/>
     <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj" />
   </ItemGroup>
 

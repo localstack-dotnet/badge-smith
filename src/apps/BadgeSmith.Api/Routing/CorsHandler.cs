@@ -109,7 +109,7 @@ internal interface ICorsHandler
 }
 
 /// <summary>
-/// Autonomous CORS handler that manages Cross-Origin Resource Sharing for the BadgeSmith API.
+/// CORS handler that manages Cross-Origin Resource Sharing for the BadgeSmith API.
 /// Handles preflight requests by extracting request headers and consulting the route resolver
 /// to determine appropriate CORS responses.
 /// </summary>
@@ -137,8 +137,7 @@ internal sealed class CorsHandler : ICorsHandler
             var requestMethod = GetHeaderValue(headers, "Access-Control-Request-Method");
             var requestHeaders = GetHeaderValue(headers, "Access-Control-Request-Headers");
 
-            _logger.LogDebug("CORS preflight request: Origin={Origin}, Method={Method}, Headers={Headers}",
-                origin, requestMethod, requestHeaders);
+            _logger.LogDebug("CORS preflight request: Origin={Origin}, Method={Method}, Headers={Headers}", origin, requestMethod, requestHeaders);
 
             // Build preflight headers using our comprehensive logic
             var corsHeaders = BuildPreflightHeaders(path, requestMethod, requestHeaders, origin);

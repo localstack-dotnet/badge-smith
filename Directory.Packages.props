@@ -1,6 +1,7 @@
 <Project>
   <ItemGroup>
     <!-- third-party analyzers -->
+    <PackageVersion Include="Amazon.JSII.Analyzers" Version="1.113.0" />
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.212" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
@@ -16,6 +17,7 @@
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1" />
     <PackageVersion Include="LocalStack.Aspire.Hosting" Version="9.4.0-rc.1" />
     <!-- aws packages -->
+    <PackageVersion Include="Amazon.CDK.Lib" Version="2.212.0" />
     <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1" />
     <PackageVersion Include="Amazon.Lambda.Core" Version="2.7.0" />
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.13.1" />
@@ -42,6 +44,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
     <!-- third-party packages -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.2" />
+    <PackageVersion Include="Constructs" Version="10.4.2" />
     <PackageVersion Include="ZLinq" Version="1.5.2" />
     <!-- test packages -->
     <PackageVersion Include="Aspire.Hosting.Testing" Version="9.4.0" />

@@ -37,7 +37,6 @@ internal class ApiRouter : IApiRouter
             ArgumentNullException.ThrowIfNull(path);
             ArgumentNullException.ThrowIfNull(method);
 
-            // Handle CORS preflight FIRST (before authentication)
             if (method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogDebug("CORS preflight request for path: {Path}", path);
@@ -48,7 +47,7 @@ internal class ApiRouter : IApiRouter
 
             if (!resolved)
             {
-                return BadgeSmith.Api.Routing.Helpers.ResponseHelper.NotFound($"Route not found: {method} {path}");
+                return Helpers.ResponseHelper.NotFound($"Route not found: {method} {path}");
             }
 
             // Check authentication requirements
@@ -69,7 +68,7 @@ internal class ApiRouter : IApiRouter
             activity?.SetStatus(ActivityStatusCode.Error);
             activity?.AddException(ex);
             _logger.LogError(ex, "An error occurred while handling API route");
-            return BadgeSmith.Api.Routing.Helpers.ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
+            return Helpers.ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
         }
     }
 }

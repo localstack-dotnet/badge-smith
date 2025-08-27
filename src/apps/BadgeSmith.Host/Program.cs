@@ -3,12 +3,12 @@
 using Amazon;
 using Aspire.Hosting.AWS.Lambda;
 using Aspire.Hosting.LocalStack.Container;
+using BadgeSmith.Host;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 var awsConfig = builder.AddAWSSDKConfig().WithRegion(RegionEndpoint.EUCentral1);
 
-// Bootstrap the localstack container with enhanced configuration
 var localstack = builder
     .AddLocalStack(awsConfig: awsConfig, configureContainer: container =>
     {
@@ -17,13 +17,21 @@ var localstack = builder
         container.LogLevel = LocalStackLogLevel.Debug;
     });
 
+var badgeSmithStack = builder
+    .AddAWSCDKStack("BadgeSmithStackResource", scope => new BadgeSmithInfrastructureStack(scope, "badge-smith-stack"))
+    .WithReference(awsConfig);
+
+badgeSmithStack.AddOutput("TestResultsTableName", stack => stack.TestResultsTable.TableName);
+badgeSmithStack.AddOutput("NonceTableName", stack => stack.NonceTable.TableName);
+
 var badgeSmithApi = builder
     .AddAWSLambdaFunction<Projects.BadgeSmith_Api>(
         name: "BadgeSmithApi",
         lambdaHandler: "BadgeSmith.Api")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
     .WithEnvironment("DOTNET_ENVIRONMENT", builder.Environment.EnvironmentName)
-    .WithEnvironment("APP_ENABLE_OTEL", "true");
+    .WithEnvironment("APP_ENABLE_OTEL", "true")
+    .WithReference(badgeSmithStack);
 
 builder.AddAWSAPIGatewayEmulator("APIGatewayEmulator", APIGatewayType.HttpV2)
     .WithReference(badgeSmithApi, Method.Any, "/{proxy+}");

@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+    <IsAspireSharedProject>true</IsAspireSharedProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.CDK.Lib"/>
+    <PackageReference Include="Constructs"/>
+
+    <PackageReference Include="Amazon.JSII.Analyzers" PrivateAssets="all"/>
+  </ItemGroup>
+
+</Project>

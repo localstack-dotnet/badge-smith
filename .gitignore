@@ -421,3 +421,8 @@ FodyWeavers.xsd
 
 internal-docs/
 artifacts/
+
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out

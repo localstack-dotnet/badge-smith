@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.CDK.Lib"/>
+    <PackageReference Include="Constructs"/>
+
+    <PackageReference Include="Amazon.JSII.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
