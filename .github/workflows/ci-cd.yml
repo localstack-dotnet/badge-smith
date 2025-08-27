@@ -38,7 +38,7 @@ jobs:
   continuous-deployment:
     needs: build-and-test
     if: |
-      github.repository == ' localstack-dotnet/badge-smith' &&
+      github.repository == 'localstack-dotnet/badge-smith' &&
       ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
        (github.event_name == 'pull_request' && startsWith(github.head_ref, 'feature/')))
     runs-on: ubuntu-24.04-arm
