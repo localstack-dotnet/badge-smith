@@ -21,6 +21,7 @@ internal sealed class TemplatePattern : IRoutePattern
             if (part.Length >= 2 && part[0] == '{' && part[^1] == '}')
             {
                 _keys[i] = part[1..^1];
+                _literals[i] = string.Empty; // Mark as parameter segment
             }
             else
             {
@@ -53,6 +54,7 @@ internal sealed class TemplatePattern : IRoutePattern
             }
             else
             {
+                // For parameters, we need the absolute position in the original path
                 values.Set(_keys[segIdx], start: currentOffset, len: seg.Length);
             }
 

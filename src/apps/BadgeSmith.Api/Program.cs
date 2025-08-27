@@ -22,14 +22,20 @@ var routeResolver = new RouteResolver(RouteTable.Routes);
 var handlerFactory = new HandlerFactory();
 var apiRouter = new ApiRouter(logger, routeResolver, handlerFactory);
 
+var handler = BuildHandler(apiRouter);
+
 var jsonSerializer = new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>();
-var lambdaBootstrap = LambdaBootstrapBuilder
-    .Create<APIGatewayHttpApiV2ProxyRequest>((req, ctx) => FunctionCoreAsync(req, ctx, apiRouter), jsonSerializer).Build();
+var lambdaBootstrap = LambdaBootstrapBuilder.Create(handler, jsonSerializer).Build();
 
 SimplePerfLogger.Log("Lambda Initialization Complete", appStart, "Program.cs");
 
 await lambdaBootstrap.RunAsync().ConfigureAwait(false);
 return;
+
+static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttpApiV2ProxyResponse>> BuildHandler(ApiRouter apiRouter)
+{
+    return (req, ctx) => FunctionCoreAsync(req, ctx, apiRouter);
+}
 
 static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context, ApiRouter apiRouter)
 {
