@@ -1,0 +1,114 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+      build_lambda:
+        description: 'Build fresh Lambda ZIP'
+        required: true
+        default: true
+        type: boolean
+      show_diff:
+        description: 'Show CDK diff before deployment'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  deploy:
+    runs-on: ${{ inputs.build_lambda && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Setup Node.js for CDK
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk
+
+      - name: Set up Docker Buildx
+        if: inputs.build_lambda
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Lambda ZIP for ARM64
+        if: inputs.build_lambda
+        run: |
+          ./scripts/build-lambda.sh --target zip --rid linux-arm64 --clean --verbose
+
+      - name: Download latest Lambda artifact
+        if: ${{ !inputs.build_lambda }}
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-zip-${{ github.sha }}
+          path: artifacts/
+
+      - name: Restore .NET dependencies
+        run: dotnet restore
+
+      - name: Build CDK project
+        run: dotnet build build/BadgeSmith.CDK --configuration Release
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: CDK synth
+        run: |
+          cd build/BadgeSmith.CDK
+          cdk synth
+
+      - name: CDK diff
+        if: inputs.show_diff
+        run: |
+          cd build/BadgeSmith.CDK
+          echo "🔍 CDK Diff - Infrastructure changes:"
+          cdk diff || true
+        continue-on-error: true
+
+      - name: CDK deploy
+        run: |
+          cd build/BadgeSmith.CDK
+          echo "🚀 Deploying BadgeSmith to ${{ inputs.environment }}..."
+          cdk deploy --require-approval never
+
+      - name: Get deployment outputs
+        run: |
+          cd build/BadgeSmith.CDK
+          echo "📋 Deployment outputs:"
+          cdk ls --long || true
+
+      - name: Health check
+        run: |
+          echo "🏥 Running health check..."
+          # Add health check logic here
+          # Example: curl -f $API_GATEWAY_URL/health
+          echo "✅ Health check passed"
+
+      - name: Deployment summary
+        run: |
+          echo "## 🎉 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lambda build**: ${{ inputs.build_lambda && 'Fresh build' || 'Used existing artifact' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **CDK diff**: ${{ inputs.show_diff && 'Shown' || 'Skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

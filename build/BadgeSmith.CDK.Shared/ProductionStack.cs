@@ -2,10 +2,9 @@
 
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
-using Amazon.CDK.AWS.CloudFront;
-using Amazon.CDK.AWS.CloudFront.Origins;
+// using Amazon.CDK.AWS.CloudFront;
+// using Amazon.CDK.AWS.CloudFront.Origins;
 using Amazon.CDK.AWS.Lambda;
-using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
 using Function = Amazon.CDK.AWS.Lambda.Function;
@@ -21,15 +20,12 @@ public sealed class ProductionStack : Stack
 {
     public ProductionStack(Construct scope, string id, IStackProps? props = null) : base(scope, id, props)
     {
-        // Create shared infrastructure first - this provides DynamoDB tables, IAM roles, etc.
+        // Create a shared infrastructure first - this provides DynamoDB tables, IAM roles, etc.
         // Enable CDK outputs for production deployment
         SharedInfrastructure = new SharedInfrastructureStack(this, "SharedInfra", new StackProps
         {
             Description = "BadgeSmith shared infrastructure for production deployment",
         });
-
-        // S3 bucket for Lambda deployment artifacts
-        DeploymentBucket = CreateDeploymentBucket();
 
         // Lambda function with Native AOT runtime
         BadgeSmithFunction = CreateLambdaFunction();
@@ -38,7 +34,7 @@ public sealed class ProductionStack : Stack
         ApiGateway = CreateApiGateway();
 
         // CloudFront distribution for global edge caching
-        CloudFrontDistribution = CreateCloudFrontDistribution();
+        // CloudFrontDistribution = CreateCloudFrontDistribution();
 
         // Outputs for CI/CD pipeline and monitoring
         CreateOutputs();
@@ -49,32 +45,23 @@ public sealed class ProductionStack : Stack
         Tags.SetTag("CostCenter", "Engineering");
     }
 
-    private Bucket CreateDeploymentBucket()
-    {
-        return new Bucket(this, "DeploymentBucket", new BucketProps
-        {
-            RemovalPolicy = RemovalPolicy.DESTROY,
-            AutoDeleteObjects = true,
-        });
-    }
-
     private Function CreateLambdaFunction()
     {
         return new Function(this, "BadgeSmithFunction", new FunctionProps
         {
             FunctionName = "BadgeSmith",
             Runtime = Runtime.PROVIDED_AL2023,
-            Code = Code.FromBucket(DeploymentBucket, "badge-lambda.zip"),
+            Code = Code.FromAsset("../artifacts/badge-lambda-linux-arm64.zip"),
             Handler = "bootstrap", // Native AOT uses bootstrap handler
             Role = SharedInfrastructure.LambdaExecutionRole,
             Timeout = Duration.Seconds(30),
             MemorySize = 512,
-            Architecture = Architecture.X86_64,
+            Architecture = Architecture.ARM_64,
             Environment = new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["TEST_RESULTS_TABLE"] = SharedInfrastructure.TestResultsTable.TableName,
                 ["NONCE_TABLE"] = SharedInfrastructure.NonceTable.TableName,
-                ["AWS_LAMBDA_EXEC_WRAPPER"] = "/opt/otel-instrument", // For future OpenTelemetry support
+                // ["AWS_LAMBDA_EXEC_WRAPPER"] = "/opt/otel-instrument", // For future OpenTelemetry support
             },
             Description = "BadgeSmith Native AOT Lambda function for badge generation",
         });
@@ -99,35 +86,35 @@ public sealed class ProductionStack : Stack
         });
     }
 
-    private Distribution CreateCloudFrontDistribution()
-    {
-        var apiOrigin = new HttpOrigin(ApiGateway.ApiEndpoint.Replace("https://", "", StringComparison.InvariantCultureIgnoreCase));
-
-        return new Distribution(this, "BadgeSmithCloudFront", new DistributionProps
-        {
-            Comment = "BadgeSmith CDN for global badge delivery",
-            DefaultBehavior = new BehaviorOptions
-            {
-                Origin = apiOrigin,
-                ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-                CachePolicy = CachePolicy.CACHING_OPTIMIZED,
-                AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-                CachedMethods = CachedMethods.CACHE_GET_HEAD_OPTIONS,
-            },
-            AdditionalBehaviors = new Dictionary<string, IBehaviorOptions>(StringComparer.Ordinal)
-            {
-                ["/tests/results"] = new BehaviorOptions
-                {
-                    Origin = apiOrigin,
-                    ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-                    CachePolicy = CachePolicy.CACHING_DISABLED, // No caching for POST endpoints
-                    AllowedMethods = AllowedMethods.ALLOW_ALL,
-                },
-            },
-            PriceClass = PriceClass.PRICE_CLASS_100, // USA, Canada, Europe only
-            EnableIpv6 = true,
-        });
-    }
+    // private Distribution CreateCloudFrontDistribution()
+    // {
+    //     var apiOrigin = new HttpOrigin(ApiGateway.ApiEndpoint.Replace("https://", "", StringComparison.InvariantCultureIgnoreCase));
+    //
+    //     return new Distribution(this, "BadgeSmithCloudFront", new DistributionProps
+    //     {
+    //         Comment = "BadgeSmith CDN for global badge delivery",
+    //         DefaultBehavior = new BehaviorOptions
+    //         {
+    //             Origin = apiOrigin,
+    //             ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //             CachePolicy = CachePolicy.CACHING_OPTIMIZED,
+    //             AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+    //             CachedMethods = CachedMethods.CACHE_GET_HEAD_OPTIONS,
+    //         },
+    //         AdditionalBehaviors = new Dictionary<string, IBehaviorOptions>(StringComparer.Ordinal)
+    //         {
+    //             ["/tests/results"] = new BehaviorOptions
+    //             {
+    //                 Origin = apiOrigin,
+    //                 ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //                 CachePolicy = CachePolicy.CACHING_DISABLED, // No caching for POST endpoints
+    //                 AllowedMethods = AllowedMethods.ALLOW_ALL,
+    //             },
+    //         },
+    //         PriceClass = PriceClass.PRICE_CLASS_100, // USA, Canada, Europe only
+    //         EnableIpv6 = true,
+    //     });
+    // }
 
     private void CreateOutputs()
     {
@@ -137,23 +124,17 @@ public sealed class ProductionStack : Stack
             Description = "ARN of the BadgeSmith Lambda function",
         });
 
-        _ = new CfnOutput(this, "DeploymentBucketName", new CfnOutputProps
-        {
-            Value = DeploymentBucket.BucketName,
-            Description = "Name of the S3 bucket for deployments",
-        });
-
         _ = new CfnOutput(this, "ApiGatewayUrl", new CfnOutputProps
         {
             Value = ApiGateway.ApiEndpoint,
             Description = "API Gateway endpoint URL",
         });
 
-        _ = new CfnOutput(this, "CloudFrontUrl", new CfnOutputProps
-        {
-            Value = $"https://{CloudFrontDistribution.DistributionDomainName}",
-            Description = "CloudFront distribution URL for global access",
-        });
+        // _ = new CfnOutput(this, "CloudFrontUrl", new CfnOutputProps
+        // {
+        //     Value = $"https://{CloudFrontDistribution.DistributionDomainName}",
+        //     Description = "CloudFront distribution URL for global access",
+        // });
 
         _ = new CfnOutput(this, "TestResultsTableName", new CfnOutputProps
         {
@@ -173,17 +154,12 @@ public sealed class ProductionStack : Stack
     public Function BadgeSmithFunction { get; }
 
     /// <summary>
-    /// S3 bucket for storing Lambda deployment artifacts
-    /// </summary>
-    public Bucket DeploymentBucket { get; }
-
-    /// <summary>
     /// API Gateway HTTP API v2 for Lambda integration
     /// </summary>
     public HttpApi ApiGateway { get; }
 
-    /// <summary>
-    /// CloudFront distribution for global edge caching
-    /// </summary>
-    public Distribution CloudFrontDistribution { get; }
+    // /// <summary>
+    // /// CloudFront distribution for global edge caching
+    // /// </summary>
+    // public Distribution CloudFrontDistribution { get; }
 }

@@ -1,0 +1,60 @@
+name: CI Pipeline
+
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+    branches:
+      - "master"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+    branches:
+      - master
+      - "feature/*"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore .NET dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+  continuous-deployment:
+    needs: build-and-test
+    if: |
+      github.repository == ' localstack-dotnet/badge-smith' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+       (github.event_name == 'pull_request' && startsWith(github.head_ref, 'feature/')))
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Lambda ZIP for ARM64
+        run: |
+          ./scripts/build-lambda.sh --target zip --rid linux-arm64 --clean --verbose
+
+      - name: Upload Lambda artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-zip-${{ github.sha }}
+          path: artifacts/badge-lambda-linux-arm64.zip
+          retention-days: 30
