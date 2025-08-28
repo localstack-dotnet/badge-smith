@@ -38,6 +38,10 @@ jobs:
   deploy:
     runs-on: ${{ inputs.build_lambda && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write   # Required for OIDC authentication
+      contents: read    # Required to checkout code
+      actions: read     # Required to download artifacts
     env:
       NUGET_PACKAGES: ${{ format('{0}/.nuget/packages', github.workspace) }}
     steps:

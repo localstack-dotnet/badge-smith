@@ -18,6 +18,12 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]') &&
+      !contains(github.event.head_commit.message, '[skip-ci]') &&
+      !contains(github.event.head_commit.message, '[ci-skip]') &&
+      !contains(github.event.head_commit.message, '***NO_CI***')
     env:
       NUGET_PACKAGES: ${{ format('{0}/.nuget/packages', github.workspace) }}
     steps:
@@ -50,7 +56,12 @@ jobs:
     if: |
       github.repository == 'localstack-dotnet/badge-smith' &&
       ((github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-       (github.event_name == 'pull_request' && startsWith(github.head_ref, 'feature/')))
+       (github.event_name == 'pull_request' && startsWith(github.head_ref, 'feature/'))) &&
+      !contains(github.event.head_commit.message, '[skip cd]') &&
+      !contains(github.event.head_commit.message, '[cd skip]') &&
+      !contains(github.event.head_commit.message, '[skip-cd]') &&
+      !contains(github.event.head_commit.message, '[cd-skip]') &&
+      !contains(github.event.head_commit.message, '***NO_CD***')
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
