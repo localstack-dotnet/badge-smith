@@ -47,10 +47,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: github-actions-badge-smith-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: "Cache NuGet packages"
         uses: actions/cache@v4
@@ -59,11 +71,6 @@ jobs:
           key: nuget-${{ hashFiles('**/Directory.Packages.props') }}-${{ hashFiles('**/*.csproj') }}-${{ hashFiles('**/packages.lock.json') }}
           restore-keys: |
               nuget-
-
-      - name: Setup Node.js for CDK
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
 
       - name: Install AWS CDK
         run: npm install -g aws-cdk
@@ -93,13 +100,6 @@ jobs:
       - name: Build CDK project
         run: dotnet build build/BadgeSmith.CDK --configuration Release
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          role-session-name: github-actions-badge-smith-deploy
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: CDK synth
         run: |
           cd build/BadgeSmith.CDK
@@ -108,20 +108,20 @@ jobs:
       - name: CDK diff
         if: inputs.show_diff
         run: |
-          cd build/BadgeSmith.CDK
+          cd build
           echo "🔍 CDK Diff - Infrastructure changes:"
           cdk diff || true
         continue-on-error: true
 
       - name: CDK deploy
         run: |
-          cd build/BadgeSmith.CDK
+          cd build
           echo "🚀 Deploying BadgeSmith to ${{ inputs.environment }}..."
           cdk deploy --require-approval never
 
       - name: Get deployment outputs
         run: |
-          cd build/BadgeSmith.CDK
+          cd build
           echo "📋 Deployment outputs:"
           cdk ls --long || true
 
