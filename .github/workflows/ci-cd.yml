@@ -65,6 +65,7 @@ jobs:
       - name: Upload Lambda artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lambda-zip-${{ github.sha }}
+          name: lambda-zip-latest
           path: artifacts/badge-lambda-linux-arm64.zip
           retention-days: 30
+          overwrite: true

@@ -67,7 +67,7 @@ jobs:
         if: ${{ !inputs.build_lambda }}
         uses: actions/download-artifact@v4
         with:
-          name: lambda-zip-${{ github.sha }}
+          name: lambda-zip-latest
           path: artifacts/
 
       - name: Restore .NET dependencies
