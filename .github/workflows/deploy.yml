@@ -101,27 +101,26 @@ jobs:
         run: dotnet build build/BadgeSmith.CDK --configuration Release
 
       - name: CDK synth
-        run: |
-          cd build/BadgeSmith.CDK
-          cdk synth
+        working-directory: build
+        run: cdk synth
 
       - name: CDK diff
         if: inputs.show_diff
+        working-directory: build
         run: |
-          cd build
           echo "🔍 CDK Diff - Infrastructure changes:"
           cdk diff || true
         continue-on-error: true
 
       - name: CDK deploy
+        working-directory: build
         run: |
-          cd build
           echo "🚀 Deploying BadgeSmith to ${{ inputs.environment }}..."
           cdk deploy --require-approval never
 
       - name: Get deployment outputs
+        working-directory: build
         run: |
-          cd build
           echo "📋 Deployment outputs:"
           cdk ls --long || true
 
