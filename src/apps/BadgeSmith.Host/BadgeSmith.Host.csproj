@@ -20,4 +20,8 @@
     <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(SharedDir)\Constants.cs" Link="Constants.cs"/>
+  </ItemGroup>
+
 </Project>

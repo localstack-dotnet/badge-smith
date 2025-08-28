@@ -5,6 +5,7 @@ using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using BadgeSmith.CDK.Shared.Constructs;
 using Constructs;
+using static BadgeSmith.Constants;
 
 namespace BadgeSmith.Host;
 
@@ -20,7 +21,7 @@ internal sealed class BadgeSmithInfrastructureStack : Stack
     {
         // Create the shared infrastructure using the same construct as production
         // This ensures 100% identical configuration between local and production environments
-        Infrastructure = new BadgeSmithInfrastructure(this, "badge-smith-infrastructure");
+        Infrastructure = new BadgeSmithInfrastructure(this, InfrastructureConstructId);
 
         // Expose the resources through properties for easy access by Aspire
         TestResultsTable = Infrastructure.TestResultsTable;

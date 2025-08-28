@@ -1,4 +1,5 @@
 ﻿using static System.Environment;
+using static BadgeSmith.Constants;
 
 namespace BadgeSmith.Api.Observability;
 
@@ -6,7 +7,7 @@ internal static class ObservabilitySettings
 {
     private static readonly string? DotNetEnvironmentFromEnv = GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-    private const string DefaultAppName = "badge-smith-api";
+    private const string DefaultAppName = LambdaName;
     private static readonly string DefaultAppVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
     private const string DefaultDotNetEnvironment = "Production";

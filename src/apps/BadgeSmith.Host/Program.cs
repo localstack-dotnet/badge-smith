@@ -4,6 +4,7 @@ using Amazon;
 using Aspire.Hosting.AWS.Lambda;
 using Aspire.Hosting.LocalStack.Container;
 using BadgeSmith.Host;
+using static BadgeSmith.Constants;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -21,16 +22,14 @@ var badgeSmithStack = builder
     .AddAWSCDKStack("BadgeSmithStackResource", scope => new BadgeSmithInfrastructureStack(scope, "badge-smith-stack"))
     .WithReference(awsConfig);
 
-badgeSmithStack.AddOutput("TestResultsTableName", stack => stack.TestResultsTable.TableName);
-badgeSmithStack.AddOutput("NonceTableName", stack => stack.NonceTable.TableName);
+badgeSmithStack.AddOutput(TestResultsOutputTableName, stack => stack.TestResultsTable.TableName);
+badgeSmithStack.AddOutput(NonceTableOutputTableName, stack => stack.NonceTable.TableName);
 
 var badgeSmithApi = builder
-    .AddAWSLambdaFunction<Projects.BadgeSmith_Api>(
-        name: "BadgeSmithApi",
-        lambdaHandler: "BadgeSmith.Api")
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .AddAWSLambdaFunction<Projects.BadgeSmith_Api>(name: "BadgeSmithApi", lambdaHandler: "bootstrap")
     .WithEnvironment("DOTNET_ENVIRONMENT", builder.Environment.EnvironmentName)
-    .WithEnvironment("APP_ENABLE_OTEL", "true")
+    .WithEnvironment("AWS_TEST_RESULTS_TABLE", badgeSmithStack.GetOutput(TestResultsOutputTableName))
+    .WithEnvironment("AWS_NONCE_TABLE", badgeSmithStack.GetOutput(NonceTableOutputTableName))
     .WithReference(badgeSmithStack);
 
 builder.AddAWSAPIGatewayEmulator("APIGatewayEmulator", APIGatewayType.HttpV2)

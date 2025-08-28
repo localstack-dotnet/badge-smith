@@ -12,4 +12,8 @@
     <PackageReference Include="Amazon.JSII.Analyzers" PrivateAssets="all"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(SharedDir)\Constants.cs" Link="Constants.cs"/>
+  </ItemGroup>
+
 </Project>

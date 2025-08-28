@@ -5,6 +5,7 @@ using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using BadgeSmith.CDK.Shared.Constructs;
 using Constructs;
+using static BadgeSmith.Constants;
 
 namespace BadgeSmith.CDK.Shared;
 
@@ -18,26 +19,26 @@ public class SharedInfrastructureStack : Stack
     {
         // Create the shared infrastructure using the reusable construct
         // This ensures identical configuration between local and production environments
-        Infrastructure = new BadgeSmithInfrastructure(this, "Infrastructure");
+        Infrastructure = new BadgeSmithInfrastructure(this, InfrastructureConstructId);
 
         // Expose the resources through properties for easy access
         TestResultsTable = Infrastructure.TestResultsTable;
         NonceTable = Infrastructure.NonceTable;
         LambdaExecutionRole = Infrastructure.LambdaExecutionRole;
 
-        _ = new CfnOutput(this, "TestResultsTableArn", new CfnOutputProps
+        _ = new CfnOutput(this, TestResultsOutputTableArn, new CfnOutputProps
         {
             Value = TestResultsTable.TableArn,
             Description = "ARN of the test results DynamoDB table",
         });
 
-        _ = new CfnOutput(this, "NonceTableArn", new CfnOutputProps
+        _ = new CfnOutput(this, NonceTableOutputArn, new CfnOutputProps
         {
             Value = NonceTable.TableArn,
             Description = "ARN of the nonce DynamoDB table",
         });
 
-        _ = new CfnOutput(this, "LambdaExecutionRoleArn", new CfnOutputProps
+        _ = new CfnOutput(this, LambdaExecutionOutputRoleArn, new CfnOutputProps
         {
             Value = LambdaExecutionRole.RoleArn,
             Description = "ARN of the Lambda execution role",

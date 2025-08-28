@@ -16,4 +16,8 @@
     <ProjectReference Include="..\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(SharedDir)\Constants.cs" Link="Constants.cs"/>
+  </ItemGroup>
+
 </Project>

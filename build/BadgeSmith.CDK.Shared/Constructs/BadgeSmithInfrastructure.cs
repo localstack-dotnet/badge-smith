@@ -4,6 +4,7 @@ using Amazon.CDK;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using Constructs;
+using static BadgeSmith.Constants;
 using Attribute = Amazon.CDK.AWS.DynamoDB.Attribute;
 
 namespace BadgeSmith.CDK.Shared.Constructs;
@@ -20,9 +21,9 @@ public class BadgeSmithInfrastructure : Construct
         ArgumentNullException.ThrowIfNull(scope);
 
         // Test Results Table - stores badge test results with TTL
-        TestResultsTable = new Table(this, "TestResultsTable", new TableProps
+        TestResultsTable = new Table(this, TestResultsTableId, new TableProps
         {
-            TableName = "badge-test-results",
+            TableName = TestResultsTableName,
             PartitionKey = new Attribute
             {
                 Name = "PK",
@@ -56,9 +57,9 @@ public class BadgeSmithInfrastructure : Construct
         });
 
         // HMAC Nonce Table - prevents replay attacks
-        NonceTable = new Table(this, "NonceTable", new TableProps
+        NonceTable = new Table(this, NonceTableId, new TableProps
         {
-            TableName = "hmac-nonce",
+            TableName = NonceTableName,
             PartitionKey = new Attribute
             {
                 Name = "PK",
@@ -75,9 +76,9 @@ public class BadgeSmithInfrastructure : Construct
         });
 
         // Lambda Execution Role with minimal required permissions
-        LambdaExecutionRole = new Role(this, "LambdaExecutionRole", new RoleProps
+        LambdaExecutionRole = new Role(this, LambdaExecutionRoleId, new RoleProps
         {
-            RoleName = "BadgeSmithLambdaExecutionRole",
+            RoleName = LambdaExecutionRoleName,
             AssumedBy = new ServicePrincipal("lambda.amazonaws.com"),
             ManagedPolicies = [ManagedPolicy.FromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")],
             Description = "Execution role for BadgeSmith Lambda function with least privilege access",

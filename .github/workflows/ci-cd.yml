@@ -18,6 +18,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      NUGET_PACKAGES: ${{ format('{0}/.nuget/packages', github.workspace) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +27,14 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
+
+      - name: "Cache NuGet packages"
+        uses: actions/cache@v4
+        with:
+          path: ${{ format('{0}/.nuget/packages', github.workspace) }}
+          key: nuget-${{ hashFiles('**/Directory.Packages.props') }}-${{ hashFiles('**/*.csproj') }}-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            nuget-
 
       - name: Restore .NET dependencies
         run: dotnet restore

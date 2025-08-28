@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs"/>
+    <Compile Include="$(SharedDir)\Constants.cs" Link="Constants.cs"/>
   </ItemGroup>
 
   <ItemGroup>
