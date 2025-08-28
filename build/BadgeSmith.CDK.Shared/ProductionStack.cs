@@ -1,9 +1,11 @@
-#pragma warning disable CA1711
+#pragma warning disable CA1711, MA0051
 
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
-// using Amazon.CDK.AWS.CloudFront;
-// using Amazon.CDK.AWS.CloudFront.Origins;
+using Amazon.CDK.AWS.CertificateManager;
+using Amazon.CDK.AWS.CloudFront;
+using Amazon.CDK.AWS.CloudFront.Origins;
+using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
@@ -34,8 +36,11 @@ public sealed class ProductionStack : Stack
         // API Gateway HTTP API v2 for optimal performance
         ApiGateway = CreateApiGateway();
 
-        // CloudFront distribution for global edge caching
-        // CloudFrontDistribution = CreateCloudFrontDistribution();
+        // SSL Certificate for custom domain
+        Certificate = CreateSslCertificate();
+
+        // CloudFront distribution for global-edge caching with security
+        CloudFrontDistribution = CreateCloudFrontDistribution();
 
         // Outputs for CI/CD pipeline and monitoring
         CreateOutputs();
@@ -63,8 +68,8 @@ public sealed class ProductionStack : Stack
                 ["DOTNET_ENVIRONMENT"] = "Production",
                 ["APP_NAME"] = LambdaName,
                 ["APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS"] = "true",
-                ["AWS_TEST_RESULTS_TABLE"] = SharedInfrastructure.TestResultsTable.TableName,
-                ["AWS_NONCE_TABLE"] = SharedInfrastructure.NonceTable.TableName,
+                ["AWS_RESOURCE_TEST_RESULTS_TABLE"] = SharedInfrastructure.TestResultsTable.TableName,
+                ["AWS_RESOURCE_NONCE_TABLE"] = SharedInfrastructure.NonceTable.TableName,
                 // ["AWS_LAMBDA_EXEC_WRAPPER"] = "/opt/otel-instrument", // For future OpenTelemetry support
             },
             Description = "BadgeSmith Native AOT Lambda function for badge generation",
@@ -83,35 +88,97 @@ public sealed class ProductionStack : Stack
         });
     }
 
-    // private Distribution CreateCloudFrontDistribution()
-    // {
-    //     var apiOrigin = new HttpOrigin(ApiGateway.ApiEndpoint.Replace("https://", "", StringComparison.InvariantCultureIgnoreCase));
-    //
-    //     return new Distribution(this, "BadgeSmithCloudFront", new DistributionProps
-    //     {
-    //         Comment = "BadgeSmith CDN for global badge delivery",
-    //         DefaultBehavior = new BehaviorOptions
-    //         {
-    //             Origin = apiOrigin,
-    //             ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    //             CachePolicy = CachePolicy.CACHING_OPTIMIZED,
-    //             AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-    //             CachedMethods = CachedMethods.CACHE_GET_HEAD_OPTIONS,
-    //         },
-    //         AdditionalBehaviors = new Dictionary<string, IBehaviorOptions>(StringComparer.Ordinal)
-    //         {
-    //             ["/tests/results"] = new BehaviorOptions
-    //             {
-    //                 Origin = apiOrigin,
-    //                 ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    //                 CachePolicy = CachePolicy.CACHING_DISABLED, // No caching for POST endpoints
-    //                 AllowedMethods = AllowedMethods.ALLOW_ALL,
-    //             },
-    //         },
-    //         PriceClass = PriceClass.PRICE_CLASS_100, // USA, Canada, Europe only
-    //         EnableIpv6 = true,
-    //     });
-    // }
+    private Certificate CreateSslCertificate()
+    {
+        // Look up the existing hosted zone for localstackfor.net
+        var hostedZone = HostedZone.FromLookup(this, LocalStackForNetZoneHostedZoneId, new HostedZoneProviderProps
+        {
+            DomainName = "localstackfor.net",
+        });
+
+        // Create ACM certificate for api.localstackfor.net
+        // Must be in us-east-1 for CloudFront usage
+        return new Certificate(this, ApiCertificateId, new CertificateProps
+        {
+            DomainName = "api.localstackfor.net",
+            Validation = CertificateValidation.FromDns(hostedZone),
+            CertificateName = "BadgeSmith API Certificate",
+        });
+    }
+
+    private Distribution CreateCloudFrontDistribution()
+    {
+        // Generate a secure random secret for CloudFront -> API Gateway authentication
+        var cloudFrontSecret = Guid.NewGuid().ToString("N")[..16]; // 16 char secret
+
+        // Extract domain from API Gateway URL (remove https://)
+        var apiGatewayDomain = ApiGateway.ApiEndpoint.Replace("https://", "", StringComparison.OrdinalIgnoreCase);
+
+        // Create origin with a security header
+        var apiOrigin = new HttpOrigin(apiGatewayDomain, new HttpOriginProps
+        {
+            HttpPort = 443,
+            ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
+            CustomHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                // 🔐 Security: CloudFront adds this secret header to all origin requests
+                ["X-CloudFront-Secret"] = cloudFrontSecret,
+            },
+        });
+
+        // Create a custom cache policy for origin-controlled caching
+        var originControlledCachePolicy = new CachePolicy(this, CloudFrontCachePolicyId, new CachePolicyProps
+        {
+            CachePolicyName = CloudFrontCachePolicyName,
+            Comment = "Forwards all headers and respects origin Cache-Control headers completely",
+
+            // 🎯 Origin controls ALL caching decisions
+            DefaultTtl = Duration.Seconds(0), // Trust origin headers completely
+            MinTtl = Duration.Seconds(0), // Allow immediate expiration
+            MaxTtl = Duration.Hours(24), // Cap at 24-hour max
+
+            // 🚀 Forward ALL headers - maximum flexibility
+            HeaderBehavior = CacheHeaderBehavior.AllowList("*"),
+
+            // Forward all query strings
+            QueryStringBehavior = CacheQueryStringBehavior.All(),
+
+            // No cookies needed for badge API
+            CookieBehavior = CacheCookieBehavior.None(),
+
+            // Enable compression
+            EnableAcceptEncodingGzip = true,
+            EnableAcceptEncodingBrotli = true,
+        });
+
+        return new Distribution(this, CloudFrontDistributionId, new DistributionProps
+        {
+            Comment = "BadgeSmith API with origin-controlled caching and security",
+
+            // 🌍 Custom domain with SSL certificate
+            DomainNames = ["api.localstackfor.net"],
+            Certificate = Certificate,
+
+            // Default behavior - forward everything to origin
+            DefaultBehavior = new BehaviorOptions
+            {
+                Origin = apiOrigin,
+                ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                CachePolicy = originControlledCachePolicy,
+                AllowedMethods = AllowedMethods.ALLOW_ALL,
+                CachedMethods = CachedMethods.CACHE_GET_HEAD_OPTIONS,
+                Compress = true,
+            },
+
+            // Optimize for cost and performance
+            PriceClass = PriceClass.PRICE_CLASS_100, // US, Canada, Europe
+            EnableIpv6 = true,
+            HttpVersion = HttpVersion.HTTP2_AND_3,
+
+            // Security settings
+            MinimumProtocolVersion = SecurityPolicyProtocol.TLS_V1_2_2021,
+        });
+    }
 
     private void CreateOutputs()
     {
@@ -127,11 +194,17 @@ public sealed class ProductionStack : Stack
             Description = "API Gateway endpoint URL",
         });
 
-        // _ = new CfnOutput(this, "CloudFrontUrl", new CfnOutputProps
-        // {
-        //     Value = $"https://{CloudFrontDistribution.DistributionDomainName}",
-        //     Description = "CloudFront distribution URL for global access",
-        // });
+        _ = new CfnOutput(this, CloudFrontDistributionOutputUrl, new CfnOutputProps
+        {
+            Value = $"https://{CloudFrontDistribution.DistributionDomainName}",
+            Description = "CloudFront distribution URL for global access",
+        });
+
+        _ = new CfnOutput(this, CloudFrontDistributionOutputDomainUrl, new CfnOutputProps
+        {
+            Value = "https://api.localstackfor.net",
+            Description = "Custom domain URL with SSL certificate",
+        });
 
         _ = new CfnOutput(this, TestResultsOutputTableName, new CfnOutputProps
         {
@@ -161,8 +234,13 @@ public sealed class ProductionStack : Stack
     /// </summary>
     public HttpApi ApiGateway { get; }
 
-    // /// <summary>
-    // /// CloudFront distribution for global edge caching
-    // /// </summary>
-    // public Distribution CloudFrontDistribution { get; }
+    /// <summary>
+    /// SSL Certificate for api.localstackfor.net
+    /// </summary>
+    public ICertificate Certificate { get; }
+
+    /// <summary>
+    /// CloudFront distribution for global edge caching
+    /// </summary>
+    public Distribution CloudFrontDistribution { get; }
 }

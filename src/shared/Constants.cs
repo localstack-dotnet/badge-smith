@@ -38,6 +38,20 @@ internal static class Constants
 
     public const string ApiGatewayOutputUrl = "badge-smith-api";
 
+    public const string LocalStackForNetZoneHostedZoneId = "LocalStackForNetZone";
+
+    public const string ApiCertificateId = "ApiCertificate";
+
+    public const string CloudFrontCachePolicyId = "OriginControlledCachePolicy";
+
+    public const string CloudFrontCachePolicyName = "badge-smith-origin-controlled";
+
+    public const string CloudFrontDistributionId = "BadgeSmithCloudFront";
+
+    public const string CloudFrontDistributionOutputUrl = "CloudFrontUrl";
+
+    public const string CloudFrontDistributionOutputDomainUrl = "CustomDomainUrl";
+
     public const string InfrastructureConstructId = "badge-smith-infra-construct";
 
     public const string ProductionStackId = "badge-smith-stack";
