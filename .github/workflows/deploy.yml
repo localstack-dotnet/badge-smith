@@ -13,13 +13,23 @@ on:
       build_lambda:
         description: 'Build fresh Lambda ZIP'
         required: true
-        default: true
+        default: false
         type: boolean
       show_diff:
         description: 'Show CDK diff before deployment'
         required: true
         default: true
         type: boolean
+      artifact_name:
+        description: 'Lambda artifact name (leave empty for latest)'
+        required: false
+        default: ''
+        type: string
+      source_branch:
+        description: 'Branch to download artifact from'
+        required: false
+        default: 'master'
+        type: string
 
 env:
   AWS_REGION: eu-central-1
@@ -63,11 +73,14 @@ jobs:
         run: |
           ./scripts/build-lambda.sh --target zip --rid linux-arm64 --clean --verbose
 
-      - name: Download latest Lambda artifact
+      - name: Download Lambda artifact
         if: ${{ !inputs.build_lambda }}
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v6
         with:
-          name: lambda-zip-latest
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci-cd.yml
+          branch: ${{ inputs.source_branch }}
+          name: ${{ inputs.artifact_name != '' && inputs.artifact_name || 'lambda-zip-latest' }}
           path: artifacts/
 
       - name: Restore .NET dependencies
@@ -119,6 +132,6 @@ jobs:
         run: |
           echo "## 🎉 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Lambda build**: ${{ inputs.build_lambda && 'Fresh build' || 'Used existing artifact' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lambda build**: ${{ inputs.build_lambda && 'Fresh build' || format('Used artifact: {0}', inputs.artifact_name != '' && inputs.artifact_name || 'lambda-zip-latest') }}" >> $GITHUB_STEP_SUMMARY
           echo "- **CDK diff**: ${{ inputs.show_diff && 'Shown' || 'Skipped' }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
