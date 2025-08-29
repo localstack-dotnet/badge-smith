@@ -1,4 +1,7 @@
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Amazon.Lambda.APIGatewayEvents;
@@ -12,6 +15,9 @@ namespace BadgeSmith.Api.Routing.Helpers;
 /// </summary>
 internal static class ResponseHelper
 {
+    [StructLayout(LayoutKind.Auto)]
+    internal readonly record struct CacheSettings(int SMaxAgeSeconds = 60, int MaxAgeSeconds = 10, int StaleWhileRevalidateSeconds = 30, int StaleIfErrorSeconds = 24 * 60 * 60);
+
     /// <summary>
     /// Creates a custom HTTP response with the specified status code and optional body/headers.
     /// </summary>
@@ -59,6 +65,27 @@ internal static class ResponseHelper
         return CreateResponse(statusCode, JsonSerializer.Serialize(responseObject, jsonTypeInfo), customHeaders);
     }
 
+    public static APIGatewayHttpApiV2ProxyResponse OkCached<T>(
+        T responseObject,
+        JsonTypeInfo<T> jsonTypeInfo,
+        string? ifNoneMatchHeader = null,
+        CacheSettings? cache = null,
+        DateTimeOffset? lastModifiedUtc = null)
+    {
+        var settings = cache ?? new CacheSettings();
+        var body = JsonSerializer.Serialize(responseObject, jsonTypeInfo);
+        var etag = ComputeStrongEtag(body);
+
+        if (IfNoneMatchMatches(ifNoneMatchHeader, etag))
+        {
+            return CreateResponse(HttpStatusCode.NotModified, responseBody: null,
+                customHeaders: () => BuildCacheHeaders(etag, settings, lastModifiedUtc));
+        }
+
+        return CreateResponse(HttpStatusCode.OK, body,
+            customHeaders: () => BuildCacheHeaders(etag, settings, lastModifiedUtc));
+    }
+
     /// <summary>
     /// Creates a successful 200 OK response with additional headers.
     /// </summary>
@@ -85,10 +112,10 @@ internal static class ResponseHelper
     /// <param name="status">The health status message.</param>
     /// <param name="timestamp">The timestamp when the health check was performed.</param>
     /// <returns>An API Gateway HTTP response with status 200 OK containing health information.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse OkHealth(string status, DateTimeOffset timestamp)
+    public static APIGatewayHttpApiV2ProxyResponse OkHealthWithNoCache(string status, DateTimeOffset timestamp)
     {
         var response = new HealthCheckResponse(status, timestamp);
-        return CreateResponse(HttpStatusCode.OK, response, LambdaFunctionJsonSerializerContext.Default.HealthCheckResponse);
+        return CreateResponse(HttpStatusCode.OK, response, LambdaFunctionJsonSerializerContext.Default.HealthCheckResponse, () => NoCacheHeaders());
     }
 
     /// <summary>
@@ -184,6 +211,58 @@ internal static class ResponseHelper
         return CreateResponse(HttpStatusCode.Found, responseBody: null, customHeaders: () => headers);
     }
 
+    public static APIGatewayHttpApiV2ProxyResponse Redirect(
+        string location,
+        HttpStatusCode status = HttpStatusCode.Found,
+        int? sMaxAge = null,
+        int? maxAge = null,
+        int? staleWhileRevalidate = null,
+        int? staleIfError = null,
+        bool noStore = false)
+    {
+        if (string.IsNullOrWhiteSpace(location))
+        {
+            throw new ArgumentException("Location cannot be null/empty.", nameof(location));
+        }
+
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Location"] = location,
+        };
+
+        if (noStore)
+        {
+            headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+        }
+        else if (sMaxAge.HasValue || maxAge.HasValue || staleWhileRevalidate.HasValue || staleIfError.HasValue)
+        {
+            var cc = "public";
+            if (sMaxAge.HasValue)
+            {
+                cc += $", s-maxage={sMaxAge.Value}";
+            }
+
+            if (maxAge.HasValue)
+            {
+                cc += $", max-age={maxAge.Value}";
+            }
+
+            if (staleWhileRevalidate.HasValue)
+            {
+                cc += $", stale-while-revalidate={staleWhileRevalidate.Value}";
+            }
+
+            if (staleIfError.HasValue)
+            {
+                cc += $", stale-if-error={staleIfError.Value}";
+            }
+
+            headers["Cache-Control"] = cc;
+        }
+
+        return CreateResponse(status, responseBody: null, () => headers);
+    }
+
     /// <summary>
     /// Creates a CORS preflight response for OPTIONS requests with additional headers.
     /// </summary>
@@ -191,4 +270,82 @@ internal static class ResponseHelper
     /// <returns>An API Gateway HTTP response with status 200 OK and appropriate CORS headers.</returns>
     public static APIGatewayHttpApiV2ProxyResponse OptionsResponse(Func<Dictionary<string, string>>? customHeaders = null) =>
         CreateResponse(HttpStatusCode.NoContent, responseBody: null, customHeaders);
+
+    public static Dictionary<string, string> NoCacheHeaders(string contentType = "application/json; charset=utf-8")
+        => new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Cache-Control"] = "no-store, no-cache, must-revalidate",
+            ["Pragma"] = "no-cache",
+            ["Expires"] = "0",
+            ["Content-Type"] = contentType,
+        };
+
+    private static string ComputeStrongEtag(string payload)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(payload));
+        var hex = Convert.ToHexString(hash);
+        return $"\"{hex}\"";
+    }
+
+    private static bool IfNoneMatchMatches(string? ifNoneMatchHeader, string etag)
+    {
+        if (string.IsNullOrWhiteSpace(ifNoneMatchHeader))
+        {
+            return false;
+        }
+
+        var v = ifNoneMatchHeader.Trim();
+
+        if (string.Equals(v, "*", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        foreach (var token in v.Split(','))
+        {
+            var t = token.Trim();
+
+            if (t.StartsWith("W/", StringComparison.OrdinalIgnoreCase))
+            {
+                t = t[2..].Trim();
+            }
+
+            var isQuoted = t is ['"', _, ..] && t[^1] == '"';
+            if (!isQuoted)
+            {
+                t = $"\"{t}\"";
+            }
+
+            if (string.Equals(t, etag, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static Dictionary<string, string> BuildCacheHeaders(
+        string etag,
+        in CacheSettings s,
+        DateTimeOffset? lastModifiedUtc = null,
+        string contentType = "application/json; charset=utf-8")
+    {
+        var cacheControlValue =
+            $"public, s-maxage={s.SMaxAgeSeconds}, max-age={s.MaxAgeSeconds}, stale-while-revalidate={s.StaleWhileRevalidateSeconds}, stale-if-error={s.StaleIfErrorSeconds}";
+
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Cache-Control"] = cacheControlValue,
+            ["ETag"] = etag,
+            ["Content-Type"] = contentType,
+        };
+
+        if (lastModifiedUtc.HasValue)
+        {
+            headers["Last-Modified"] = lastModifiedUtc.Value.ToUniversalTime().ToString("R");
+        }
+
+        return headers;
+    }
 }

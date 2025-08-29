@@ -26,28 +26,30 @@ internal class ApiRouter : IApiRouter
         _corsHandler = corsHandler;
     }
 
-    public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(string path, string method, IDictionary<string, string>? headers, CancellationToken ct = default)
+    public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(APIGatewayHttpApiV2ProxyRequest request, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(ApiRouter)}.{nameof(RouteAsync)}");
 
         try
         {
+            ArgumentNullException.ThrowIfNull(request);
+
             _logger.LogInformation("API route request received");
 
-            ArgumentNullException.ThrowIfNull(path);
-            ArgumentNullException.ThrowIfNull(method);
+            var httpMethod = request.RequestContext.Http.Method ?? "UNKNOWN";
+            var path = request.RequestContext.Http.Path ?? "/";
 
-            if (method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+            if (httpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogDebug("CORS preflight request for path: {Path}", path);
-                return _corsHandler.HandlePreflight(headers, path);
+                return _corsHandler.HandlePreflight(request.Headers, path);
             }
 
-            var resolved = _routeResolver.TryResolve(method, path, out var routeMatch);
+            var resolved = _routeResolver.TryResolve(httpMethod, path, out var routeMatch);
 
             if (!resolved)
             {
-                return Helpers.ResponseHelper.NotFound($"Route not found: {method} {path}");
+                return Helpers.ResponseHelper.NotFound($"Route not found: {httpMethod} {path}");
             }
 
             // Check authentication requirements
@@ -59,7 +61,7 @@ internal class ApiRouter : IApiRouter
 
             var routeHandler = routeMatch.Descriptor.HandlerFactory(_handlerFactory);
 
-            var routeContextSnapshot = RouteContextSnapshot.FromMatch(method, path, routeMatch);
+            var routeContextSnapshot = new RouteContext(request, routeMatch.Values.ToImmutableDictionary());
 
             var apiGatewayHttpApiV2ProxyResponse = await routeHandler.HandleAsync(routeContextSnapshot, ct).ConfigureAwait(false);
             _corsHandler.ApplyResponseHeaders(apiGatewayHttpApiV2ProxyResponse.Headers);

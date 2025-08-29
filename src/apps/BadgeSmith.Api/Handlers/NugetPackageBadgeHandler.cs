@@ -19,16 +19,29 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
         _logger = logger;
     }
 
-    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default)
+    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}");
-
         _logger.LogInformation("Nuget packages badge request received");
+
+        routeContext.Request.Headers.TryGetValue("if-none-match", out var ifNoneMatch);
+
+        var cache = new ResponseHelper.CacheSettings(
+            SMaxAgeSeconds: 10, // CloudFront caches 60s
+            MaxAgeSeconds: 5, // browsers 10s
+            StaleWhileRevalidateSeconds: 15,
+            StaleIfErrorSeconds: 60);
 
         var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "nuget", "1.0.0", "blue", NamedLogo: "nuget");
 
-        await Task.Yield(); // Ensure we're truly async
+        await Task.Yield();
 
-        return ResponseHelper.Ok(shieldsBadgeResponse, LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse);
+        return ResponseHelper.OkCached(
+            shieldsBadgeResponse,
+            LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
+            ifNoneMatchHeader: ifNoneMatch,
+            cache: cache,
+            lastModifiedUtc: null // set to a real value when you have ‘updatedAt’
+        );
     }
 }

@@ -1,26 +1,18 @@
-﻿namespace BadgeSmith.Api.Routing;
+﻿using Amazon.Lambda.APIGatewayEvents;
 
-internal readonly ref struct RouteContext
+namespace BadgeSmith.Api.Routing;
+
+internal sealed class RouteContext
 {
-    public RouteContext(string method, string path, RouteMatch match)
+    public APIGatewayHttpApiV2ProxyRequest Request { get; }
+
+    public IReadOnlyDictionary<string, string> RouteValues { get; }
+
+    public RouteContext(APIGatewayHttpApiV2ProxyRequest request, IReadOnlyDictionary<string, string> routeValues)
     {
-        Method = method;
-        Path = path;
-        Values = match.Values;
-        Descriptor = match.Descriptor;
+        Request = request;
+        RouteValues = routeValues;
     }
 
-    public string Method { get; }
-
-    public string Path { get; }
-
-    public RouteValues Values { get; }
-
-    public RouteDescriptor Descriptor { get; }
-
-    public bool TryGetRouteValue(string name, out string? value) => Values.TryGetString(name, out value);
-
-    public bool TryGetRouteSpan(string name, out ReadOnlySpan<char> span) => Values.TryGetSpan(name, out span);
-
-    public RouteContextSnapshot ToSnapshot() => RouteContextSnapshot.FromValues(Method, Path, Descriptor, Values);
+    public bool TryGetRouteValue(string name, out string? value) => RouteValues.TryGetValue(name, out value);
 }

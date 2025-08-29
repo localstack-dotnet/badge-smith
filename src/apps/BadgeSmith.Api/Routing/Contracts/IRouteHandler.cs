@@ -14,5 +14,5 @@ internal interface IRouteHandler
     /// <param name="routeContext">Route context snapshot containing request data and route parameters</param>
     /// <param name="ct">Cancellation token to support request cancellation and timeout handling</param>
     /// <returns>A task that resolves to an API Gateway HTTP response with status code, headers, and body</returns>
-    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default);
+    public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default);
 }

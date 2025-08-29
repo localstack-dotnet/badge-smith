@@ -33,6 +33,9 @@ static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttp
 
 static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context, ApiRouter apiRouter)
 {
+    var timeout = context.RemainingTime.Subtract(TimeSpan.FromSeconds(5));
+    using var cts = new CancellationTokenSource(timeout);
+
     var httpMethod = request.RequestContext.Http.Method ?? "UNKNOWN";
     var path = request.RequestContext.Http.Path ?? "/";
 
@@ -42,7 +45,7 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
 
     try
     {
-        return await apiRouter.RouteAsync(path, httpMethod, request.Headers).ConfigureAwait(false);
+        return await apiRouter.RouteAsync(request, cts.Token).ConfigureAwait(false);
     }
     catch (Exception ex)
     {

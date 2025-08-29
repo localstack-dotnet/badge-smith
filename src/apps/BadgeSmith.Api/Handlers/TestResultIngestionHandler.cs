@@ -17,7 +17,7 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
         _logger = logger;
     }
 
-    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default)
+    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultIngestionHandler)}.{nameof(HandleAsync)}");
 
@@ -25,6 +25,8 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
 
         await Task.Yield(); // Ensure we're truly async
 
-        return ResponseHelper.Created("""{"test_result_id":"badge-smith-test-result-id"}""");
+        var noCacheHeaders = ResponseHelper.NoCacheHeaders("application/json; charset=utf-8");
+
+        return ResponseHelper.Created("""{"test_result_id":"badge-smith-test-result-id"}""", () => noCacheHeaders);
     }
 }

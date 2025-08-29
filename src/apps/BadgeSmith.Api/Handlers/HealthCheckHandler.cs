@@ -17,7 +17,7 @@ internal class HealthCheckHandler : IHealthCheckHandler
         _logger = logger;
     }
 
-    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default)
+    public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(HealthCheckHandler)}.{nameof(HandleAsync)}");
 
@@ -25,6 +25,6 @@ internal class HealthCheckHandler : IHealthCheckHandler
 
         await Task.Yield(); // Ensure we're truly async
 
-        return ResponseHelper.OkHealth("Healthy", DateTimeOffset.UtcNow);
+        return ResponseHelper.OkHealthWithNoCache("Healthy", DateTimeOffset.UtcNow);
     }
 }

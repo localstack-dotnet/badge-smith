@@ -89,7 +89,7 @@ internal static class RouteTestBuilder
     /// </summary>
     private sealed class MockRouteHandler : IRouteHandler
     {
-        public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContextSnapshot routeContext, CancellationToken ct = default)
+        public Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
         {
             var response = new APIGatewayHttpApiV2ProxyResponse
             {
