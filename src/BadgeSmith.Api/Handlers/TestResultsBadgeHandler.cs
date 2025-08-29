@@ -29,8 +29,8 @@ internal class TestResultsBadgeHandler : ITestResultsBadgeHandler
         var cache = new ResponseHelper.CacheSettings(
             SMaxAgeSeconds: 10, // CloudFront caches 60s
             MaxAgeSeconds: 5, // browsers 10s
-            StaleWhileRevalidateSeconds: 15,
-            StaleIfErrorSeconds: 60);
+            SwrSeconds: 15,
+            SieSeconds: 60);
 
         var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "tests", "100 passed", "green");
 

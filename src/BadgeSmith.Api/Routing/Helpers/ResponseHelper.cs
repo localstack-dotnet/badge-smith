@@ -16,7 +16,7 @@ namespace BadgeSmith.Api.Routing.Helpers;
 internal static class ResponseHelper
 {
     [StructLayout(LayoutKind.Auto)]
-    internal readonly record struct CacheSettings(int SMaxAgeSeconds = 60, int MaxAgeSeconds = 10, int StaleWhileRevalidateSeconds = 30, int StaleIfErrorSeconds = 24 * 60 * 60);
+    internal readonly record struct CacheSettings(int SMaxAgeSeconds = 60, int MaxAgeSeconds = 10, int SwrSeconds = 30, int SieSeconds = 24 * 60 * 60);
 
     /// <summary>
     /// Creates a custom HTTP response with the specified status code and optional body/headers.
@@ -27,17 +27,13 @@ internal static class ResponseHelper
     /// <returns>An API Gateway HTTP response with the specified parameters.</returns>
     public static APIGatewayHttpApiV2ProxyResponse CreateResponse(HttpStatusCode statusCode, string? responseBody = null, Func<Dictionary<string, string>>? customHeaders = null)
     {
-        var headers = customHeaders?.Invoke();
+        var headers = customHeaders?.Invoke() ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse
         {
             StatusCode = (int)statusCode,
+            Headers = headers,
         };
-
-        if (headers != null && headers.Count != 0)
-        {
-            apiGatewayHttpApiV2ProxyResponse.Headers = headers;
-        }
 
         if (responseBody != null)
         {
@@ -165,6 +161,15 @@ internal static class ResponseHelper
     /// <returns>An API Gateway HTTP response with the status 404 Not Found.</returns>
     public static APIGatewayHttpApiV2ProxyResponse NotFound(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
         CreateResponse(HttpStatusCode.NotFound, responseBody, customHeaders);
+
+    /// <summary>
+    /// Creates a 404 Not Found response with additional headers.
+    /// </summary>
+    /// <param name="errorResponse">The error response object containing error details to serialize in the response body.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
+    /// <returns>An API Gateway HTTP response with status 400 Bad Request containing the serialized error response.</returns>
+    public static APIGatewayHttpApiV2ProxyResponse NotFound(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.NotFound, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);
 
     /// <summary>
     /// Creates a 500 Internal Server Error response with additional headers.
@@ -332,7 +337,7 @@ internal static class ResponseHelper
         string contentType = "application/json; charset=utf-8")
     {
         var cacheControlValue =
-            $"public, s-maxage={s.SMaxAgeSeconds}, max-age={s.MaxAgeSeconds}, stale-while-revalidate={s.StaleWhileRevalidateSeconds}, stale-if-error={s.StaleIfErrorSeconds}";
+            $"public, s-maxage={s.SMaxAgeSeconds}, max-age={s.MaxAgeSeconds}, stale-while-revalidate={s.SwrSeconds}, stale-if-error={s.SieSeconds}";
 
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {

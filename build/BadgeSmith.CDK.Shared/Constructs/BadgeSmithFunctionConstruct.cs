@@ -30,7 +30,7 @@ public class BadgeSmithFunctionConstruct : Construct
             Handler = "bootstrap", // Native AOT uses bootstrap handler
             Role = lambdaExecutionRole,
             Timeout = Duration.Seconds(30),
-            MemorySize = 512,
+            MemorySize = 256,
             Architecture = Architecture.ARM_64,
             Environment = new Dictionary<string, string>(StringComparer.Ordinal)
             {

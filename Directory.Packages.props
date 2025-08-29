@@ -45,6 +45,9 @@
     <!-- third-party packages -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.2"/>
     <PackageVersion Include="Constructs" Version="10.4.2"/>
+    <PackageVersion Include="NuGet.Versioning" Version="6.14.0" />
+    <PackageVersion Include="OneOf" Version="3.0.271" />
+    <PackageVersion Include="OneOf.SourceGenerator" Version="3.0.271" />
     <PackageVersion Include="ZLinq" Version="1.5.2"/>
     <!-- test packages -->
     <PackageVersion Include="Aspire.Hosting.Testing" Version="9.4.0"/>

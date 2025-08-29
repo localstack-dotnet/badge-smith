@@ -1,5 +1,6 @@
 ﻿#pragma warning disable S125, RCS1093
 
+using BadgeSmith.Api.Domain.Services.Nuget;
 using BadgeSmith.Api.Observability;
 
 namespace BadgeSmith.Api.Handlers;
@@ -44,7 +45,9 @@ internal class HandlerFactory : IHandlerFactory
     private static NugetPackageBadgeHandler CreateNugetPackageBadgeHandler()
     {
         var logger = LoggerFactory.CreateLogger<NugetPackageBadgeHandler>();
-        return new NugetPackageBadgeHandler(logger);
+        var nugetPackageServiceFactory = new NugetPackageServiceFactory();
+
+        return new NugetPackageBadgeHandler(logger, nugetPackageServiceFactory);
     }
 
     private static GithubPackagesBadgeHandler CreateGithubPackagesBadgeHandler()
