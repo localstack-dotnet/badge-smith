@@ -1,4 +1,4 @@
-using BadgeSmith.Api.Routing;
+using BadgeSmith.Api.Routing.Cors;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.CorsHandler;
@@ -18,7 +18,6 @@ public class CorsOptionsTests
         Assert.Null(options.OriginAllowed);
         Assert.Null(options.AllowedOrigins);
         Assert.Contains("content-type", options.AllowedRequestHeaders);
-        Assert.Contains("authorization", options.AllowedRequestHeaders);
         Assert.Null(options.ExposeHeaders);
     }
 

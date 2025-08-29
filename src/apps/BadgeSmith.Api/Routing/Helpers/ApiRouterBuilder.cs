@@ -2,6 +2,7 @@
 using BadgeSmith.Api.Handlers;
 using BadgeSmith.Api.Observability;
 using BadgeSmith.Api.Observability.Loggers;
+using BadgeSmith.Api.Routing.Cors;
 
 namespace BadgeSmith.Api.Routing.Helpers;
 

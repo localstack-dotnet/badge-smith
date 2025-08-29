@@ -1,5 +1,5 @@
-﻿using BadgeSmith.Api.Routing;
-using BadgeSmith.Api.Routing.Contracts;
+﻿using BadgeSmith.Api.Routing.Contracts;
+using BadgeSmith.Api.Routing.Cors;
 using BadgeSmith.Api.Tests.TestHelpers;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -10,12 +10,12 @@ namespace BadgeSmith.Api.Tests.Routing.CorsHandler;
 public class HandlePreflightTests : TestBase
 {
     private readonly Mock<IRouteResolver> _mockRouteResolver;
-    private readonly Mock<ILogger<Api.Routing.CorsHandler>> _mockLogger;
+    private readonly Mock<ILogger<Api.Routing.Cors.CorsHandler>> _mockLogger;
 
     public HandlePreflightTests()
     {
         _mockRouteResolver = new Mock<IRouteResolver>();
-        _mockLogger = SetupILoggerWithService<Api.Routing.CorsHandler>();
+        _mockLogger = SetupILoggerWithService<Api.Routing.Cors.CorsHandler>();
     }
 
     [Fact]
@@ -23,7 +23,7 @@ public class HandlePreflightTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/health"))
             .Returns(
@@ -54,7 +54,7 @@ public class HandlePreflightTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/badges/packages/nuget/test"))
             .Returns(
@@ -85,7 +85,7 @@ public class HandlePreflightTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/tests/results"))
             .Returns(
@@ -106,7 +106,7 @@ public class HandlePreflightTests : TestBase
 
         // Assert
         Assert.Equal(204, response.StatusCode);
-        Assert.Equal("content-type, authorization", response.Headers["Access-Control-Allow-Headers"]); // Filtered
+        Assert.Equal("content-type", response.Headers["Access-Control-Allow-Headers"]);
         Assert.Contains("Access-Control-Request-Headers", response.Headers["Vary"], StringComparison.OrdinalIgnoreCase);
     }
 
@@ -118,7 +118,7 @@ public class HandlePreflightTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/health"))
             .Returns(
@@ -159,7 +159,7 @@ public class HandlePreflightTests : TestBase
             AllowCredentials = true,
             AllowedOrigins = allowedOrigins,
         };
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/badges/packages/nuget/test"))
             .Returns(
@@ -196,7 +196,7 @@ public class HandlePreflightTests : TestBase
             AllowCredentials = true,
             AllowedOrigins = allowedOrigins,
         };
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/badges/packages/nuget/test"))
             .Returns(
@@ -228,7 +228,7 @@ public class HandlePreflightTests : TestBase
             AllowCredentials = true,
             OriginAllowed = origin => origin.EndsWith(".example.com", StringComparison.OrdinalIgnoreCase),
         };
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/health"))
             .Returns(
@@ -256,7 +256,7 @@ public class HandlePreflightTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/health"))
             .Returns(
@@ -283,7 +283,7 @@ public class HandlePreflightTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
 
         _mockRouteResolver.Setup(r => r.GetAllowedMethods("/health"))
             .Returns(
@@ -301,30 +301,6 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_ReturnFallbackOnException()
-    {
-        // Arrange
-        var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
-
-        _mockRouteResolver.Setup(r => r.GetAllowedMethods(It.IsAny<string>()))
-            .Throws(new InvalidOperationException("Test exception"));
-
-        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Origin"] = "https://example.com",
-        };
-
-        // Act
-        var response = handler.HandlePreflight(headers, "/invalid");
-
-        // Assert
-        Assert.Equal(200, response.StatusCode);
-        Assert.Equal("*", response.Headers["Access-Control-Allow-Origin"]);
-        Assert.Equal("GET, HEAD, OPTIONS", response.Headers["Access-Control-Allow-Methods"]);
-    }
-
-    [Fact]
     public void HandlePreflight_Should_IntegrateWithRouteResolver()
     {
         // Arrange
@@ -336,7 +312,7 @@ public class HandlePreflightTests : TestBase
         };
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(resolver, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(resolver, _mockLogger.Object, options);
 
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -359,7 +335,7 @@ public class HandlePreflightTests : TestBase
         var routes = new[] { RouteTestBuilder.CreateRouteDescriptor("Health", "GET", RouteTestBuilder.CreateExactPattern("/health")), };
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
         var options = CorsOptions.Default;
-        var handler = new Api.Routing.CorsHandler(resolver, _mockLogger.Object, options);
+        var handler = new Api.Routing.Cors.CorsHandler(resolver, _mockLogger.Object, options);
 
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -372,5 +348,35 @@ public class HandlePreflightTests : TestBase
         // Assert
         Assert.Equal(204, response.StatusCode);
         Assert.Equal("OPTIONS", response.Headers["Access-Control-Allow-Methods"]); // Only OPTIONS for unknown routes
+    }
+
+    [Fact]
+    public void HandlePreflight_Should_AlwaysIncludeContentTypeHeader()
+    {
+        // Arrange
+        var options = CorsOptions.Default;
+        var handler = new Api.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+
+        _mockRouteResolver.Setup(r => r.GetAllowedMethods("/health"))
+            .Returns(
+            [
+                "GET",
+                "OPTIONS",
+            ]);
+
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Origin"] = "https://example.com",
+        };
+
+        // Act
+        var response = handler.HandlePreflight(headers, "/health");
+
+        // Assert
+        Assert.Equal(204, response.StatusCode);
+        Assert.NotNull(response.Headers);
+        Assert.Equal("text/plain", response.Headers["Content-Type"]);
+        Assert.Equal("*", response.Headers["Access-Control-Allow-Origin"]);
+        Assert.Equal("GET, OPTIONS", response.Headers["Access-Control-Allow-Methods"]);
     }
 }

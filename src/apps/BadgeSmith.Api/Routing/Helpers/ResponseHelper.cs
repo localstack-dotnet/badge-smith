@@ -12,27 +12,33 @@ namespace BadgeSmith.Api.Routing.Helpers;
 /// </summary>
 internal static class ResponseHelper
 {
-    private static readonly Dictionary<string, string> DefaultHeaders = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Content-Type"] = "application/json",
-        ["Access-Control-Allow-Origin"] = "*",
-    };
-
     /// <summary>
     /// Creates a custom HTTP response with the specified status code and optional body/headers.
     /// </summary>
     /// <param name="statusCode">The HTTP status code.</param>
     /// <param name="responseBody">The optional response body content.</param>
-    /// <param name="additionalHeaders">Additional headers to merge with default headers. These override defaults if keys match.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with the specified parameters.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse CreateResponse(HttpStatusCode statusCode, string? responseBody = null, IDictionary<string, string>? additionalHeaders = null)
+    public static APIGatewayHttpApiV2ProxyResponse CreateResponse(HttpStatusCode statusCode, string? responseBody = null, Func<Dictionary<string, string>>? customHeaders = null)
     {
-        return new APIGatewayHttpApiV2ProxyResponse
+        var headers = customHeaders?.Invoke();
+
+        var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse
         {
             StatusCode = (int)statusCode,
-            Body = responseBody,
-            Headers = MergeHeaders(additionalHeaders),
         };
+
+        if (headers != null && headers.Count != 0)
+        {
+            apiGatewayHttpApiV2ProxyResponse.Headers = headers;
+        }
+
+        if (responseBody != null)
+        {
+            apiGatewayHttpApiV2ProxyResponse.Body = responseBody;
+        }
+
+        return apiGatewayHttpApiV2ProxyResponse;
     }
 
     /// <summary>
@@ -42,56 +48,25 @@ internal static class ResponseHelper
     /// <param name="statusCode">The HTTP status code.</param>
     /// <param name="responseObject">The object to serialize as the response body.</param>
     /// <param name="jsonTypeInfo">The JSON type info for AOT serialization.</param>
-    /// <param name="additionalHeaders">Additional headers to merge with default headers.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with the serialized object body.</returns>
     public static APIGatewayHttpApiV2ProxyResponse CreateResponse<T>(
         HttpStatusCode statusCode,
         T responseObject,
         JsonTypeInfo<T> jsonTypeInfo,
-        IDictionary<string, string>? additionalHeaders = null)
+        Func<Dictionary<string, string>>? customHeaders = null)
     {
-        return CreateResponse(statusCode, JsonSerializer.Serialize(responseObject, jsonTypeInfo), additionalHeaders);
+        return CreateResponse(statusCode, JsonSerializer.Serialize(responseObject, jsonTypeInfo), customHeaders);
     }
-
-    /// <summary>
-    /// Create a response with a specific content type (handy for OPTIONS/204 or HTML/CSV).
-    /// </summary>
-    /// <param name="statusCode">The HTTP status code.</param>
-    /// <param name="responseBody">The optional response body content.</param>
-    /// <param name="contentType">The content type of the response.</param>
-    /// <param name="additionalHeaders">Additional headers to merge with default headers. These override defaults if keys match.</param>
-    public static APIGatewayHttpApiV2ProxyResponse CreateRawResponse(
-        HttpStatusCode statusCode,
-        string? responseBody = null,
-        string contentType = "text/plain",
-        IDictionary<string, string>? additionalHeaders = null)
-    {
-        var headers = MergeHeaders(additionalHeaders);
-        headers["Content-Type"] = contentType;
-        return new APIGatewayHttpApiV2ProxyResponse
-        {
-            StatusCode = (int)statusCode,
-            Body = responseBody,
-            Headers = headers,
-        };
-    }
-
-    /// <summary>
-    /// Creates a successful 200 OK response.
-    /// </summary>
-    /// <param name="responseBody">The optional response body content.</param>
-    /// <returns>An API Gateway HTTP response with status 200 OK.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody = null) =>
-        CreateResponse(HttpStatusCode.OK, responseBody);
 
     /// <summary>
     /// Creates a successful 200 OK response with additional headers.
     /// </summary>
     /// <param name="responseBody">The optional response body content.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 200 OK.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody, IDictionary<string, string> additionalHeaders) =>
-        CreateResponse(HttpStatusCode.OK, responseBody, additionalHeaders);
+    public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.OK, responseBody, customHeaders);
 
     /// <summary>
     /// Creates a successful 200 OK response with a serialized object.
@@ -99,10 +74,10 @@ internal static class ResponseHelper
     /// <typeparam name="T">The type of the response object.</typeparam>
     /// <param name="responseObject">The object to serialize as the response body.</param>
     /// <param name="jsonTypeInfo">The JSON type info for AOT serialization.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 200 OK containing the serialized object.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse Ok<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo, IDictionary<string, string>? additionalHeaders = null) =>
-        CreateResponse(HttpStatusCode.OK, responseObject, jsonTypeInfo, additionalHeaders);
+    public static APIGatewayHttpApiV2ProxyResponse Ok<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.OK, responseObject, jsonTypeInfo, customHeaders);
 
     /// <summary>
     /// Creates a successful 200 OK response with health check information.
@@ -117,21 +92,13 @@ internal static class ResponseHelper
     }
 
     /// <summary>
-    /// Creates a 201 Created response.
-    /// </summary>
-    /// <param name="responseBody">The response body content.</param>
-    /// <returns>An API Gateway HTTP response with status 201 Created.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse Created(string responseBody) =>
-        CreateResponse(HttpStatusCode.Created, responseBody);
-
-    /// <summary>
     /// Creates a 201 Created response with additional headers.
     /// </summary>
     /// <param name="responseBody">The response body content.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 201 Created.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse Created(string responseBody, IDictionary<string, string> additionalHeaders) =>
-        CreateResponse(HttpStatusCode.Created, responseBody, additionalHeaders);
+    public static APIGatewayHttpApiV2ProxyResponse Created(string responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.Created, responseBody, customHeaders);
 
     /// <summary>
     /// Creates a 201 Created response with a serialized object.
@@ -139,105 +106,65 @@ internal static class ResponseHelper
     /// <typeparam name="T">The type of the response object.</typeparam>
     /// <param name="responseObject">The object to serialize as the response body.</param>
     /// <param name="jsonTypeInfo">The JSON type info for AOT serialization.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 201 Created containing the serialized object.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse Created<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo, IDictionary<string, string>? additionalHeaders = null) =>
-        CreateResponse(HttpStatusCode.Created, responseObject, jsonTypeInfo, additionalHeaders);
-
-    /// <summary>
-    /// Creates a 400 Bad Request response.
-    /// </summary>
-    /// <param name="responseBody">The optional response body content.</param>
-    /// <returns>An API Gateway HTTP response with status 400 Bad Request.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse BadRequest(string? responseBody = null) =>
-        CreateResponse(HttpStatusCode.BadRequest, responseBody);
+    public static APIGatewayHttpApiV2ProxyResponse Created<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo,
+        Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.Created, responseObject, jsonTypeInfo, customHeaders);
 
     /// <summary>
     /// Creates a 400 Bad Request response with additional headers.
     /// </summary>
     /// <param name="responseBody">The optional response body content.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 400 Bad Request.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse BadRequest(string? responseBody, IDictionary<string, string> additionalHeaders) =>
-        CreateResponse(HttpStatusCode.BadRequest, responseBody, additionalHeaders);
-
-    /// <summary>
-    /// Creates a 400 Bad Request response with structured error information.
-    /// </summary>
-    /// <param name="errorResponse">The error response object containing error details to serialize in the response body.</param>
-    /// <returns>An API Gateway HTTP response with status 400 Bad Request containing the serialized error response.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse BadRequest(ErrorResponse errorResponse) =>
-        CreateResponse(HttpStatusCode.BadRequest, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse);
+    public static APIGatewayHttpApiV2ProxyResponse BadRequest(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.BadRequest, responseBody, customHeaders);
 
     /// <summary>
     /// Creates a 400 Bad Request response with structured error information and additional headers.
     /// </summary>
     /// <param name="errorResponse">The error response object containing error details to serialize in the response body.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 400 Bad Request containing the serialized error response.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse BadRequest(ErrorResponse errorResponse, IDictionary<string, string> additionalHeaders) =>
-        CreateResponse(HttpStatusCode.BadRequest, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, additionalHeaders);
-
-    /// <summary>
-    /// Creates a 404 Not Found response.
-    /// </summary>
-    /// <param name="responseBody">The optional response body content.</param>
-    /// <returns>An API Gateway HTTP response with the status 404 Not Found.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse NotFound(string? responseBody = null) =>
-        CreateResponse(HttpStatusCode.NotFound, responseBody);
+    public static APIGatewayHttpApiV2ProxyResponse BadRequest(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.BadRequest, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);
 
     /// <summary>
     /// Creates a 404 Not Found response with additional headers.
     /// </summary>
     /// <param name="responseBody">The optional response body content.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with the status 404 Not Found.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse NotFound(string? responseBody, IDictionary<string, string> additionalHeaders) =>
-        CreateResponse(HttpStatusCode.NotFound, responseBody, additionalHeaders);
-
-    /// <summary>
-    /// Creates a 500 Internal Server Error response.
-    /// </summary>
-    /// <param name="responseBody">The optional response body content.</param>
-    /// <returns>An API Gateway HTTP response with status 500 Internal Server Error.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(string? responseBody = null) =>
-        CreateResponse(HttpStatusCode.InternalServerError, responseBody);
+    public static APIGatewayHttpApiV2ProxyResponse NotFound(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.NotFound, responseBody, customHeaders);
 
     /// <summary>
     /// Creates a 500 Internal Server Error response with additional headers.
     /// </summary>
     /// <param name="responseBody">The optional response body content.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 500 Internal Server Error.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(string? responseBody, IDictionary<string, string> additionalHeaders) =>
-        CreateResponse(HttpStatusCode.InternalServerError, responseBody, additionalHeaders);
-
-    /// <summary>
-    /// Creates a 500 Internal Server Error response with structured error information.
-    /// </summary>
-    /// <param name="errorResponse">The error response object containing error details to serialize in the response body.</param>
-    /// <returns>An API Gateway HTTP response with status 500 Internal Server Error containing the serialized error response.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(ErrorResponse errorResponse) =>
-        CreateResponse(HttpStatusCode.InternalServerError, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse);
+    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.InternalServerError, responseBody, customHeaders);
 
     /// <summary>
     /// Creates a 500 Internal Server Error response with structured error information and additional headers.
     /// </summary>
     /// <param name="errorResponse">The error response object containing error details to serialize in the response body.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 500 Internal Server Error containing the serialized error response.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(ErrorResponse errorResponse, IDictionary<string, string> additionalHeaders) =>
-        CreateResponse(HttpStatusCode.InternalServerError, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, additionalHeaders);
+    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.InternalServerError, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);
 
     /// <summary>
     /// Creates a 302 Found redirect response to the specified location.
     /// </summary>
     /// <param name="location">The URL to redirect to. Cannot be null or empty.</param>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
     /// <param name="cacheControl">Optional cache control header value for the redirect response.</param>
     /// <returns>An API Gateway HTTP response with status 302 Found and Location header set to the specified URL.</returns>
     /// <exception cref="ArgumentException">Thrown when the location is null, empty, or whitespace.</exception>
-    public static APIGatewayHttpApiV2ProxyResponse Redirect(string location, IDictionary<string, string>? additionalHeaders = null, string? cacheControl = null)
+    public static APIGatewayHttpApiV2ProxyResponse Redirect(string location, string? cacheControl = null)
     {
         if (string.IsNullOrWhiteSpace(location))
         {
@@ -254,56 +181,14 @@ internal static class ResponseHelper
             headers["Cache-Control"] = cacheControl;
         }
 
-        if (additionalHeaders != null)
-        {
-            foreach (var (key, value) in additionalHeaders)
-            {
-                headers[key] = value;
-            }
-        }
-
-        return new APIGatewayHttpApiV2ProxyResponse
-        {
-            StatusCode = (int)HttpStatusCode.Found,
-            Body = string.Empty,
-            Headers = headers,
-        };
+        return CreateResponse(HttpStatusCode.Found, responseBody: null, customHeaders: () => headers);
     }
-
-    /// <summary>
-    /// Creates a CORS preflight response for OPTIONS requests.
-    /// </summary>
-    /// <returns>An API Gateway HTTP response with status 200 OK and appropriate CORS headers.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse OptionsResponse() =>
-        CreateRawResponse(HttpStatusCode.NoContent, string.Empty, contentType: "text/plain");
 
     /// <summary>
     /// Creates a CORS preflight response for OPTIONS requests with additional headers.
     /// </summary>
-    /// <param name="additionalHeaders">Additional headers to include in the response.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
     /// <returns>An API Gateway HTTP response with status 200 OK and appropriate CORS headers.</returns>
-    public static APIGatewayHttpApiV2ProxyResponse OptionsResponse(IDictionary<string, string> additionalHeaders) =>
-        CreateRawResponse(HttpStatusCode.NoContent, string.Empty, contentType: "text/plain", additionalHeaders);
-
-    /// <summary>
-    /// Merges additional headers with default headers, with additional headers taking precedence.
-    /// </summary>
-    /// <param name="additionalHeaders">Additional headers to merge with defaults.</param>
-    /// <returns>A new dictionary containing the merged headers.</returns>
-    private static Dictionary<string, string> MergeHeaders(IDictionary<string, string>? additionalHeaders)
-    {
-        var headers = new Dictionary<string, string>(DefaultHeaders, StringComparer.Ordinal);
-
-        if (additionalHeaders == null)
-        {
-            return headers;
-        }
-
-        foreach (var (key, value) in additionalHeaders)
-        {
-            headers[key] = value;
-        }
-
-        return headers;
-    }
+    public static APIGatewayHttpApiV2ProxyResponse OptionsResponse(Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.NoContent, responseBody: null, customHeaders);
 }

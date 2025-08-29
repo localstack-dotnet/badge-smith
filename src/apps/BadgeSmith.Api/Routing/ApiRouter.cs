@@ -61,7 +61,10 @@ internal class ApiRouter : IApiRouter
 
             var routeContextSnapshot = RouteContextSnapshot.FromMatch(method, path, routeMatch);
 
-            return await routeHandler.HandleAsync(routeContextSnapshot, ct).ConfigureAwait(false);
+            var apiGatewayHttpApiV2ProxyResponse = await routeHandler.HandleAsync(routeContextSnapshot, ct).ConfigureAwait(false);
+            _corsHandler.ApplyResponseHeaders(apiGatewayHttpApiV2ProxyResponse.Headers);
+
+            return apiGatewayHttpApiV2ProxyResponse;
         }
         catch (Exception ex)
         {
