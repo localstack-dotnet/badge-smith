@@ -19,25 +19,18 @@ internal sealed class BadgeSmithInfrastructureStack : Stack
 {
     public BadgeSmithInfrastructureStack(Construct scope, string id, IStackProps? props = null) : base(scope, id, props)
     {
-        // Create the shared infrastructure using the same construct as production
-        // This ensures 100% identical configuration between local and production environments
-        Infrastructure = new BadgeSmithInfrastructure(this, InfrastructureConstructId);
+        var sharedInfrastructureConstruct = new SharedInfrastructureConstruct(this, SharedInfrastructureConstructId);
 
         // Expose the resources through properties for easy access by Aspire
-        TestResultsTable = Infrastructure.TestResultsTable;
-        NonceTable = Infrastructure.NonceTable;
-        LambdaExecutionRole = Infrastructure.LambdaExecutionRole;
+        TestResultsTable = sharedInfrastructureConstruct.TestResultsTable;
+        NonceTable = sharedInfrastructureConstruct.NonceTable;
+        LambdaExecutionRole = sharedInfrastructureConstruct.LambdaExecutionRole;
 
         // Add LocalStack-specific tags for easier identification
-        Tags.SetTag("Environment", "LocalDevelopment");
-        Tags.SetTag("Stack", "BadgeSmith-Aspire");
-        Tags.SetTag("ManagedBy", "AspireOrchestration");
+        Tags.SetTag("environment", "Local");
+        Tags.SetTag("stack", "badge-smith-local-aspire");
+        Tags.SetTag("managed-by", "aspire-orchestration");
     }
-
-    /// <summary>
-    /// The shared infrastructure construct containing all resources
-    /// </summary>
-    public BadgeSmithInfrastructure Infrastructure { get; }
 
     /// <summary>
     /// DynamoDB table for storing test results with TTL and GSI for the latest lookup

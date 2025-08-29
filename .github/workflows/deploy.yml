@@ -102,27 +102,27 @@ jobs:
 
       - name: CDK synth
         working-directory: build
-        run: cdk synth
+        run: cdk synth --all
 
       - name: CDK diff
         if: inputs.show_diff
         working-directory: build
         run: |
           echo "🔍 CDK Diff - Infrastructure changes:"
-          cdk diff badge-smith-stack || true
+          cdk diff --all || true
         continue-on-error: true
 
       - name: CDK deploy
         working-directory: build
         run: |
           echo "🚀 Deploying BadgeSmith to ${{ inputs.environment }}..."
-          cdk deploy badge-smith-stack --require-approval never
+          cdk deploy --all --require-approval never
 
       - name: Get deployment outputs
         working-directory: build
         run: |
           echo "📋 Deployment outputs:"
-          cdk ls badge-smith-stack --long || true
+          cdk ls --long || true
 
       - name: Health check
         run: |

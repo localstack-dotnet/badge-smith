@@ -10,15 +10,16 @@ using Attribute = Amazon.CDK.AWS.DynamoDB.Attribute;
 namespace BadgeSmith.CDK.Shared.Constructs;
 
 /// <summary>
-/// Reusable construct that defines all BadgeSmith infrastructure resources.
-/// This ensures identical resource configuration between local and production environments.
-/// Can be used in both flat stacks (Aspire) and nested stacks (Production).
+/// Construct that creates DynamoDB tables for BadgeSmith application data storage.
+/// Includes test results table with GSI for efficient latest-result queries and nonce table for HMAC replay protection.
+/// Automatically grants read/write permissions to the provided Lambda execution role.
 /// </summary>
-public class BadgeSmithInfrastructure : Construct
+public class DynamoDbTablesConstruct : Construct
 {
-    public BadgeSmithInfrastructure(Construct scope, string id) : base(scope, id)
+    public DynamoDbTablesConstruct(Construct scope, IRole lambdaExecutionRole, string id) : base(scope, id)
     {
         ArgumentNullException.ThrowIfNull(scope);
+        ArgumentNullException.ThrowIfNull(lambdaExecutionRole);
 
         // Test Results Table - stores badge test results with TTL
         TestResultsTable = new Table(this, TestResultsTableId, new TableProps
@@ -75,31 +76,21 @@ public class BadgeSmithInfrastructure : Construct
             RemovalPolicy = RemovalPolicy.DESTROY,
         });
 
-        // Lambda Execution Role with minimal required permissions
-        LambdaExecutionRole = new Role(this, LambdaExecutionRoleId, new RoleProps
+        // Grant DynamoDB permissions to Lambda role
+        TestResultsTable.GrantReadWriteData(lambdaExecutionRole);
+        NonceTable.GrantReadWriteData(lambdaExecutionRole);
+
+        _ = new CfnOutput(this, TestResultsOutputTableArn, new CfnOutputProps
         {
-            RoleName = LambdaExecutionRoleName,
-            AssumedBy = new ServicePrincipal("lambda.amazonaws.com"),
-            ManagedPolicies = [ManagedPolicy.FromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")],
-            Description = "Execution role for BadgeSmith Lambda function with least privilege access",
+            Value = TestResultsTable.TableArn,
+            Description = "ARN of the test results DynamoDB table",
         });
 
-        // Grant DynamoDB permissions to Lambda role
-        TestResultsTable.GrantReadWriteData(LambdaExecutionRole);
-        NonceTable.GrantReadWriteData(LambdaExecutionRole);
-
-        // Grant Secrets Manager permissions for HMAC keys and provider tokens
-        LambdaExecutionRole.AddToPolicy(new PolicyStatement(new PolicyStatementProps
+        _ = new CfnOutput(this, NonceTableOutputArn, new CfnOutputProps
         {
-            Effect = Effect.ALLOW,
-            Actions = ["secretsmanager:GetSecretValue"],
-            Resources =
-            [
-                $"arn:aws:secretsmanager:{((Stack)scope).Region}:{((Stack)scope).Account}:secret:badge/repo/*",
-                $"arn:aws:secretsmanager:{((Stack)scope).Region}:{((Stack)scope).Account}:secret:badge/github/*",
-                $"arn:aws:secretsmanager:{((Stack)scope).Region}:{((Stack)scope).Account}:secret:badge/nuget/*",
-            ],
-        }));
+            Value = NonceTable.TableArn,
+            Description = "ARN of the nonce DynamoDB table",
+        });
     }
 
     /// <summary>
@@ -111,10 +102,4 @@ public class BadgeSmithInfrastructure : Construct
     /// DynamoDB table for HMAC nonce storage to prevent replay attacks
     /// </summary>
     public Table NonceTable { get; }
-
-    /// <summary>
-    /// IAM role that the Lambda function would assume in production
-    /// Used for testing IAM permission scenarios locally
-    /// </summary>
-    public Role LambdaExecutionRole { get; }
 }

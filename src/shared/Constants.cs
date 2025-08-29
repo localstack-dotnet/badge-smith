@@ -2,6 +2,8 @@
 
 internal static class Constants
 {
+    public const string DynamoDbTablesConstructId = "DynamoDbTablesConstruct";
+
     public const string TestResultsTableId = "TestResultsTable";
 
     public const string TestResultsTableName = "badge-test-result";
@@ -22,13 +24,17 @@ internal static class Constants
 
     public const string LambdaName = "badge-smith-function";
 
+    public const string LambdaConstructId = "BadgeSmithFunctionConstruct";
+
+    public const string LambdaExecutionRoleConstructId = "BadgeSmithLambdaExecutionRoleConstruct";
+
     public const string LambdaExecutionRoleId = "BadgeSmithLambdaExecutionRole";
 
     public const string LambdaExecutionRoleName = "badge-smith-lambda-execution-role";
 
     public const string LambdaExecutionOutputRoleArn = "LambdaExecutionRoleArn";
 
-    public const string LambdaOutputFunctionArn = "NonceTableArn";
+    public const string LambdaOutputFunctionArn = "BadgeSmithLambdaFunctionArn";
 
     public const string HttpLambdaIntegrationId = "BadgeSmithLambdaIntegration";
 
@@ -36,7 +42,7 @@ internal static class Constants
 
     public const string ApiGatewayName = "badge-smith-api";
 
-    public const string ApiGatewayOutputUrl = "badge-smith-api";
+    public const string ApiGatewayOutputUrl = "BadgeSmithApiUrl";
 
     public const string LocalStackForNetZoneHostedZoneId = "LocalStackForNetZone";
 
@@ -52,9 +58,11 @@ internal static class Constants
 
     public const string CloudFrontDistributionOutputDomainUrl = "CustomDomainUrl";
 
-    public const string InfrastructureConstructId = "badge-smith-infra-construct";
+    public const string ApiLocalStackARecordId = "ApiLocalStackARecord";
 
-    public const string ProductionStackId = "badge-smith-stack";
+    public const string ProductionStackId = "BadgeSmithStack";
 
-    public const string InfrastructureStackId = "badge-smith-infra-stack";
+    public const string SharedInfrastructureConstructId = "BadgeSmithSharedInfrastructureConstruct";
+
+    public const string ApiLocalStackForNetDomain = "api.localstackfor.net";
 }

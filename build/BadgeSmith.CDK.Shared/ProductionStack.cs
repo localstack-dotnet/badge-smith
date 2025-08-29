@@ -5,76 +5,84 @@ using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.CloudFront.Origins;
+using Amazon.CDK.AWS.DynamoDB;
+using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.Route53;
-using Amazon.CDK.AWS.Lambda;
+using Amazon.CDK.AWS.Route53.Targets;
 using Amazon.CDK.AwsApigatewayv2Integrations;
+using BadgeSmith.CDK.Shared.Constructs;
 using Constructs;
-using static BadgeSmith.Constants;
 using Function = Amazon.CDK.AWS.Lambda.Function;
-using FunctionProps = Amazon.CDK.AWS.Lambda.FunctionProps;
+using static BadgeSmith.Constants;
+using Distribution = Amazon.CDK.AWS.CloudFront.Distribution;
 
 namespace BadgeSmith.CDK.Shared;
 
 /// <summary>
-/// Production stack that includes shared infrastructure plus Lambda and S3 deployment.
-/// This stack is used for actual AWS deployments.
+/// Production stack that includes shared infrastructure, Lambda function, API Gateway, CloudFront CDN, and SSL certificate.
+/// This stack is used for actual AWS production deployments with global edge caching and custom domain support.
 /// </summary>
 public sealed class ProductionStack : Stack
 {
     public ProductionStack(Construct scope, string id, IStackProps? props = null) : base(scope, id, props)
     {
-        // Create a shared infrastructure first - this provides DynamoDB tables, IAM roles, etc.
-        // Enable CDK outputs for production deployment
-        SharedInfrastructure = new SharedInfrastructureStack(this, InfrastructureStackId, new StackProps
-        {
-            Description = "BadgeSmith shared infrastructure for production deployment",
-        });
+        SharedInfrastructureConstruct = new SharedInfrastructureConstruct(this, SharedInfrastructureConstructId);
 
-        // Lambda function with Native AOT runtime
-        BadgeSmithFunction = CreateLambdaFunction();
+        TestResultsTable = SharedInfrastructureConstruct.TestResultsTable;
+        NonceTable = SharedInfrastructureConstruct.NonceTable;
 
-        // API Gateway HTTP API v2 for optimal performance
+        BadgeSmithFunctionConstruct = new BadgeSmithFunctionConstruct(
+            this,
+            SharedInfrastructureConstruct.TestResultsTable,
+            SharedInfrastructureConstruct.NonceTable,
+            SharedInfrastructureConstruct.LambdaExecutionRole,
+            LambdaConstructId);
+
+        BadgeSmithFunction = BadgeSmithFunctionConstruct.BadgeSmithFunction;
+
         ApiGateway = CreateApiGateway();
 
-        // SSL Certificate for custom domain
-        Certificate = CreateSslCertificate();
+        var logGroup = new LogGroup(this, "HttpApiAccessLogs", new LogGroupProps
+        {
+            Retention = RetentionDays.ONE_WEEK,
+            RemovalPolicy = RemovalPolicy.DESTROY,
+        });
 
-        // CloudFront distribution for global-edge caching with security
+        var cfnStage = (CfnStage)ApiGateway.DefaultStage!.Node.DefaultChild!;
+
+        cfnStage.AccessLogSettings = new CfnStage.AccessLogSettingsProperty
+        {
+            DestinationArn = logGroup.LogGroupArn,
+            Format = "{ \"requestId\":\"$context.requestId\","
+                     + " \"routeKey\":\"$context.routeKey\","
+                     + " \"status\":\"$context.status\","
+                     + " \"error\":\"$context.error.message\","
+                     + " \"path\":\"$context.path\","
+                     + " \"method\":\"$context.httpMethod\","
+                     + " \"host\":\"$context.domainName\" }",
+        };
+
         CloudFrontDistribution = CreateCloudFrontDistribution();
 
-        // Outputs for CI/CD pipeline and monitoring
+        CreateCustomDomainRecord();
+
         CreateOutputs();
 
-        // Production-specific tags
-        Tags.SetTag("Environment", "Production");
-        Tags.SetTag("Stack", "BadgeSmith-Production");
-        Tags.SetTag("CostCenter", "Engineering");
+        Tags.SetTag("environment", "Production");
+        Tags.SetTag("stack", "badge-smith-production");
     }
 
-    private Function CreateLambdaFunction()
+    private IHostedZone LocalStackDotnetHostedZone => HostedZone.FromLookup(this, LocalStackForNetZoneHostedZoneId, new HostedZoneProviderProps
     {
-        return new Function(this, LambdaId, new FunctionProps
-        {
-            FunctionName = LambdaName,
-            Runtime = Runtime.PROVIDED_AL2023,
-            Code = Code.FromAsset("../artifacts/badge-lambda-linux-arm64.zip"),
-            Handler = "bootstrap", // Native AOT uses bootstrap handler
-            Role = SharedInfrastructure.LambdaExecutionRole,
-            Timeout = Duration.Seconds(30),
-            MemorySize = 512,
-            Architecture = Architecture.ARM_64,
-            Environment = new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["DOTNET_ENVIRONMENT"] = "Production",
-                ["APP_NAME"] = LambdaName,
-                ["APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS"] = "true",
-                ["AWS_RESOURCE_TEST_RESULTS_TABLE"] = SharedInfrastructure.TestResultsTable.TableName,
-                ["AWS_RESOURCE_NONCE_TABLE"] = SharedInfrastructure.NonceTable.TableName,
-                // ["AWS_LAMBDA_EXEC_WRAPPER"] = "/opt/otel-instrument", // For future OpenTelemetry support
-            },
-            Description = "BadgeSmith Native AOT Lambda function for badge generation",
-        });
-    }
+        DomainName = "localstackfor.net",
+    });
+
+    /// <summary>
+    /// AWS Certificate Manager (ACM) SSL certificate for api.localstackfor.net domain.
+    /// Provides HTTPS encryption for the custom domain with DNS validation.
+    /// </summary>
+    private ICertificate ApiLocalStackCertificate =>
+        Certificate.FromCertificateArn(this, ApiCertificateId, "arn:aws:acm:us-east-1:377140207735:certificate/227f14fe-92b1-442c-bb80-ae4032e742fe");
 
     private HttpApi CreateApiGateway()
     {
@@ -88,59 +96,28 @@ public sealed class ProductionStack : Stack
         });
     }
 
-    private Certificate CreateSslCertificate()
-    {
-        // Look up the existing hosted zone for localstackfor.net
-        var hostedZone = HostedZone.FromLookup(this, LocalStackForNetZoneHostedZoneId, new HostedZoneProviderProps
-        {
-            DomainName = "localstackfor.net",
-        });
-
-        // Create ACM certificate for api.localstackfor.net
-        // Must be in us-east-1 for CloudFront usage
-        return new Certificate(this, ApiCertificateId, new CertificateProps
-        {
-            DomainName = "api.localstackfor.net",
-            Validation = CertificateValidation.FromDns(hostedZone),
-            CertificateName = "BadgeSmith API Certificate",
-        });
-    }
-
     private Distribution CreateCloudFrontDistribution()
     {
-        // Generate a secure random secret for CloudFront -> API Gateway authentication
-        var cloudFrontSecret = Guid.NewGuid().ToString("N")[..16]; // 16 char secret
+        var apiGatewayDomain = Fn.Select(2, Fn.Split("/", ApiGateway.ApiEndpoint));
 
-        // Extract domain from API Gateway URL (remove https://)
-        var apiGatewayDomain = ApiGateway.ApiEndpoint.Replace("https://", "", StringComparison.OrdinalIgnoreCase);
-
-        // Create origin with a security header
         var apiOrigin = new HttpOrigin(apiGatewayDomain, new HttpOriginProps
         {
-            HttpPort = 443,
             ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
-            CustomHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                // 🔐 Security: CloudFront adds this secret header to all origin requests
-                ["X-CloudFront-Secret"] = cloudFrontSecret,
-            },
         });
 
-        // Create a custom cache policy for origin-controlled caching
+        // Create origin-controlled cache policy - Lambda controls TTL via Cache-Control headers
         var originControlledCachePolicy = new CachePolicy(this, CloudFrontCachePolicyId, new CachePolicyProps
         {
             CachePolicyName = CloudFrontCachePolicyName,
-            Comment = "Forwards all headers and respects origin Cache-Control headers completely",
+            Comment = "Origin-controlled caching with Lambda-driven TTL decisions",
 
-            // 🎯 Origin controls ALL caching decisions
-            DefaultTtl = Duration.Seconds(0), // Trust origin headers completely
-            MinTtl = Duration.Seconds(0), // Allow immediate expiration
-            MaxTtl = Duration.Hours(24), // Cap at 24-hour max
+            DefaultTtl = Duration.Seconds(0), // No cache if origin doesn't specify
+            MinTtl = Duration.Seconds(0), // Allow immediate expiration (no-cache)
+            MaxTtl = Duration.Hours(24), // Cap runaway TTLs at 24 hours
 
-            // 🚀 Forward ALL headers - maximum flexibility
-            HeaderBehavior = CacheHeaderBehavior.AllowList("*"),
+            HeaderBehavior = CacheHeaderBehavior.None(),
 
-            // Forward all query strings
+            // Badge URLs vary by query parameters (e.g., version filters)
             QueryStringBehavior = CacheQueryStringBehavior.All(),
 
             // No cookies needed for badge API
@@ -155,39 +132,40 @@ public sealed class ProductionStack : Stack
         {
             Comment = "BadgeSmith API with origin-controlled caching and security",
 
-            // 🌍 Custom domain with SSL certificate
-            DomainNames = ["api.localstackfor.net"],
-            Certificate = Certificate,
+            DomainNames = [ApiLocalStackForNetDomain],
+            Certificate = ApiLocalStackCertificate,
 
-            // Default behavior - forward everything to origin
             DefaultBehavior = new BehaviorOptions
             {
                 Origin = apiOrigin,
                 ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 CachePolicy = originControlledCachePolicy,
+                OriginRequestPolicy = OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
                 AllowedMethods = AllowedMethods.ALLOW_ALL,
                 CachedMethods = CachedMethods.CACHE_GET_HEAD_OPTIONS,
                 Compress = true,
             },
 
-            // Optimize for cost and performance
-            PriceClass = PriceClass.PRICE_CLASS_100, // US, Canada, Europe
+            PriceClass = PriceClass.PRICE_CLASS_100,
             EnableIpv6 = true,
             HttpVersion = HttpVersion.HTTP2_AND_3,
 
-            // Security settings
             MinimumProtocolVersion = SecurityPolicyProtocol.TLS_V1_2_2021,
+        });
+    }
+
+    public ARecord CreateCustomDomainRecord()
+    {
+        return new ARecord(this, ApiLocalStackARecordId, new ARecordProps
+        {
+            Zone = LocalStackDotnetHostedZone,
+            RecordName = "api", // => api.localstackfor.net
+            Target = RecordTarget.FromAlias(new CloudFrontTarget(CloudFrontDistribution)),
         });
     }
 
     private void CreateOutputs()
     {
-        _ = new CfnOutput(this, LambdaOutputFunctionArn, new CfnOutputProps
-        {
-            Value = BadgeSmithFunction.FunctionArn,
-            Description = "ARN of the BadgeSmith Lambda function",
-        });
-
         _ = new CfnOutput(this, ApiGatewayOutputUrl, new CfnOutputProps
         {
             Value = ApiGateway.ApiEndpoint,
@@ -208,13 +186,13 @@ public sealed class ProductionStack : Stack
 
         _ = new CfnOutput(this, TestResultsOutputTableName, new CfnOutputProps
         {
-            Value = SharedInfrastructure.TestResultsTable.TableName,
+            Value = SharedInfrastructureConstruct.TestResultsTable.TableName,
             Description = "DynamoDB table name for test results",
         });
 
         _ = new CfnOutput(this, NonceTableOutputTableName, new CfnOutputProps
         {
-            Value = SharedInfrastructure.TestResultsTable.TableName,
+            Value = SharedInfrastructureConstruct.NonceTable.TableName,
             Description = "DynamoDB table name for nonce",
         });
     }
@@ -222,7 +200,12 @@ public sealed class ProductionStack : Stack
     /// <summary>
     /// Reference to the shared infrastructure containing DynamoDB tables, IAM roles, etc.
     /// </summary>
-    public SharedInfrastructureStack SharedInfrastructure { get; }
+    public SharedInfrastructureConstruct SharedInfrastructureConstruct { get; }
+
+    /// <summary>
+    /// BadgeSmith Lambda function construct with Native AOT runtime and environment configuration.
+    /// </summary>
+    public BadgeSmithFunctionConstruct BadgeSmithFunctionConstruct { get; }
 
     /// <summary>
     /// BadgeSmith Lambda function with Native AOT runtime
@@ -230,17 +213,23 @@ public sealed class ProductionStack : Stack
     public Function BadgeSmithFunction { get; }
 
     /// <summary>
+    /// DynamoDB table for storing test results with TTL and GSI for latest lookup
+    /// </summary>
+    public Table TestResultsTable { get; }
+
+    /// <summary>
+    /// DynamoDB table for HMAC nonce storage to prevent replay attacks
+    /// </summary>
+    public Table NonceTable { get; }
+
+    /// <summary>
     /// API Gateway HTTP API v2 for Lambda integration
     /// </summary>
     public HttpApi ApiGateway { get; }
 
     /// <summary>
-    /// SSL Certificate for api.localstackfor.net
-    /// </summary>
-    public ICertificate Certificate { get; }
-
-    /// <summary>
-    /// CloudFront distribution for global edge caching
+    /// CloudFront CDN distribution for global edge caching with origin-controlled cache policies.
+    /// Provides worldwide performance optimization and includes security headers for origin authentication.
     /// </summary>
     public Distribution CloudFrontDistribution { get; }
 }

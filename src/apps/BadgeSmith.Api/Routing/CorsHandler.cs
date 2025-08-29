@@ -61,7 +61,6 @@ internal sealed class CorsOptions
     public ISet<string> AllowedRequestHeaders { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "content-type",
-        "authorization",
         "x-signature",
         "x-repo-secret",
         "x-timestamp",
