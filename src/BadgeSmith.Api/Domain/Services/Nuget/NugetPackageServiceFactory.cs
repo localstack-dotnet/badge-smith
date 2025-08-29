@@ -13,7 +13,7 @@ internal class NugetPackageServiceFactory : INugetPackageServiceFactory
     private static NuGetPackageService CreateNuGetPackageService()
     {
         var logger = LoggerFactory.CreateLogger<NuGetPackageService>();
-        var httpClient = HttpStack.NuGet;
+        var httpClient = HttpStack.CreateNuGetClient();
 
         return new NuGetPackageService(logger, httpClient);
     }
