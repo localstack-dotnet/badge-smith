@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace BadgeSmith.Domain.Models;
+namespace BadgeSmith.Api.Domain.Models;
 
-public record ShieldsBadgeResponse(
+internal record ShieldsBadgeResponse(
     [property: JsonPropertyName("schemaVersion")] int SchemaVersion,
     [property: JsonPropertyName("label")] string Label,
     [property: JsonPropertyName("message")] string Message,

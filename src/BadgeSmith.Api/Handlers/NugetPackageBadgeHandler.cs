@@ -1,9 +1,9 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
+using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
-using BadgeSmith.Domain.Models;
 using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;

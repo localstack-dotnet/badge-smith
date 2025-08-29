@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Amazon.Lambda.APIGatewayEvents;
-using BadgeSmith.Domain.Models;
+using BadgeSmith.Api.Domain.Models;
 
 namespace BadgeSmith.Api.Json;
 

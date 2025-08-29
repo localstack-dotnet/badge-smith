@@ -9,11 +9,11 @@
     <PackageReference Include="Amazon.CDK.Lib"/>
     <PackageReference Include="Constructs"/>
 
-    <PackageReference Include="Amazon.JSII.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Amazon.JSII.Analyzers" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj" />
+    <ProjectReference Include="..\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

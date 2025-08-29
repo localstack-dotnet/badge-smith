@@ -1,28 +1,28 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
+using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
-using BadgeSmith.Domain.Models;
 using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
-internal interface ITestResultsBadgeHandler : IRouteHandler;
+internal interface IGithubPackagesBadgeHandler : IRouteHandler;
 
-internal class TestResultsBadgeHandler : ITestResultsBadgeHandler
+internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
 {
-    private readonly ILogger<TestResultsBadgeHandler> _logger;
+    private readonly ILogger<GithubPackagesBadgeHandler> _logger;
 
-    public TestResultsBadgeHandler(ILogger<TestResultsBadgeHandler> logger)
+    public GithubPackagesBadgeHandler(ILogger<GithubPackagesBadgeHandler> logger)
     {
         _logger = logger;
     }
 
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
-        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultsBadgeHandler)}.{nameof(HandleAsync)}");
-        _logger.LogInformation("Test results badge request received");
+        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(GithubPackagesBadgeHandler)}.{nameof(HandleAsync)}");
+        _logger.LogInformation("Github packages badge request received");
 
         routeContext.Request.Headers.TryGetValue("if-none-match", out var ifNoneMatch);
 
@@ -32,7 +32,7 @@ internal class TestResultsBadgeHandler : ITestResultsBadgeHandler
             StaleWhileRevalidateSeconds: 15,
             StaleIfErrorSeconds: 60);
 
-        var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "tests", "100 passed", "green");
+        var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "github", "1.0.0", "green", NamedLogo: "github");
 
         await Task.Yield(); // Ensure we're truly async
 

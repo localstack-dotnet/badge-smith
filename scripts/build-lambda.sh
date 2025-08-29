@@ -4,7 +4,7 @@ set -euo pipefail
 TARGET="zip"                         # zip|image|both
 RID="linux-x64"                      # linux-x64|linux-arm64
 IMAGE_TAG="badgesmith-lambda:local"
-DOCKERFILE="src/apps/BadgeSmith.Api/Dockerfile"
+DOCKERFILE="src/BadgeSmith.Api/Dockerfile"
 CONTEXT="."
 OUT_DIR="artifacts"
 PUSH=0
@@ -22,7 +22,7 @@ OPTIONS:
   -t, --target       zip|image|both           (default: zip)
   -r, --rid          linux-x64|linux-arm64    (default: linux-x64)
   -i, --image-tag    Docker image tag         (default: badgesmith-lambda:local)
-  -f, --dockerfile   Path to Dockerfile       (default: src/apps/BadgeSmith.Api/Dockerfile)
+  -f, --dockerfile   Path to Dockerfile       (default: src/BadgeSmith.Api/Dockerfile)
   -c, --context      Build context            (default: .)
   -o, --out          Output dir for artifacts (default: artifacts)
       --push         Push image after build

@@ -7,7 +7,7 @@ ARG DOTNET_VERSION=9.0
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 
 # Build args (override at build time if needed)
-ARG PROJECT=src/apps/BadgeSmith.Api/BadgeSmith.Api.csproj
+ARG PROJECT=src/BadgeSmith.Api/BadgeSmith.Api.csproj
 ARG CONFIG=Release
 ARG RID=linux-x64
 ARG PUBLISH_DIR=/artifacts/publish

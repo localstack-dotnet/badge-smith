@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace BadgeSmith.Domain.Models;
+namespace BadgeSmith.Api.Domain.Models;
 
-public record ErrorResponse(
+internal record ErrorResponse(
     [property: JsonPropertyName("message")] string Message,
     [property: JsonPropertyName("error_details")] IEnumerable<ErrorDetail>? ErrorDetails = null);
 
-public record ErrorDetail(
+internal record ErrorDetail(
     [property: JsonPropertyName("error_code")] string ErrorCode,
     [property: JsonPropertyName("property_name")] string PropertyName);

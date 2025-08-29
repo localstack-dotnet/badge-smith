@@ -46,10 +46,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\libs\BadgeSmith.Domain\BadgeSmith.Domain.csproj"/>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="ActivitySources\BadgeSmithApiActivitySource.cs"/>
+    <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithInfrastructureActivitySource.cs" Link="ActivitySources\BadgeSmithInfrastructureActivitySource.cs"/>
     <Compile Include="$(SharedDir)\Constants.cs" Link="Constants.cs"/>
   </ItemGroup>
 
@@ -69,5 +67,9 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Domain\"/>
   </ItemGroup>
 </Project>

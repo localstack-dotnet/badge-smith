@@ -5,8 +5,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Amazon.Lambda.APIGatewayEvents;
+using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Json;
-using BadgeSmith.Domain.Models;
 
 namespace BadgeSmith.Api.Routing.Helpers;
 

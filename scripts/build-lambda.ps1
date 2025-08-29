@@ -4,7 +4,7 @@ param(
     [Alias('t')][ValidateSet('zip', 'image', 'both')] [string]$Target = 'zip',
     [Alias('r')] [string]$Rid = 'linux-x64',                      # linux-x64 | linux-arm64
     [Alias('i')] [string]$ImageTag = 'badgesmith-lambda:local',
-    [Alias('f')] [string]$Dockerfile = 'src/apps/BadgeSmith.Api/Dockerfile',
+    [Alias('f')] [string]$Dockerfile = 'src/BadgeSmith.Api/Dockerfile',
     [Alias('c')] [string]$Context = '.',
     [Alias('o')] [string]$OutDir = 'artifacts',
     [switch]$Push,
@@ -26,7 +26,7 @@ OPTIONS:
   -t, --target      zip|image|both           (default: zip)
   -r, --rid         linux-x64|linux-arm64    (default: linux-x64)
   -i, --image-tag   Docker image tag         (default: badgesmith-lambda:local)
-  -f, --dockerfile  Path to Dockerfile       (default: src/apps/BadgeSmith.Api/Dockerfile)
+  -f, --dockerfile  Path to Dockerfile       (default: src/BadgeSmith.Api/Dockerfile)
   -c, --context     Build context            (default: .)
   -o, --out         Output dir for artifacts (default: artifacts)
       --push        Push image after build
