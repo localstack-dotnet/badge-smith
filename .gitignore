@@ -421,7 +421,7 @@ FodyWeavers.xsd
 
 internal-docs/
 artifacts/
-
+perf-results/
 
 # CDK asset staging directory
 .cdk.staging
