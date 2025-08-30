@@ -16,7 +16,7 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
 {
     public static readonly Dictionary<string, string> ContentTypeHeader = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "Content-Type", "application/json"},
+        { "Content-Type", "application/json; charset=utf-8"},
     };
 
     private readonly ILogger<NugetPackageBadgeHandler> _logger;

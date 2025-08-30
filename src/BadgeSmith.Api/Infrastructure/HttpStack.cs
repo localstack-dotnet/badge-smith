@@ -42,10 +42,13 @@ internal static class HttpStack
         _nuGetHandler = new SocketsHttpHandler()
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-            ConnectTimeout = TimeSpan.FromSeconds(2),
-            UseProxy = false,
-            MaxConnectionsPerServer = 10,
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
+            KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+            KeepAlivePingTimeout = TimeSpan.FromSeconds(10),
+            MaxConnectionsPerServer = 8,
+            AllowAutoRedirect = false,
         };
 
         stopwatch.Stop();
@@ -70,6 +73,8 @@ internal static class HttpStack
         {
             BaseAddress = new Uri(NugetApiUrl),
             Timeout = TimeSpan.FromSeconds(10), // NuGet can be slow sometimes
+            DefaultRequestVersion = HttpVersion.Version30,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
         };
         stopwatch.Stop();
         var ms = stopwatch.ElapsedMilliseconds;
