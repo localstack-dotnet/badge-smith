@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Handlers;
+using BadgeSmith.Api.Observability.Performance;
 using BadgeSmith.Api.Routing.Contracts;
 using Microsoft.Extensions.Logging;
 
@@ -29,6 +30,7 @@ internal class ApiRouter : IApiRouter
     public async Task<APIGatewayHttpApiV2ProxyResponse> RouteAsync(APIGatewayHttpApiV2ProxyRequest request, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(ApiRouter)}.{nameof(RouteAsync)}");
+        using var perfScope = PerfTracker.StartScope($"{nameof(ApiRouter)}.{nameof(RouteAsync)}", typeof(ApiRouter).FullName);
 
         try
         {

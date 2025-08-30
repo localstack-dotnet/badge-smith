@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using BadgeSmith.Api.Handlers;
+﻿using BadgeSmith.Api.Handlers;
 using BadgeSmith.Api.Observability;
-using BadgeSmith.Api.Observability.Loggers;
+using BadgeSmith.Api.Observability.Performance;
 using BadgeSmith.Api.Routing.Cors;
 
 namespace BadgeSmith.Api.Routing.Helpers;
@@ -10,7 +9,7 @@ internal static class ApiRouterBuilder
 {
     public static ApiRouter BuildApiRouter()
     {
-        var buildStart = Stopwatch.GetTimestamp();
+        using var scope = PerfTracker.StartScope("BuildApiRouter Complete", nameof(ApiRouterBuilder));
 
         var logger = LoggerFactory.CreateLogger<ApiRouter>();
         var routeResolver = new RouteResolver(RouteTable.Routes);
@@ -24,10 +23,6 @@ internal static class ApiRouterBuilder
             MaxAgeSeconds = 3600,
         });
 
-        var apiRouter = new ApiRouter(logger, routeResolver, handlerFactory, corsHandler);
-
-        SimplePerfLogger.Log("BuildApiRouter Complete", buildStart, "Program.cs");
-
-        return apiRouter;
+        return new ApiRouter(logger, routeResolver, handlerFactory, corsHandler);
     }
 }

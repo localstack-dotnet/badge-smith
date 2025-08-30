@@ -1,9 +1,9 @@
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Domain.Services.Results;
 using BadgeSmith.Api.Json;
+using BadgeSmith.Api.Observability.Performance;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 using ZLinq;
@@ -31,14 +31,13 @@ internal class NuGetPackageService : INuGetPackageService
         CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetPackageService)}.{nameof(GetLatestVersionAsync)}");
-
+        using var perfScope = PerfTracker.StartScope(nameof(GetLatestVersionAsync), typeof(NuGetPackageService).FullName);
         ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-        var normalizedPackageId = packageId.ToLowerInvariant();
-
-        var stopwatch = Stopwatch.StartNew();
         try
         {
+            var normalizedPackageId = packageId.ToLowerInvariant();
+
             _logger.LogInformation("Fetching NuGet package versions for {PackageId}", packageId);
 
             var url = new Uri($"v3-flatcontainer/{normalizedPackageId}/index.json", UriKind.Relative);
@@ -65,10 +64,7 @@ internal class NuGetPackageService : INuGetPackageService
                 return new NotFoundFailure($"No versions found for package '{packageId}'");
             }
 
-            var stopwatchElapsedMilliseconds1 = stopwatch.ElapsedMilliseconds;
             var latestVersion = ParseAndFilterVersions(indexResponse.Versions, versionRange, includePrerelease);
-            var stopwatchElapsedMilliseconds2 = stopwatch.ElapsedMilliseconds;
-            _logger.LogInformation("Parsed and filtered versions in {ElapsedMilliseconds}ms", stopwatchElapsedMilliseconds2 - stopwatchElapsedMilliseconds1);
 
             if (latestVersion == null)
             {
@@ -102,16 +98,13 @@ internal class NuGetPackageService : INuGetPackageService
             _logger.LogError(ex, "Unexpected error retrieving NuGet package {PackageId}", packageId);
             return new Error($"Unexpected error retrieving NuGet package {packageId}");
         }
-        finally
-        {
-            stopwatch.Stop();
-            _logger.LogInformation("Retrieved NuGet package {PackageId} in {ElapsedMilliseconds}ms", packageId, stopwatch.ElapsedMilliseconds);
-        }
     }
 
     private static NuGetVersion? ParseAndFilterVersions(string[] versionStrings, string? versionRange, bool includePrerelease)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetPackageService)}.{nameof(ParseAndFilterVersions)}");
+        using var perfScope = PerfTracker.StartScope(nameof(ParseAndFilterVersions), typeof(NuGetPackageService).FullName);
+
         switch (versionRange)
         {
             case null when includePrerelease && NuGetVersion.TryParse(versionStrings[^1], out var lastVersion):

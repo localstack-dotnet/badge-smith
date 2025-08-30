@@ -3,6 +3,7 @@ using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Json;
+using BadgeSmith.Api.Observability.Performance;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
@@ -16,7 +17,7 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
 {
     public static readonly Dictionary<string, string> ContentTypeHeader = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "Content-Type", "application/json; charset=utf-8"},
+        { "Content-Type", "application/json; charset=utf-8" },
     };
 
     private readonly ILogger<NugetPackageBadgeHandler> _logger;
@@ -31,7 +32,7 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}");
-
+        using var perfScope = PerfTracker.StartScope($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}", typeof(NugetPackageBadgeHandler).FullName);
         try
         {
             if (!routeContext.TryGetRouteValue("package", out var packageId) || string.IsNullOrWhiteSpace(packageId))

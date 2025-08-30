@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using BadgeSmith.Api.Observability.Loggers;
+using BadgeSmith.Api.Observability.Performance;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -25,13 +24,8 @@ internal static class LoggerFactory
     /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
     public static ILogger<T> CreateLogger<T>()
     {
-        var t0 = Stopwatch.GetTimestamp();
-
-        var logger = Factory.Value.CreateLogger<T>();
-
-        SimplePerfLogger.Log($"Logger {typeof(T).Name} Created", t0, typeof(LoggerFactory).FullName);
-
-        return logger;
+        using var scope = PerfTracker.StartScope($"Logger {typeof(T).Name} Creation", typeof(LoggerFactory).FullName);
+        return Factory.Value.CreateLogger<T>();
     }
 
     /// <summary>
@@ -41,13 +35,8 @@ internal static class LoggerFactory
     /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
     public static ILogger CreateLogger(string categoryName)
     {
-        var t0 = Stopwatch.GetTimestamp();
-
-        var logger = Factory.Value.CreateLogger(categoryName);
-
-        SimplePerfLogger.Log($"Logger {categoryName} Created", t0, typeof(LoggerFactory).FullName);
-
-        return logger;
+        using var scope = PerfTracker.StartScope($"Logger {categoryName} Creation", typeof(LoggerFactory).FullName);
+        return Factory.Value.CreateLogger(categoryName);
     }
 
     /// <summary>
@@ -55,7 +44,8 @@ internal static class LoggerFactory
     /// </summary>
     private static ILoggerFactory CreateFactory()
     {
-        var t0 = Stopwatch.GetTimestamp();
+        using var scope = PerfTracker.StartScope("Logger Factory Creation", typeof(LoggerFactory).FullName);
+
         var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
         {
             if (string.Equals(ObservabilitySettings.DotNetEnvironment, "Production", StringComparison.Ordinal))
@@ -103,8 +93,6 @@ internal static class LoggerFactory
             });
 #endif
         });
-
-        SimplePerfLogger.Log("Logger Factory Created", t0, typeof(LoggerFactory).FullName);
 
         return loggerFactory;
     }

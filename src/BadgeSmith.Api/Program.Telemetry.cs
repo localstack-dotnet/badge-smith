@@ -13,12 +13,9 @@ using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;
 using LoggerFactory = BadgeSmith.Api.Observability.LoggerFactory;
 using BadgeSmith;
-using BadgeSmith.Api.Observability.Loggers;
 using static BadgeSmith.Api.Observability.ObservabilitySettings;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Instrumentation.AWSLambda;
-
-var appStart = Stopwatch.GetTimestamp();
 
 using var tracerProvider = TelemetryFactory.CreateTracerProvider(ApplicationName, ApplicationVersion);
 LambdaBootstrap lambdaBootstrap;
@@ -30,8 +27,6 @@ using (var _ = BadgeSmithApiActivitySource.ActivitySource.StartActivity("Lambda 
     var jsonSerializer = new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>();
     lambdaBootstrap = LambdaBootstrapBuilder.Create(handler, jsonSerializer).Build();
 }
-
-SimplePerfLogger.Log("Lambda Initialization Complete", appStart, "Program.Telemetry.cs");
 
 await lambdaBootstrap.RunAsync().ConfigureAwait(false);
 

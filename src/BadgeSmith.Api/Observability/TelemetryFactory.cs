@@ -1,7 +1,7 @@
 #if ENABLE_TELEMETRY
-using System.Diagnostics;
 using System.Globalization;
-using BadgeSmith.Api.Observability.Loggers;
+using BadgeSmith.Api.Observability.Performance;
+using BadgeSmith.Api.Routing;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.AWSLambda;
@@ -26,9 +26,9 @@ internal static class TelemetryFactory
     /// <returns>Configured TracerProvider instance</returns>
     public static TracerProvider CreateTracerProvider(string serviceName, string? serviceVersion = null)
     {
-        var t0 = Stopwatch.GetTimestamp();
+        using var perfScope = PerfTracker.StartScope($"{nameof(ApiRouter)}.{nameof(CreateTracerProvider)}", typeof(TelemetryFactory).FullName);
 
-        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        return Sdk.CreateTracerProviderBuilder()
             .SetResourceBuilder(ResourceBuilder.CreateEmpty()
                 .AddService(serviceName, serviceVersion)
                 .AddAttributes([
@@ -40,10 +40,6 @@ internal static class TelemetryFactory
             .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
             .AddOtlpExporter(ConfigureOtlpExporter)
             .Build();
-
-        SimplePerfLogger.Log("TracerProvider Created", t0, typeof(TelemetryFactory).FullName);
-
-        return tracerProvider;
     }
 
     private static void ConfigureHttpInstrumentation(HttpClientTraceInstrumentationOptions options)

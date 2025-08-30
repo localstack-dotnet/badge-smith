@@ -1,27 +1,25 @@
 #if !ENABLE_TELEMETRY
 #pragma warning disable CA1502
 
-using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using BadgeSmith.Api.Json;
-using BadgeSmith.Api.Observability.Loggers;
+using BadgeSmith.Api.Observability.Performance;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;
 using LoggerFactory = BadgeSmith.Api.Observability.LoggerFactory;
 
-var appStart = Stopwatch.GetTimestamp();
+using var initScope = PerfTracker.StartScope("Lambda Initialization", nameof(Program));
 
 var apiRouter = ApiRouterBuilder.BuildApiRouter();
 var handler = BuildHandler(apiRouter);
 
 var jsonSerializer = new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>();
 var lambdaBootstrap = LambdaBootstrapBuilder.Create(handler, jsonSerializer).Build();
-
-SimplePerfLogger.Log("Lambda Initialization Complete", appStart, "Program.cs");
+initScope.Dispose();
 
 await lambdaBootstrap.RunAsync().ConfigureAwait(false);
 return;
@@ -33,6 +31,7 @@ static Func<APIGatewayHttpApiV2ProxyRequest, ILambdaContext, Task<APIGatewayHttp
 
 static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context, ApiRouter apiRouter)
 {
+    using var perfScope = PerfTracker.StartScope(nameof(FunctionCoreAsync), typeof(Program).FullName);
     // var timeout = context.RemainingTime.Subtract(TimeSpan.FromSeconds(5));
     // using var cts = new CancellationTokenSource(timeout);
 
