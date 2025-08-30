@@ -1,7 +1,5 @@
 #if ENABLE_TELEMETRY
 using System.Globalization;
-using BadgeSmith.Api.Observability.Performance;
-using BadgeSmith.Api.Routing;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.AWSLambda;
@@ -26,7 +24,7 @@ internal static class TelemetryFactory
     /// <returns>Configured TracerProvider instance</returns>
     public static TracerProvider CreateTracerProvider(string serviceName, string? serviceVersion = null)
     {
-        using var perfScope = PerfTracker.StartScope($"{nameof(ApiRouter)}.{nameof(CreateTracerProvider)}", typeof(TelemetryFactory).FullName);
+        // using var perfScope = PerfTracker.StartScope($"{nameof(ApiRouter)}.{nameof(CreateTracerProvider)}", typeof(TelemetryFactory).FullName);
 
         return Sdk.CreateTracerProviderBuilder()
             .SetResourceBuilder(ResourceBuilder.CreateEmpty()
