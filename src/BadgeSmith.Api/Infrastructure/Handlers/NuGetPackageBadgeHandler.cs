@@ -27,10 +27,9 @@ internal class NuGetPackageBadgeHandler : INugetPackageBadgeHandler
 
         try
         {
-            if (!routeContext.TryGetRouteValue("package", out var packageId) || string.IsNullOrWhiteSpace(packageId))
+            if (!TryValidateRequest(routeContext, out var packageId, out var errorResponse))
             {
-                _logger.LogWarning("Missing package ID in request");
-                return CreateInvalidPackageIdentifierResponse();
+                return errorResponse!;
             }
 
             _logger.LogInformation("Processing NuGet badge request for package: {PackageId}", packageId);
@@ -81,9 +80,47 @@ internal class NuGetPackageBadgeHandler : INugetPackageBadgeHandler
         }
     }
 
-    private static APIGatewayHttpApiV2ProxyResponse CreateInvalidPackageIdentifierResponse()
+    private bool TryValidateRequest(RouteContext routeContext, out string packageId, out APIGatewayHttpApiV2ProxyResponse? errorResponse)
     {
-        var errorResponse = new ErrorResponse("Package identifier is required", [new ErrorDetail("PACKAGE_ID_REQUIRED", "packageId")]);
-        return ResponseHelper.BadRequest(errorResponse);
+        packageId = string.Empty;
+        errorResponse = null;
+
+        // Validate provider is 'nuget' for this route shape
+        if (!routeContext.TryGetRouteValue("provider", out var provider) || string.IsNullOrWhiteSpace(provider))
+        {
+            var error = new ErrorResponse(
+                "Provider is required",
+                [new ErrorDetail("INVALID_PROVIDER", "provider")]);
+            errorResponse = ResponseHelper.BadRequest(error);
+            return false;
+        }
+
+        if (!string.Equals(provider, "nuget", StringComparison.OrdinalIgnoreCase))
+        {
+            // Helpful guidance if someone hits the nuget-shaped route with GitHub provider
+            if (string.Equals(provider, "github", StringComparison.OrdinalIgnoreCase))
+            {
+                var errorOrg = new ErrorResponse(
+                    "Organization is required for GitHub provider. Use /badges/packages/github/{org}/{package}",
+                    [new ErrorDetail("ORG_REQUIRED", "org")]);
+                errorResponse = ResponseHelper.BadRequest(errorOrg);
+                return false;
+            }
+
+            var error = new ErrorResponse($"Unsupported provider '{provider}'", [new ErrorDetail("INVALID_PROVIDER", "provider")]);
+            errorResponse = ResponseHelper.BadRequest(error);
+            return false;
+        }
+
+        if (!routeContext.TryGetRouteValue("package", out var pkg) || string.IsNullOrWhiteSpace(pkg))
+        {
+            _logger.LogWarning("Missing package ID in request");
+            var error = new ErrorResponse("Package identifier is required", [new ErrorDetail("PACKAGE_ID_REQUIRED", "packageId")]);
+            errorResponse = ResponseHelper.BadRequest(error);
+            return false;
+        }
+
+        packageId = pkg;
+        return true;
     }
 }

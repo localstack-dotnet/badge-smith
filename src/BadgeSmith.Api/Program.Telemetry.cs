@@ -57,7 +57,7 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
 
     try
     {
-        return await apiRouter.RouteAsync(request).ConfigureAwait(false);
+        return await apiRouter.RouteAsync(request, cts.Token).ConfigureAwait(false);
     }
     catch (Exception ex)
     {
@@ -82,9 +82,9 @@ static void SetHttpTags(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext 
         .AddTag("http.route", route ?? path)
         .AddTag("request.id", context.AwsRequestId);
 
-    if (activity != null)
+    if (Activity.Current is { } a)
     {
-        activity.DisplayName = $"{httpMethod} {route ?? path}";
+        a.DisplayName = $"{httpMethod} {route ?? path}";
     }
 
     // Add headers and stage information

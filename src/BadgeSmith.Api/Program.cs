@@ -6,11 +6,11 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using BadgeSmith;
+using BadgeSmith.Api.Infrastructure.Routing;
+using BadgeSmith.Api.Infrastructure.Routing.Helpers;
 using BadgeSmith.Api.Json;
-using BadgeSmith.Api.Routing;
-using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;
-using LoggerFactory = BadgeSmith.Api.Observability.LoggerFactory;
+using LoggerFactory = BadgeSmith.Api.Infrastructure.Observability.LoggerFactory;
 
 var apiRouter = ApiRouterBuilder.BuildApiRouter();
 var handler = BuildHandler(apiRouter);

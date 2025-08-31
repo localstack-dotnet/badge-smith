@@ -1,7 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using OpenTelemetry.Logs;
+
 #if ENABLE_TELEMETRY
+using OpenTelemetry.Logs;
 using static System.Environment;
 #endif
 
