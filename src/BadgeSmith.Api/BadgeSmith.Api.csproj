@@ -36,6 +36,7 @@
     <PackageReference Include="OneOf"/>
     <PackageReference Include="OneOf.SourceGenerator"/>
 
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console"/>
 
     <PackageReference Include="NuGet.Versioning"/>

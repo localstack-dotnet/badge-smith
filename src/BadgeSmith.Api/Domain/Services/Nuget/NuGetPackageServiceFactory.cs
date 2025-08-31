@@ -1,6 +1,7 @@
 ﻿using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Domain.Services.Package;
-using BadgeSmith.Api.Infrastructure;
+using BadgeSmith.Api.Infrastructure.Caching;
+using BadgeSmith.Api.Infrastructure.Http;
 using BadgeSmith.Api.Infrastructure.Observability;
 
 namespace BadgeSmith.Api.Domain.Services.Nuget;
@@ -17,6 +18,7 @@ internal class NuGetPackageServiceFactory : INugetPackageServiceFactory
         var httpClient = HttpClientFactory.CreateNuGetClient();
         var nuGetVersionService = new NuGetVersionService();
 
-        return new NuGetPackageService(nuGetVersionService, logger, httpClient);
+        var cache = new MemoryAppCache();
+        return new NuGetPackageService(nuGetVersionService, logger, httpClient, cache);
     }
 }

@@ -65,7 +65,7 @@ internal class NuGetPackageBadgeHandler : INugetPackageBadgeHandler
                 LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
                 ifNoneMatchHeader: ifNoneMatch,
                 cache: cache,
-                lastModifiedUtc: null
+                lastModifiedUtc: nuGetPackageInfo.LastModifiedUtc
             );
         }
         catch (Exception ex)

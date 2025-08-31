@@ -2,7 +2,7 @@
 
 using System.Net;
 
-namespace BadgeSmith.Api.Infrastructure;
+namespace BadgeSmith.Api.Infrastructure.Http;
 
 /// <summary>
 /// Singleton HTTP stack optimized for Lambda execution with connection pooling
@@ -15,6 +15,8 @@ internal static class HttpClientFactory
 
     private static readonly Lazy<SocketsHttpHandler> NugetSocketsHttpHandlerFactory = new(CreateHandlerInstance());
     private static readonly Lazy<SocketsHttpHandler> GithubSocketsHttpHandlerFactory = new(CreateHandlerInstance());
+    private static readonly Lazy<HttpMessageHandler> NugetRetryHandlerFactory = new(() => new ResilienceRetryHandler(NugetSocketsHttpHandlerFactory.Value));
+    private static readonly Lazy<HttpMessageHandler> GithubRetryHandlerFactory = new(() => new ResilienceRetryHandler(GithubSocketsHttpHandlerFactory.Value));
 
     private static SocketsHttpHandler CreateHandlerInstance()
     {
@@ -33,11 +35,11 @@ internal static class HttpClientFactory
 
     public static HttpClient CreateNuGetClient()
     {
-        var httpClient = new HttpClient(NugetSocketsHttpHandlerFactory.Value, disposeHandler: false)
+        var httpClient = new HttpClient(NugetRetryHandlerFactory.Value, disposeHandler: false)
         {
             BaseAddress = new Uri(NugetApiUrl),
             Timeout = TimeSpan.FromSeconds(10),
-            DefaultRequestVersion = HttpVersion.Version20,
+            DefaultRequestVersion = HttpVersion.Version11,
             DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
         };
 
@@ -49,11 +51,11 @@ internal static class HttpClientFactory
 
     public static HttpClient CreateGithubClient()
     {
-        var httpClient = new HttpClient(GithubSocketsHttpHandlerFactory.Value, disposeHandler: false)
+        var httpClient = new HttpClient(GithubRetryHandlerFactory.Value, disposeHandler: false)
         {
             BaseAddress = new Uri(GithubApiUrl),
             Timeout = TimeSpan.FromSeconds(10),
-            DefaultRequestVersion = HttpVersion.Version20,
+            DefaultRequestVersion = HttpVersion.Version11,
             DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
         };
 

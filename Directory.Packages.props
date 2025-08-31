@@ -30,6 +30,7 @@
     <PackageVersion Include="LocalStack.Client" Version="2.0.0"/>
     <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.0"/>
     <!-- microsoft packages -->
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.8"/>
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0"/>
     <!-- system packages -->

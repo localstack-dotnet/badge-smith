@@ -4,7 +4,7 @@ using OneOf;
 
 namespace BadgeSmith.Api.Domain.Services.Nuget;
 
-internal record NuGetPackageInfo(string PackageId, string VersionString, bool IsPrerelease);
+internal record NuGetPackageInfo(string PackageId, string VersionString, bool IsPrerelease, DateTimeOffset? LastModifiedUtc = null);
 
 internal record PackageNotFound(string Reason) : NotFoundFailure(Reason);
 
