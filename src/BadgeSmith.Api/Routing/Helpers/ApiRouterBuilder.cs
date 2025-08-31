@@ -8,8 +8,6 @@ internal static class ApiRouterBuilder
 {
     public static ApiRouter BuildApiRouter()
     {
-        //using var scope = PerfTracker.StartScope("BuildApiRouter Complete", nameof(ApiRouterBuilder));
-
         var logger = LoggerFactory.CreateLogger<ApiRouter>();
         var routeResolver = new RouteResolver(RouteTable.Routes);
         var handlerFactory = new HandlerFactory();

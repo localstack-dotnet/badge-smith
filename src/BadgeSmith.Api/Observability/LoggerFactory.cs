@@ -1,4 +1,3 @@
-using BadgeSmith.Api.Observability.Performance;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -24,7 +23,6 @@ internal static class LoggerFactory
     /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
     public static ILogger<T> CreateLogger<T>()
     {
-        using var scope = PerfTracker.StartScope($"Logger {typeof(T).Name} Creation", typeof(LoggerFactory).FullName);
         return Factory.Value.CreateLogger<T>();
     }
 
@@ -35,7 +33,6 @@ internal static class LoggerFactory
     /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
     public static ILogger CreateLogger(string categoryName)
     {
-        using var scope = PerfTracker.StartScope($"Logger {categoryName} Creation", typeof(LoggerFactory).FullName);
         return Factory.Value.CreateLogger(categoryName);
     }
 
@@ -44,8 +41,6 @@ internal static class LoggerFactory
     /// </summary>
     private static ILoggerFactory CreateFactory()
     {
-        using var scope = PerfTracker.StartScope("Logger Factory Creation", typeof(LoggerFactory).FullName);
-
         var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
         {
             if (string.Equals(ObservabilitySettings.DotNetEnvironment, "Production", StringComparison.Ordinal))

@@ -20,7 +20,7 @@
     <IlcInvariantGlobalization>true</IlcInvariantGlobalization>
     <EventSourceSupport>false</EventSourceSupport>
 
-    <EnableTelemetry>false</EnableTelemetry>
+    <EnableTelemetry>true</EnableTelemetry>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(EnableTelemetry)' == 'true'">

@@ -18,7 +18,6 @@ internal static class HttpStack
 
     private static SocketsHttpHandler CreateHandlerInstance()
     {
-        // using var perfScope = PerfTracker.StartScope("SocketsHttpHandler Creation", typeof(HttpStack).FullName);
         return new SocketsHttpHandler()
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
@@ -34,7 +33,6 @@ internal static class HttpStack
 
     public static HttpClient CreateNuGetClient()
     {
-        // using var perfScope = PerfTracker.StartScope("Nuget HttpClient Creation", typeof(HttpStack).FullName);
         var httpClient = new HttpClient(NugetSocketsHttpHandlerFactory.Value, disposeHandler: false)
         {
             BaseAddress = new Uri(NugetApiUrl),
@@ -51,7 +49,6 @@ internal static class HttpStack
 
     public static HttpClient CreateGithubClient()
     {
-        // using var perfScope = PerfTracker.StartScope("Github HttpClient Creation", typeof(HttpStack).FullName);
         var httpClient = new HttpClient(GithubSocketsHttpHandlerFactory.Value, disposeHandler: false)
         {
             BaseAddress = new Uri(GithubApiUrl),

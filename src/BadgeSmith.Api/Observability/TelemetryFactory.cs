@@ -24,8 +24,6 @@ internal static class TelemetryFactory
     /// <returns>Configured TracerProvider instance</returns>
     public static TracerProvider CreateTracerProvider(string serviceName, string? serviceVersion = null)
     {
-        // using var perfScope = PerfTracker.StartScope($"{nameof(ApiRouter)}.{nameof(CreateTracerProvider)}", typeof(TelemetryFactory).FullName);
-
         return Sdk.CreateTracerProviderBuilder()
             .SetResourceBuilder(ResourceBuilder.CreateEmpty()
                 .AddService(serviceName, serviceVersion)

@@ -3,10 +3,8 @@ using System.Text.Json;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Domain.Services.Results;
 using BadgeSmith.Api.Json;
-using BadgeSmith.Api.Observability.Performance;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
-using ZLinq;
 
 namespace BadgeSmith.Api.Domain.Services.Nuget;
 
@@ -31,7 +29,6 @@ internal class NuGetPackageService : INuGetPackageService
         CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetPackageService)}.{nameof(GetLatestVersionAsync)}");
-        using var perfScope = PerfTracker.StartScope(nameof(GetLatestVersionAsync), typeof(NuGetPackageService).FullName);
         ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
         try
@@ -56,7 +53,7 @@ internal class NuGetPackageService : INuGetPackageService
             }
 
             var content = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-            var indexResponse = JsonSerializer.Deserialize<NuGetIndexResponse>(content, LambdaFunctionJsonSerializerContext.Default.NuGetIndexResponse);
+            var indexResponse = JsonSerializer.Deserialize(content, LambdaFunctionJsonSerializerContext.Default.NuGetIndexResponse);
 
             if (indexResponse?.Versions == null || indexResponse.Versions.Length == 0)
             {
@@ -103,56 +100,65 @@ internal class NuGetPackageService : INuGetPackageService
     private static NuGetVersion? ParseAndFilterVersions(string[] versionStrings, string? versionRange, bool includePrerelease)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetPackageService)}.{nameof(ParseAndFilterVersions)}");
-        using var perfScope = PerfTracker.StartScope(nameof(ParseAndFilterVersions), typeof(NuGetPackageService).FullName);
 
-        switch (versionRange)
+        if (string.IsNullOrWhiteSpace(versionRange) && includePrerelease && versionStrings.Length > 0)
         {
-            case null when includePrerelease && NuGetVersion.TryParse(versionStrings[^1], out var lastVersion):
-                return lastVersion;
-            case null when !includePrerelease:
-                for (var i = versionStrings.Length - 1; i > 0; i--)
-                {
-                    var versionString = versionStrings[i];
-
-                    if (NuGetVersion.TryParse(versionString, out var version) && !version.IsPrerelease)
-                    {
-                        return version;
-                    }
-                }
-
-                break;
-        }
-
-        var versions = new List<NuGetVersion>();
-
-        foreach (var versionString in versionStrings)
-        {
-            if (NuGetVersion.TryParse(versionString, out var version))
+            for (var i = versionStrings.Length - 1; i >= 0; i--)
             {
-                versions.Add(version);
+                if (NuGetVersion.TryParse(versionStrings[i], out var version))
+                {
+                    return version;
+                }
             }
+
+            return null;
         }
 
-        if (!includePrerelease)
+        if (string.IsNullOrWhiteSpace(versionRange) && !includePrerelease)
         {
-            versions = [.. versions.AsValueEnumerable().Where(v => !v.IsPrerelease)];
+            for (var i = versionStrings.Length - 1; i >= 0; i--)
+            {
+                if (NuGetVersion.TryParse(versionStrings[i], out var version) && !version.IsPrerelease)
+                {
+                    return version;
+                }
+            }
+
+            return null;
         }
 
-        if (string.IsNullOrWhiteSpace(versionRange))
-        {
-            return versions.Count == 0 ? null : versions.AsValueEnumerable().Order().Last();
-        }
-
-        if (VersionRange.TryParse(versionRange, out var range))
-        {
-            versions = [.. versions.AsValueEnumerable().Where(range.Satisfies)];
-        }
-        else
+        VersionRange? range = null;
+        if (!string.IsNullOrWhiteSpace(versionRange) && !VersionRange.TryParse(versionRange, out range))
         {
             throw new ArgumentException($"Invalid version range format: {versionRange}", nameof(versionRange));
         }
 
-        return versions.Count == 0 ? null : versions.AsValueEnumerable().Order().Last();
+        NuGetVersion? maxVersion = null;
+
+        foreach (var versionString in versionStrings)
+        {
+            if (!NuGetVersion.TryParse(versionString, out var version))
+            {
+                continue;
+            }
+
+            if (!includePrerelease && version.IsPrerelease)
+            {
+                continue;
+            }
+
+            if (range?.Satisfies(version) == false)
+            {
+                continue;
+            }
+
+            if (maxVersion == null || version > maxVersion)
+            {
+                maxVersion = version;
+            }
+        }
+
+        return maxVersion;
     }
 
     private static string BuildCriteriaDescription(string? versionRange, bool includePrerelease)
