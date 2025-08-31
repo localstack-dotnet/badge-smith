@@ -42,7 +42,7 @@ export const options = {
   summaryTimeUnit: 'ms',
 };
 
-const BASE_URL = 'https://api.localstackfor.net/';
+const BASE_URL = 'https://g4yecfi5hl.execute-api.eu-central-1.amazonaws.com';
 
 // Test data pools - realistic package names and scenarios
 const testScenarios = {
@@ -128,27 +128,29 @@ export default function() {
   requestCounter++;
   reportProgress();
 
-  const scenario = Math.random();
+  testNugetPackageBadges();
 
-  if (scenario < 0.4) {
-    // 40% - NuGet package badges (most common)
-    testNugetPackageBadges();
-  } else if (scenario < 0.7) {
-    // 30% - GitHub package badges
-    testGithubPackageBadges();
-  } else if (scenario < 0.85) {
-    // 15% - Test result badges
-    testResultBadges();
-  } else if (scenario < 0.95) {
-    // 10% - Health checks and redirects
-    testHealthAndMisc();
-  } else {
-    // 5% - Edge cases and stress patterns
-    testEdgeCases();
-  }
+  // const scenario = Math.random();
+
+  // if (scenario < 0.4) {
+  //   // 40% - NuGet package badges (most common)
+  //   testNugetPackageBadges();
+  // } else if (scenario < 0.7) {
+  //   // 30% - GitHub package badges
+  //   testGithubPackageBadges();
+  // } else if (scenario < 0.85) {
+  //   // 15% - Test result badges
+  //   testResultBadges();
+  // } else if (scenario < 0.95) {
+  //   // 10% - Health checks and redirects
+  //   testHealthAndMisc();
+  // } else {
+  //   // 5% - Edge cases and stress patterns
+  //   testEdgeCases();
+  // }
 
   // Small random sleep to simulate real user behavior
-  sleep(Math.random() * 2);
+  // sleep(Math.random() * 2);
 }
 
 function testNugetPackageBadges() {

@@ -30,7 +30,7 @@ internal class NuGetPackageService : INuGetPackageService
         CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetPackageService)}.{nameof(GetLatestVersionAsync)}");
-        // using var perfScope = PerfTracker.StartScope(nameof(GetLatestVersionAsync), typeof(NuGetPackageService).FullName);
+        using var perfScope = PerfTracker.StartScope(nameof(GetLatestVersionAsync), typeof(NuGetPackageService).FullName);
         ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
         try
@@ -102,7 +102,7 @@ internal class NuGetPackageService : INuGetPackageService
     private static NuGetVersion? ParseAndFilterVersions(string[] versionStrings, string? versionRange, bool includePrerelease)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetPackageService)}.{nameof(ParseAndFilterVersions)}");
-        // using var perfScope = PerfTracker.StartScope(nameof(ParseAndFilterVersions), typeof(NuGetPackageService).FullName);
+        using var perfScope = PerfTracker.StartScope(nameof(ParseAndFilterVersions), typeof(NuGetPackageService).FullName);
 
         switch (versionRange)
         {

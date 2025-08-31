@@ -65,4 +65,6 @@ internal static class Constants
     public const string SharedInfrastructureConstructId = "BadgeSmithSharedInfrastructureConstruct";
 
     public const string ApiLocalStackForNetDomain = "api.localstackfor.net";
+
+    public const int LambdaTimeoutInSeconds = 20;
 }

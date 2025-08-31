@@ -29,7 +29,7 @@ public class BadgeSmithFunctionConstruct : Construct
             Code = Code.FromAsset("../artifacts/badge-lambda-linux-arm64.zip"),
             Handler = "bootstrap", // Native AOT uses bootstrap handler
             Role = lambdaExecutionRole,
-            Timeout = Duration.Seconds(15),
+            Timeout = Duration.Seconds(LambdaTimeoutInSeconds),
             MemorySize = 512,
             Architecture = Architecture.ARM_64,
             Environment = new Dictionary<string, string>(StringComparer.Ordinal)

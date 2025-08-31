@@ -31,7 +31,8 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}");
-        // using var perfScope = PerfTracker.StartScope($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}", typeof(NugetPackageBadgeHandler).FullName);
+        using var perfScope = PerfTracker.StartScope($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}", typeof(NugetPackageBadgeHandler).FullName);
+
         try
         {
             if (!routeContext.TryGetRouteValue("package", out var packageId) || string.IsNullOrWhiteSpace(packageId))
