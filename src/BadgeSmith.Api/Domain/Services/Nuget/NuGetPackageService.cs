@@ -3,6 +3,7 @@ using System.Text.Json;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Domain.Services.Results;
 using BadgeSmith.Api.Json;
+using BadgeSmith.Api.Observability.Performance;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 using ZLinq;

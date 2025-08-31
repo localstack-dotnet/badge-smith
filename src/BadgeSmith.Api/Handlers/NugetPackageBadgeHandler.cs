@@ -3,6 +3,7 @@ using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Json;
+using BadgeSmith.Api.Observability.Performance;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;

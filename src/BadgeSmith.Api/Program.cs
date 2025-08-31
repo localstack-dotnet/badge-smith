@@ -7,6 +7,7 @@ using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using BadgeSmith;
 using BadgeSmith.Api.Json;
+using BadgeSmith.Api.Observability.Performance;
 using BadgeSmith.Api.Routing;
 using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;

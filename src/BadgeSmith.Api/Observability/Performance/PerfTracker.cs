@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using System.Globalization;
-using BadgeSmith.Api.Observability;
 using BadgeSmith.Api.Observability.Loggers;
 
 #pragma warning disable RCS1093
+
+namespace BadgeSmith.Api.Observability.Performance;
 
 internal static class PerfTracker
 {
