@@ -1,4 +1,4 @@
-using BadgeSmith.Api.Routing;
+using BadgeSmith.Api.Infrastructure.Routing;
 using BadgeSmith.Api.Tests.TestHelpers;
 using Xunit;
 

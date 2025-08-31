@@ -7,13 +7,13 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using BadgeSmith.Api.Json;
-using BadgeSmith.Api.Observability;
-using BadgeSmith.Api.Routing;
-using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;
-using LoggerFactory = BadgeSmith.Api.Observability.LoggerFactory;
+using LoggerFactory = BadgeSmith.Api.Infrastructure.Observability.LoggerFactory;
 using BadgeSmith;
-using static BadgeSmith.Api.Observability.ObservabilitySettings;
+using BadgeSmith.Api.Infrastructure.Observability;
+using BadgeSmith.Api.Infrastructure.Routing;
+using BadgeSmith.Api.Infrastructure.Routing.Helpers;
+using static BadgeSmith.Api.Infrastructure.Observability.ObservabilitySettings;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Instrumentation.AWSLambda;
 
@@ -45,8 +45,8 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
 {
     SetHttpTags(request, context);
 
-    // var timeout = context.RemainingTime.Subtract(TimeSpan.FromSeconds(5));
-    // using var cts = new CancellationTokenSource(timeout);
+    var timeout = TimeSpan.FromSeconds(Constants.LambdaTimeoutInSeconds).Subtract(TimeSpan.FromSeconds(2));
+    using var cts = new CancellationTokenSource(timeout);
 
     var httpMethod = request.RequestContext.Http.Method ?? "UNKNOWN";
     var path = request.RequestContext.Http.Path ?? "/";

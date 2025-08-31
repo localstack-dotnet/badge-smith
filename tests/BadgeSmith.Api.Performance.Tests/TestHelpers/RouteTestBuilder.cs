@@ -1,7 +1,7 @@
 using Amazon.Lambda.APIGatewayEvents;
-using BadgeSmith.Api.Routing;
-using BadgeSmith.Api.Routing.Contracts;
-using BadgeSmith.Api.Routing.Patterns;
+using BadgeSmith.Api.Infrastructure.Routing;
+using BadgeSmith.Api.Infrastructure.Routing.Contracts;
+using BadgeSmith.Api.Infrastructure.Routing.Patterns;
 
 namespace BadgeSmith.Api.Performance.Tests.TestHelpers;
 

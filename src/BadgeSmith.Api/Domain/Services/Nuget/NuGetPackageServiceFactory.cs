@@ -1,7 +1,7 @@
 ﻿using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Domain.Services.Package;
 using BadgeSmith.Api.Infrastructure;
-using BadgeSmith.Api.Observability;
+using BadgeSmith.Api.Infrastructure.Observability;
 
 namespace BadgeSmith.Api.Domain.Services.Nuget;
 
@@ -14,7 +14,7 @@ internal class NuGetPackageServiceFactory : INugetPackageServiceFactory
     private static NuGetPackageService CreateNuGetPackageService()
     {
         var logger = LoggerFactory.CreateLogger<NuGetPackageService>();
-        var httpClient = HttpStack.CreateNuGetClient();
+        var httpClient = HttpClientFactory.CreateNuGetClient();
         var nuGetVersionService = new NuGetVersionService();
 
         return new NuGetPackageService(nuGetVersionService, logger, httpClient);
