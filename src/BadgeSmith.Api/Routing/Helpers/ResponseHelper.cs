@@ -15,6 +15,8 @@ namespace BadgeSmith.Api.Routing.Helpers;
 /// </summary>
 internal static class ResponseHelper
 {
+    private const string DefaultContentType = "application/json; charset=utf-8";
+
     [StructLayout(LayoutKind.Auto)]
     internal readonly record struct CacheSettings(int SMaxAgeSeconds = 60, int MaxAgeSeconds = 10, int SwrSeconds = 30, int SieSeconds = 24 * 60 * 60);
 
@@ -28,6 +30,8 @@ internal static class ResponseHelper
     public static APIGatewayHttpApiV2ProxyResponse CreateResponse(HttpStatusCode statusCode, string? responseBody = null, Func<Dictionary<string, string>>? customHeaders = null)
     {
         var headers = customHeaders?.Invoke() ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        headers.TryAdd("Content-Type", DefaultContentType);
 
         var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse
         {
@@ -333,8 +337,7 @@ internal static class ResponseHelper
     private static Dictionary<string, string> BuildCacheHeaders(
         string etag,
         in CacheSettings s,
-        DateTimeOffset? lastModifiedUtc = null,
-        string contentType = "application/json; charset=utf-8")
+        DateTimeOffset? lastModifiedUtc = null)
     {
         var cacheControlValue =
             $"public, s-maxage={s.SMaxAgeSeconds}, max-age={s.MaxAgeSeconds}, stale-while-revalidate={s.SwrSeconds}, stale-if-error={s.SieSeconds}";
@@ -343,7 +346,6 @@ internal static class ResponseHelper
         {
             ["Cache-Control"] = cacheControlValue,
             ["ETag"] = etag,
-            ["Content-Type"] = contentType,
         };
 
         if (lastModifiedUtc.HasValue)

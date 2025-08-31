@@ -1,19 +1,10 @@
 ﻿#pragma warning disable S125, RCS1093
 
 using BadgeSmith.Api.Domain.Services.Nuget;
+using BadgeSmith.Api.Handlers.Contracts;
 using BadgeSmith.Api.Observability;
 
 namespace BadgeSmith.Api.Handlers;
-
-internal interface IHandlerFactory
-{
-    public IHealthCheckHandler HealthCheckHandler { get; }
-    public INugetPackageBadgeHandler NugetPackageBadgeHandler { get; }
-    public IGithubPackagesBadgeHandler GithubPackagesBadgeHandler { get; }
-    public ITestResultsBadgeHandler TestResultsBadgeHandler { get; }
-    public ITestResultRedirectionHandler TestResultRedirectionHandler { get; }
-    public ITestResultIngestionHandler TestResultIngestionHandler { get; }
-}
 
 internal class HandlerFactory : IHandlerFactory
 {
@@ -42,12 +33,12 @@ internal class HandlerFactory : IHandlerFactory
         return new HealthCheckHandler(logger);
     }
 
-    private static NugetPackageBadgeHandler CreateNugetPackageBadgeHandler()
+    private static NuGetPackageBadgeHandler CreateNugetPackageBadgeHandler()
     {
-        var logger = LoggerFactory.CreateLogger<NugetPackageBadgeHandler>();
-        var nugetPackageServiceFactory = new NugetPackageServiceFactory();
+        var logger = LoggerFactory.CreateLogger<NuGetPackageBadgeHandler>();
+        var nugetPackageServiceFactory = new NuGetPackageServiceFactory();
 
-        return new NugetPackageBadgeHandler(logger, nugetPackageServiceFactory);
+        return new NuGetPackageBadgeHandler(logger, nugetPackageServiceFactory);
     }
 
     private static GithubPackagesBadgeHandler CreateGithubPackagesBadgeHandler()

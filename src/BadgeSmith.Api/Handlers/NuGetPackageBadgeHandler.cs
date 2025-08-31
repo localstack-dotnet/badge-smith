@@ -2,27 +2,20 @@ using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Domain.Services.Contracts;
+using BadgeSmith.Api.Handlers.Contracts;
 using BadgeSmith.Api.Json;
 using BadgeSmith.Api.Routing;
-using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
 
-internal interface INugetPackageBadgeHandler : IRouteHandler;
-
-internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
+internal class NuGetPackageBadgeHandler : INugetPackageBadgeHandler
 {
-    public static readonly Dictionary<string, string> ContentTypeHeader = new(StringComparer.OrdinalIgnoreCase)
-    {
-        { "Content-Type", "application/json; charset=utf-8" },
-    };
-
-    private readonly ILogger<NugetPackageBadgeHandler> _logger;
+    private readonly ILogger<NuGetPackageBadgeHandler> _logger;
     private readonly INuGetPackageService _nugetPackageService;
 
-    public NugetPackageBadgeHandler(ILogger<NugetPackageBadgeHandler> logger, INugetPackageServiceFactory nugetPackageServiceFactory)
+    public NuGetPackageBadgeHandler(ILogger<NuGetPackageBadgeHandler> logger, INugetPackageServiceFactory nugetPackageServiceFactory)
     {
         _logger = logger;
         _nugetPackageService = nugetPackageServiceFactory.NuGetPackageService;
@@ -30,7 +23,7 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
 
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
-        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NugetPackageBadgeHandler)}.{nameof(HandleAsync)}");
+        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetPackageBadgeHandler)}.{nameof(HandleAsync)}");
 
         try
         {
@@ -53,9 +46,9 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
             {
                 return result.Failure.Match
                 (
-                    notFound => ResponseHelper.NotFound(notFound.ToErrorResponse(), () => ContentTypeHeader),
-                    validation => ResponseHelper.BadRequest(validation.ToErrorResponse(), () => ContentTypeHeader),
-                    error => ResponseHelper.InternalServerError(error.ToErrorResponse(), () => ContentTypeHeader)
+                    notFound => ResponseHelper.NotFound(notFound.ToErrorResponse()),
+                    validation => ResponseHelper.BadRequest(validation.ToErrorResponse()),
+                    error => ResponseHelper.InternalServerError(error.ToErrorResponse())
                 );
             }
 
@@ -79,6 +72,7 @@ internal class NugetPackageBadgeHandler : INugetPackageBadgeHandler
         catch (Exception ex)
         {
             const string message = "Unexpected error processing NuGet badge request";
+
             _logger.LogError(ex, message);
             activity?.AddException(ex);
             activity?.SetStatus(ActivityStatusCode.Error);

@@ -1,10 +1,11 @@
 ﻿using BadgeSmith.Api.Domain.Services.Contracts;
+using BadgeSmith.Api.Domain.Services.Package;
 using BadgeSmith.Api.Infrastructure;
 using BadgeSmith.Api.Observability;
 
 namespace BadgeSmith.Api.Domain.Services.Nuget;
 
-internal class NugetPackageServiceFactory : INugetPackageServiceFactory
+internal class NuGetPackageServiceFactory : INugetPackageServiceFactory
 {
     private static readonly Lazy<INuGetPackageService> NuGetPackageServiceLazy = new(CreateNuGetPackageService);
 
@@ -14,7 +15,8 @@ internal class NugetPackageServiceFactory : INugetPackageServiceFactory
     {
         var logger = LoggerFactory.CreateLogger<NuGetPackageService>();
         var httpClient = HttpStack.CreateNuGetClient();
+        var nuGetVersionService = new NuGetVersionService();
 
-        return new NuGetPackageService(logger, httpClient);
+        return new NuGetPackageService(nuGetVersionService, logger, httpClient);
     }
 }

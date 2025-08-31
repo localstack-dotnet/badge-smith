@@ -15,7 +15,7 @@ internal interface INuGetPackageService
     /// <param name="includePrerelease">Whether to include prerelease versions</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Package information if found, otherwise an error result</returns>
-    public Task<NugetResult> GetLatestVersionAsync(
+    public Task<NuGetResult> GetLatestVersionAsync(
         string packageId,
         string? versionRange = null,
         bool includePrerelease = false,

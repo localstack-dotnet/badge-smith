@@ -1,6 +1,6 @@
 ﻿using BadgeSmith.Api.Domain.Models;
 
-namespace BadgeSmith.Api.Domain.Services.Results;
+namespace BadgeSmith.Api.Domain.Services;
 
 internal abstract record Failure(string Reason);
 

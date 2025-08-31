@@ -1,12 +1,10 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
+using BadgeSmith.Api.Handlers.Contracts;
 using BadgeSmith.Api.Routing;
-using BadgeSmith.Api.Routing.Contracts;
 using BadgeSmith.Api.Routing.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Handlers;
-
-internal interface IHealthCheckHandler : IRouteHandler;
 
 internal class HealthCheckHandler : IHealthCheckHandler
 {

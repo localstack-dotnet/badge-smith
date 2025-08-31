@@ -1,11 +1,15 @@
-﻿using BadgeSmith.Api.Domain.Services.Results;
+﻿using System.Text.Json.Serialization;
+using BadgeSmith.Api.Domain.Services.Package;
 using OneOf;
-using Error = BadgeSmith.Api.Domain.Services.Results.Error;
 
 namespace BadgeSmith.Api.Domain.Services.Nuget;
 
+internal record NuGetPackageInfo(string PackageId, string VersionString, bool IsPrerelease);
+
+internal record PackageNotFound(string Reason) : NotFoundFailure(Reason);
+
 [GenerateOneOf]
-internal partial class NugetResult : OneOfBase<NuGetPackageInfo, NotFoundFailure, ValidationFailure, Error>
+internal partial class NuGetResult : OneOfBase<NuGetPackageInfo, PackageNotFound, InvalidVersionRange, Error>
 {
     public bool IsSuccess => IsT0 && AsT0 != null;
 
@@ -60,3 +64,5 @@ internal partial class NugetResult : OneOfBase<NuGetPackageInfo, NotFoundFailure
         }
     }
 }
+
+internal record NuGetIndexResponse([property: JsonPropertyName("versions")] string[] Versions);

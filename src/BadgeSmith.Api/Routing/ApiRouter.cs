@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
-using BadgeSmith.Api.Handlers;
+using BadgeSmith.Api.Handlers.Contracts;
 using BadgeSmith.Api.Routing.Contracts;
 using Microsoft.Extensions.Logging;
 
