@@ -426,3 +426,6 @@ perf-results/
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Local development configuration files
+**/organization-pat-mapping.json

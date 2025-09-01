@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Core"/>
+    <PackageReference Include="AWSSDK.DynamoDBv2"/>
+    <PackageReference Include="AWSSDK.SecretsManager"/>
+
+    <PackageReference Include="LocalStack.Client"/>
+    <PackageReference Include="LocalStack.Client.Extensions"/>
+
+    <PackageReference Include="Microsoft.Extensions.Hosting"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('organization-pat-mapping.json')">
+    <Content Include="organization-pat-mapping.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

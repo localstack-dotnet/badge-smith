@@ -20,6 +20,14 @@ internal static class Constants
 
     public const string NonceTableOutputTableName = "NonceTableTableName";
 
+    public const string OrgSecretsTableId = "OrgSecretsTable";
+
+    public const string OrgSecretsTableName = "github-org-secrets";
+
+    public const string OrgSecretsTableOutputArn = "OrgSecretsTableArn";
+
+    public const string OrgSecretsOutputTableName = "OrgSecretsTableTableName";
+
     public const string LambdaId = "BadgeSmithFunction";
 
     public const string LambdaName = "badge-smith-function";

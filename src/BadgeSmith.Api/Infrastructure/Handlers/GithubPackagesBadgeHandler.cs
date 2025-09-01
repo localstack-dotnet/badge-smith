@@ -1,5 +1,6 @@
 ﻿using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
+using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Infrastructure.Handlers.Contracts;
 using BadgeSmith.Api.Infrastructure.Routing;
 using BadgeSmith.Api.Infrastructure.Routing.Helpers;
@@ -11,10 +12,12 @@ namespace BadgeSmith.Api.Infrastructure.Handlers;
 internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
 {
     private readonly ILogger<GithubPackagesBadgeHandler> _logger;
+    private readonly IGithubOrgSecretsService _githubOrgSecretsService;
 
-    public GithubPackagesBadgeHandler(ILogger<GithubPackagesBadgeHandler> logger)
+    public GithubPackagesBadgeHandler(ILogger<GithubPackagesBadgeHandler> logger, IGithubOrgSecretsService githubOrgSecretsService)
     {
         _logger = logger;
+        _githubOrgSecretsService = githubOrgSecretsService;
     }
 
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
@@ -24,6 +27,11 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
         {
             return errorResponse!;
         }
+
+        // ReSharper disable once UnusedVariable
+#pragma warning disable S1481
+        var secret = await _githubOrgSecretsService.GetGitHubTokenAsync(org, ct).ConfigureAwait(false);
+#pragma warning restore S1481
 
         _logger.LogInformation("Github packages badge request received for {Org}/{Package}", org, packageId);
 

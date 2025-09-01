@@ -3,7 +3,6 @@ using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
 using Constructs;
-
 using static BadgeSmith.Constants;
 
 namespace BadgeSmith.CDK.Shared.Constructs;
@@ -15,11 +14,18 @@ namespace BadgeSmith.CDK.Shared.Constructs;
 /// </summary>
 public class BadgeSmithFunctionConstruct : Construct
 {
-    public BadgeSmithFunctionConstruct(Construct scope, ITable testResultsTable, ITable nonceTable, IRole lambdaExecutionRole, string id) : base(scope, id)
+    public BadgeSmithFunctionConstruct(
+        Construct scope,
+        ITable testResultsTable,
+        ITable nonceTable,
+        ITable orgSecretTable,
+        IRole lambdaExecutionRole,
+        string id) : base(scope, id)
     {
         ArgumentNullException.ThrowIfNull(scope);
         ArgumentNullException.ThrowIfNull(testResultsTable);
         ArgumentNullException.ThrowIfNull(nonceTable);
+        ArgumentNullException.ThrowIfNull(orgSecretTable);
         ArgumentNullException.ThrowIfNull(lambdaExecutionRole);
 
         BadgeSmithFunction = new Function(this, LambdaId, new FunctionProps
@@ -39,6 +45,7 @@ public class BadgeSmithFunctionConstruct : Construct
                 ["APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS"] = "true",
                 ["AWS_RESOURCE_TEST_RESULTS_TABLE"] = testResultsTable.TableName,
                 ["AWS_RESOURCE_NONCE_TABLE"] = nonceTable.TableName,
+                ["AWS_RESOURCE_ORG_SECRETS_TABLE"] = orgSecretTable.TableArn,
                 // ["AWS_LAMBDA_EXEC_WRAPPER"] = "/opt/otel-instrument", // For future OpenTelemetry support
             },
             Description = "BadgeSmith Native AOT Lambda function for badge generation",

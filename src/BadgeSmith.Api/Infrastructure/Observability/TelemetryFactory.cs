@@ -28,7 +28,7 @@ internal static class TelemetryFactory
             .SetResourceBuilder(ResourceBuilder.CreateEmpty()
                 .AddService(serviceName, serviceVersion)
                 .AddAttributes([
-                    new KeyValuePair<string, object>("deployment.environment", ObservabilitySettings.DotNetEnvironment),
+                    new KeyValuePair<string, object>("deployment.environment", Settings.DotNetEnvironment),
                 ]))
             .AddSource("BadgeSmith.*")
             .AddHttpClientInstrumentation(ConfigureHttpInstrumentation)

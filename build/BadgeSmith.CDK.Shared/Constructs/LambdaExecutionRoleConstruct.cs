@@ -32,9 +32,9 @@ public class LambdaExecutionRoleConstruct : Construct
             Actions = ["secretsmanager:GetSecretValue"],
             Resources =
             [
-                $"arn:aws:secretsmanager:{Stack.Of(this).Region}:{Stack.Of(this).Account}:secret:badge/repo/*",
-                $"arn:aws:secretsmanager:{Stack.Of(this).Region}:{Stack.Of(this).Account}:secret:badge/github/*",
-                $"arn:aws:secretsmanager:{Stack.Of(this).Region}:{Stack.Of(this).Account}:secret:badge/nuget/*",
+                $"arn:aws:secretsmanager:{Stack.Of(this).Region}:{Stack.Of(this).Account}:secret:badgesmith/github/*",
+                $"arn:aws:secretsmanager:{Stack.Of(this).Region}:{Stack.Of(this).Account}:secret:badgesmith/nuget/*",
+                $"arn:aws:secretsmanager:{Stack.Of(this).Region}:{Stack.Of(this).Account}:secret:badgesmith/hmac/*",
             ],
         }));
 

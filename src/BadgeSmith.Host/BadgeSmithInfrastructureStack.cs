@@ -25,6 +25,7 @@ internal sealed class BadgeSmithInfrastructureStack : Stack
         TestResultsTable = sharedInfrastructureConstruct.TestResultsTable;
         NonceTable = sharedInfrastructureConstruct.NonceTable;
         LambdaExecutionRole = sharedInfrastructureConstruct.LambdaExecutionRole;
+        OrgSecretsTable = sharedInfrastructureConstruct.OrgSecretsTable;
 
         // Add LocalStack-specific tags for easier identification
         Tags.SetTag("environment", "Local");
@@ -41,6 +42,11 @@ internal sealed class BadgeSmithInfrastructureStack : Stack
     /// DynamoDB table for HMAC nonce storage to prevent replay attacks
     /// </summary>
     public Table NonceTable { get; }
+
+    /// <summary>
+    /// DynamoDB table mapping GitHub org to Secrets Manager secret name
+    /// </summary>
+    public Table OrgSecretsTable { get; }
 
     /// <summary>
     /// IAM role that the Lambda function would assume in production

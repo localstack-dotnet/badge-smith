@@ -1,0 +1,14 @@
+{
+  "organizations": [
+    {
+      "name": "example-org",
+      "github_personal_access_token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "description": "Example organization configuration"
+    },
+    {
+      "name": "another-org",
+      "github_personal_access_token": "ghp_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "description": "Another example organization"
+    }
+  ]
+}

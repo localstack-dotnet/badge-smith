@@ -30,11 +30,13 @@ public sealed class ProductionStack : Stack
 
         TestResultsTable = SharedInfrastructureConstruct.TestResultsTable;
         NonceTable = SharedInfrastructureConstruct.NonceTable;
+        OrgSecretsTable = SharedInfrastructureConstruct.OrgSecretsTable;
 
         BadgeSmithFunctionConstruct = new BadgeSmithFunctionConstruct(
             this,
             SharedInfrastructureConstruct.TestResultsTable,
             SharedInfrastructureConstruct.NonceTable,
+            SharedInfrastructureConstruct.OrgSecretsTable,
             SharedInfrastructureConstruct.LambdaExecutionRole,
             LambdaConstructId);
 
@@ -221,6 +223,11 @@ public sealed class ProductionStack : Stack
     /// DynamoDB table for HMAC nonce storage to prevent replay attacks
     /// </summary>
     public Table NonceTable { get; }
+
+    /// <summary>
+    /// DynamoDB table mapping GitHub org to Secrets Manager secret name
+    /// </summary>
+    public Table OrgSecretsTable { get; }
 
     /// <summary>
     /// API Gateway HTTP API v2 for Lambda integration

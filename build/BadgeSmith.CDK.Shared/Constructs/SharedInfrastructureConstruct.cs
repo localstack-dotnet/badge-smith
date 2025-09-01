@@ -22,6 +22,7 @@ public class SharedInfrastructureConstruct : Construct
         // Expose the resources through properties for easy access
         TestResultsTable = DynamoDbTablesConstruct.TestResultsTable;
         NonceTable = DynamoDbTablesConstruct.NonceTable;
+        OrgSecretsTable = DynamoDbTablesConstruct.OrgSecretsTable;
         LambdaExecutionRole = LambdaExecutionRoleConstruct.Role;
     }
 
@@ -44,6 +45,11 @@ public class SharedInfrastructureConstruct : Construct
     /// DynamoDB table for HMAC nonce storage to prevent replay attacks
     /// </summary>
     public Table NonceTable { get; }
+
+    /// <summary>
+    /// DynamoDB table mapping GitHub org to Secrets Manager secret name
+    /// </summary>
+    public Table OrgSecretsTable { get; }
 
     /// <summary>
     /// IAM role used by the Lambda function with least-privilege permissions for DynamoDB and Secrets Manager access.

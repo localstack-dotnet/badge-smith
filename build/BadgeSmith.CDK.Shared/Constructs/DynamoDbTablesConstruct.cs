@@ -76,9 +76,27 @@ public class DynamoDbTablesConstruct : Construct
             RemovalPolicy = RemovalPolicy.DESTROY,
         });
 
+        OrgSecretsTable = new Table(this, OrgSecretsTableId, new TableProps
+        {
+            TableName = OrgSecretsTableName,
+            PartitionKey = new Attribute
+            {
+                Name = "PK", // ORG#{org}
+                Type = AttributeType.STRING,
+            },
+            SortKey = new Attribute
+            {
+                Name = "SK", // CONST#GITHUB
+                Type = AttributeType.STRING,
+            },
+            BillingMode = BillingMode.PAY_PER_REQUEST,
+            RemovalPolicy = RemovalPolicy.DESTROY,
+        });
+
         // Grant DynamoDB permissions to Lambda role
         TestResultsTable.GrantReadWriteData(lambdaExecutionRole);
         NonceTable.GrantReadWriteData(lambdaExecutionRole);
+        OrgSecretsTable.GrantReadData(lambdaExecutionRole);
 
         _ = new CfnOutput(this, TestResultsOutputTableArn, new CfnOutputProps
         {
@@ -91,6 +109,12 @@ public class DynamoDbTablesConstruct : Construct
             Value = NonceTable.TableArn,
             Description = "ARN of the nonce DynamoDB table",
         });
+
+        _ = new CfnOutput(this, OrgSecretsTableOutputArn, new CfnOutputProps
+        {
+            Value = OrgSecretsTable.TableArn,
+            Description = "ARN of the GitHub org secrets mapping table",
+        });
     }
 
     /// <summary>
@@ -102,4 +126,9 @@ public class DynamoDbTablesConstruct : Construct
     /// DynamoDB table for HMAC nonce storage to prevent replay attacks
     /// </summary>
     public Table NonceTable { get; }
+
+    /// <summary>
+    /// DynamoDB table mapping GitHub org to Secrets Manager secret name
+    /// </summary>
+    public Table OrgSecretsTable { get; }
 }

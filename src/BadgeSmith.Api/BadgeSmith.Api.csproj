@@ -33,11 +33,16 @@
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents"/>
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
 
+    <PackageReference Include="AWSSDK.DynamoDBv2"/>
+    <PackageReference Include="AWSSDK.SecretsManager"/>
+
     <PackageReference Include="OneOf"/>
     <PackageReference Include="OneOf.SourceGenerator"/>
 
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console"/>
+
+    <PackageReference Include="LocalStack.Client"/>
 
     <PackageReference Include="NuGet.Versioning"/>
     <PackageReference Include="ZLinq"/>
@@ -76,6 +81,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Domain\"/>
+    <TrimmerRootDescriptor Include="ILLink.Descriptors.xml"/>
   </ItemGroup>
 </Project>

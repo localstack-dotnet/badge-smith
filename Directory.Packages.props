@@ -17,20 +17,22 @@
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1"/>
     <PackageVersion Include="LocalStack.Aspire.Hosting" Version="9.4.0-rc.1"/>
     <!-- aws packages -->
+    <PackageVersion Include="AWSSDK.Core" Version="4.0.0.26"/>
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.6.1"/>
+    <PackageVersion Include="AWSSDK.SecretsManager" Version="4.0.1.1"/>
     <PackageVersion Include="Amazon.CDK.Lib" Version="2.212.0"/>
     <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1"/>
     <PackageVersion Include="Amazon.Lambda.Core" Version="2.7.0"/>
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.13.1"/>
     <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4"/>
     <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="3.0.0"/>
-    <PackageVersion Include="AWSSDK.Core" Version="4.0.0.20"/>
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.3.3"/>
     <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.2.1"/>
     <!-- localstack packages -->
     <PackageVersion Include="LocalStack.Client" Version="2.0.0"/>
     <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.0"/>
     <!-- microsoft packages -->
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.8"/>
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.8"/>
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0"/>
     <!-- system packages -->
@@ -46,9 +48,9 @@
     <!-- third-party packages -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.2"/>
     <PackageVersion Include="Constructs" Version="10.4.2"/>
-    <PackageVersion Include="NuGet.Versioning" Version="6.14.0" />
-    <PackageVersion Include="OneOf" Version="3.0.271" />
-    <PackageVersion Include="OneOf.SourceGenerator" Version="3.0.271" />
+    <PackageVersion Include="NuGet.Versioning" Version="6.14.0"/>
+    <PackageVersion Include="OneOf" Version="3.0.271"/>
+    <PackageVersion Include="OneOf.SourceGenerator" Version="3.0.271"/>
     <PackageVersion Include="ZLinq" Version="1.5.2"/>
     <!-- test packages -->
     <PackageVersion Include="Aspire.Hosting.Testing" Version="9.4.0"/>

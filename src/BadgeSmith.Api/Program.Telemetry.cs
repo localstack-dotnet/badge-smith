@@ -13,7 +13,7 @@ using BadgeSmith;
 using BadgeSmith.Api.Infrastructure.Observability;
 using BadgeSmith.Api.Infrastructure.Routing;
 using BadgeSmith.Api.Infrastructure.Routing.Helpers;
-using static BadgeSmith.Api.Infrastructure.Observability.ObservabilitySettings;
+using static BadgeSmith.Api.Settings;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Instrumentation.AWSLambda;
 

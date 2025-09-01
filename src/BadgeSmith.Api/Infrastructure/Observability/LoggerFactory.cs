@@ -43,7 +43,7 @@ internal static class LoggerFactory
     {
         var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
         {
-            if (string.Equals(ObservabilitySettings.DotNetEnvironment, "Production", StringComparison.Ordinal))
+            if (string.Equals(Settings.DotNetEnvironment, "Production", StringComparison.Ordinal))
             {
                 builder
                     .SetMinimumLevel(LogLevel.Information)
