@@ -15,10 +15,10 @@ internal class NuGetPackageBadgeHandler : INugetPackageBadgeHandler
     private readonly ILogger<NuGetPackageBadgeHandler> _logger;
     private readonly INuGetPackageService _nugetPackageService;
 
-    public NuGetPackageBadgeHandler(ILogger<NuGetPackageBadgeHandler> logger, INugetPackageServiceFactory nugetPackageServiceFactory)
+    public NuGetPackageBadgeHandler(ILogger<NuGetPackageBadgeHandler> logger, INuGetPackageService nuGetPackageService)
     {
         _logger = logger;
-        _nugetPackageService = nugetPackageServiceFactory.NuGetPackageService;
+        _nugetPackageService = nuGetPackageService;
     }
 
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)

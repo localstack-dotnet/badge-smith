@@ -45,8 +45,7 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
 {
     SetHttpTags(request, context);
 
-    var timeout = TimeSpan.FromSeconds(Constants.LambdaTimeoutInSeconds).Subtract(TimeSpan.FromSeconds(2));
-    using var cts = new CancellationTokenSource(timeout);
+    using var cts = new CancellationTokenSource(LambdaTimeout);
 
     var httpMethod = request.RequestContext.Http.Method ?? "UNKNOWN";
     var path = request.RequestContext.Http.Path ?? "/";

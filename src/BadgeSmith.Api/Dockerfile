@@ -27,7 +27,7 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
 
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet publish ${PROJECT} -c ${CONFIG} -r ${RID} --self-contained true \
-      -p:PublishAot=true -p:StripSymbols=true -p:DebugType=none -p:EnableTelemetry=false \
+      -p:PublishAot=true -p:StripSymbols=true -p:DebugType=none -p:EnableTelemetry=false -p:EnableLocalStack=false \
       -p:EnableSourceControlManagerQueries=false \
       -p:EmbedUntrackedSources=false \
       -o ${PUBLISH_DIR} \

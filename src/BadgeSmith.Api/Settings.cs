@@ -24,13 +24,20 @@ internal static class Settings
 
     public static string ApplicationVersion => _applicationVersion ??= GetEnvironmentVariable("APP_VERSION") ?? DefaultAppVersion;
 
-    public static bool TelemetryFactoryPerfLogs => _enableTelemetryFactoryPerfLogs ??= ParseEnvironmentVariable("APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS") ?? DefaulEnableTelemetryFactoryPerfLogs;
+    public static bool TelemetryFactoryPerfLogs =>
+        _enableTelemetryFactoryPerfLogs ??= ParseEnvironmentVariable("APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS") ?? DefaulEnableTelemetryFactoryPerfLogs;
 
     public static string DotNetEnvironment => _dotNetEnvironment ??= DotNetEnvironmentFromEnv ?? DefaultDotNetEnvironment;
 
     public static bool UseLocalStack => _useLocalStack ??= ParseEnvironmentVariable("LocalStack__UseLocalStack") ?? DefaultUseLocalStack;
 
     public static string? LocalStackEndpoint => GetEnvironmentVariable("ConnectionStrings__localstack");
+
+#if !DEBUG
+    public static TimeSpan LambdaTimeout => TimeSpan.FromSeconds(Constants.LambdaTimeoutInSeconds).Subtract(TimeSpan.FromSeconds(2));
+#else
+    public static TimeSpan LambdaTimeout => TimeSpan.FromMinutes(3);
+#endif
 
     private static bool? ParseEnvironmentVariable(string name)
     {

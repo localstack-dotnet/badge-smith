@@ -21,10 +21,15 @@
     <EventSourceSupport>false</EventSourceSupport>
 
     <EnableTelemetry>true</EnableTelemetry>
+    <EnableLocalStack>true</EnableLocalStack>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(EnableTelemetry)' == 'true'">
     <DefineConstants>$(DefineConstants);ENABLE_TELEMETRY</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(EnableLocalStack)' == 'true'">
+    <DefineConstants>$(DefineConstants);ENABLE_LOCALSTACK</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,10 +44,10 @@
     <PackageReference Include="OneOf"/>
     <PackageReference Include="OneOf.SourceGenerator"/>
 
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Console"/>
 
-    <PackageReference Include="LocalStack.Client"/>
+    <PackageReference Include="LocalStack.Client" Condition="'$(EnableLocalStack)' == 'true'"/>
 
     <PackageReference Include="NuGet.Versioning"/>
     <PackageReference Include="ZLinq"/>
@@ -78,9 +83,5 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
-    <TrimmerRootDescriptor Include="ILLink.Descriptors.xml"/>
   </ItemGroup>
 </Project>

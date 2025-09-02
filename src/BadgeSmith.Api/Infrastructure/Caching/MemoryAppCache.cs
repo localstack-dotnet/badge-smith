@@ -4,11 +4,11 @@ namespace BadgeSmith.Api.Infrastructure.Caching;
 
 internal sealed class MemoryAppCache : IAppCache, IDisposable
 {
-    private readonly MemoryCache _cache = new(new MemoryCacheOptions());
+    private static readonly MemoryCache Cache = new(new MemoryCacheOptions());
 
     public bool TryGetValue<T>(string key, out T? value)
     {
-        if (_cache.TryGetValue(key, out var obj) && obj is T v)
+        if (Cache.TryGetValue(key, out var obj) && obj is T v)
         {
             value = v;
             return true;
@@ -20,13 +20,13 @@ internal sealed class MemoryAppCache : IAppCache, IDisposable
 
     public void Set<T>(string key, T value, TimeSpan ttl)
     {
-        using var entry = _cache.CreateEntry(key);
+        using var entry = Cache.CreateEntry(key);
         entry.AbsoluteExpirationRelativeToNow = ttl;
         entry.Value = value;
     }
 
     public void Dispose()
     {
-        _cache.Dispose();
+        Cache.Dispose();
     }
 }
