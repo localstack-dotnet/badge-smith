@@ -1,4 +1,4 @@
-using BadgeSmith.Api.Domain.Services.Github;
+using BadgeSmith.Api.Domain.Services.GitHub;
 
 namespace BadgeSmith.Api.Domain.Services.Contracts;
 
@@ -6,7 +6,7 @@ namespace BadgeSmith.Api.Domain.Services.Contracts;
 /// Service for managing GitHub authentication secrets with caching.
 /// Retrieves Personal Access Tokens from AWS Secrets Manager and caches them in-memory.
 /// </summary>
-internal interface IGithubOrgSecretsService
+internal interface IGitHubOrgSecretsService
 {
     /// <summary>
     /// Retrieves a GitHub Personal Access Token for the specified organization.

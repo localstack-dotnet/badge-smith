@@ -8,24 +8,24 @@ using BadgeSmith.Api.Infrastructure.Caching;
 using Microsoft.Extensions.Logging;
 using ResourceNotFoundException = Amazon.SecretsManager.Model.ResourceNotFoundException;
 
-namespace BadgeSmith.Api.Domain.Services.Github;
+namespace BadgeSmith.Api.Domain.Services.GitHub;
 
-internal sealed class GithubOrgSecretsService : IGithubOrgSecretsService
+internal sealed class GitHubOrgSecretsService : IGitHubOrgSecretsService
 {
     private readonly IAmazonSecretsManager _secretsManager;
     private readonly IAmazonDynamoDB _dynamoDb;
     private readonly string _tableName;
     private readonly IAppCache _cache;
-    private readonly ILogger<GithubOrgSecretsService> _logger;
+    private readonly ILogger<GitHubOrgSecretsService> _logger;
 
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(15);
 
-    public GithubOrgSecretsService(
+    public GitHubOrgSecretsService(
         IAmazonSecretsManager secretsManager,
         IAmazonDynamoDB dynamoDb,
         string tableName,
         IAppCache cache,
-        ILogger<GithubOrgSecretsService> logger)
+        ILogger<GitHubOrgSecretsService> logger)
     {
         _secretsManager = secretsManager ?? throw new ArgumentNullException(nameof(secretsManager));
         _dynamoDb = dynamoDb ?? throw new ArgumentNullException(nameof(dynamoDb));

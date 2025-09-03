@@ -1,4 +1,4 @@
-﻿using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Infrastructure.Handlers.Contracts;
@@ -12,12 +12,14 @@ namespace BadgeSmith.Api.Infrastructure.Handlers;
 internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
 {
     private readonly ILogger<GithubPackagesBadgeHandler> _logger;
-    private readonly IGithubOrgSecretsService _githubOrgSecretsService;
+    private readonly IGitHubOrgSecretsService _gitHubOrgSecretsService;
+    private readonly IGitHubPackageService _gitHubPackageService;
 
-    public GithubPackagesBadgeHandler(ILogger<GithubPackagesBadgeHandler> logger, IGithubOrgSecretsService githubOrgSecretsService)
+    public GithubPackagesBadgeHandler(ILogger<GithubPackagesBadgeHandler> logger, IGitHubOrgSecretsService gitHubOrgSecretsService, IGitHubPackageService gitHubPackageService)
     {
         _logger = logger;
-        _githubOrgSecretsService = githubOrgSecretsService;
+        _gitHubOrgSecretsService = gitHubOrgSecretsService;
+        _gitHubPackageService = gitHubPackageService;
     }
 
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
@@ -28,10 +30,18 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
             return errorResponse!;
         }
 
-        // ReSharper disable once UnusedVariable
-#pragma warning disable S1481
-        var secret = await _githubOrgSecretsService.GetGitHubTokenAsync(org, ct).ConfigureAwait(false);
-#pragma warning restore S1481
+        var orgLower = org.ToLowerInvariant();
+
+        var tokenResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(orgLower, ct).ConfigureAwait(false);
+        if (tokenResult is { IsSuccess: false, GithubSecret: null })
+        {
+            return tokenResult.Failure.Match(
+                _ => ResponseHelper.Unauthorized(),
+                error => ResponseHelper.InternalServerError(error.ToErrorResponse())
+            );
+        }
+
+        var token = tokenResult.GithubSecret;
 
         _logger.LogInformation("Github packages badge request received for {Org}/{Package}", org, packageId);
 
@@ -43,16 +53,35 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
             SwrSeconds: 15,
             SieSeconds: 60);
 
-        var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "github", "1.0.0", "green", NamedLogo: "github");
+        var packageResult = await _gitHubPackageService.GetLatestVersionAsync(org, packageId, ct: ct).ConfigureAwait(false);
 
-        await Task.Yield(); // Ensure we're truly async
-
-        return ResponseHelper.OkCached(
-            shieldsBadgeResponse,
-            LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
-            ifNoneMatchHeader: ifNoneMatch,
-            cache: cache,
-            lastModifiedUtc: null // set to a real value when you have ‘updatedAt’
+        return packageResult.Match(
+            success =>
+            {
+                var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "github", success.VersionString, "green", NamedLogo: "github");
+                return ResponseHelper.OkCached(
+                    shieldsBadgeResponse,
+                    LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
+                    ifNoneMatchHeader: ifNoneMatch,
+                    cache: cache,
+                    lastModifiedUtc: success.LastModifiedUtc);
+            },
+            _ =>
+            {
+                _logger.LogWarning("GitHub package not found: {Org}/{Package}", org, packageId);
+                var error = new ErrorResponse(
+                    $"Package '{packageId}' not found in organization '{org}'",
+                    [new ErrorDetail("PACKAGE_NOT_FOUND", "package")]);
+                return ResponseHelper.NotFound(error);
+            },
+            gitHubError =>
+            {
+                _logger.LogError("GitHub API error for {Org}/{Package}: {Message}", org, packageId, gitHubError.Reason);
+                var error = new ErrorResponse(
+                    "GitHub API error occurred",
+                    [new ErrorDetail("GITHUB_API_ERROR", "server")]);
+                return ResponseHelper.InternalServerError(error);
+            }
         );
     }
 

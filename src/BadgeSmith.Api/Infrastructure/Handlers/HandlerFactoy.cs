@@ -1,6 +1,6 @@
 ﻿#pragma warning disable S125, RCS1093
 
-using BadgeSmith.Api.Domain.Services.Github;
+using BadgeSmith.Api.Domain.Services.GitHub;
 using BadgeSmith.Api.Domain.Services.Nuget;
 using BadgeSmith.Api.Infrastructure.Handlers.Contracts;
 using BadgeSmith.Api.Infrastructure.Observability;
@@ -45,8 +45,8 @@ internal class HandlerFactory : IHandlerFactory
     private static GithubPackagesBadgeHandler CreateGithubPackagesBadgeHandler()
     {
         var githubPackagesLogger = LoggerFactory.CreateLogger<GithubPackagesBadgeHandler>();
-        var githubPackageServiceFactory = new GithubPackageServiceFactory();
-        return new GithubPackagesBadgeHandler(githubPackagesLogger, githubPackageServiceFactory.GithubOrgSecretsService);
+        var factory = new GitHubPackageServiceFactory();
+        return new GithubPackagesBadgeHandler(githubPackagesLogger, factory.GitHubOrgSecretsService, factory.GitHubPackageService);
     }
 
     private static TestResultsBadgeHandler CreateTestResultsBadgeHandler()

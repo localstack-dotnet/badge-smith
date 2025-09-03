@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
+using BadgeSmith.Api.Domain.Services.GitHub;
 using BadgeSmith.Api.Domain.Services.Nuget;
 
 namespace BadgeSmith.Api.Json;
@@ -16,4 +17,7 @@ namespace BadgeSmith.Api.Json;
 [JsonSerializable(typeof(HealthCheckResponse))]
 [JsonSerializable(typeof(ShieldsBadgeResponse))]
 [JsonSerializable(typeof(NuGetIndexResponse))]
+[JsonSerializable(typeof(GithubPackageVersion))]
+[JsonSerializable(typeof(IReadOnlyList<GithubPackageVersion>))]
+[JsonSerializable(typeof(PackageMetadata))]
 internal partial class LambdaFunctionJsonSerializerContext : JsonSerializerContext;
