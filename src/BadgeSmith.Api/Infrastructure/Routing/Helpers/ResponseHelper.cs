@@ -197,9 +197,17 @@ internal static class ResponseHelper
     /// Creates a 401 Unauthorized response with additional headers.
     /// </summary>
     /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
-    /// <returns>An API Gateway HTTP response with status 500 Internal Server Error.</returns>
+    /// <returns>An API Gateway HTTP response with status 401 Internal Server Error.</returns>
     public static APIGatewayHttpApiV2ProxyResponse Unauthorized(Func<Dictionary<string, string>>? customHeaders = null) =>
         CreateResponse(HttpStatusCode.Unauthorized, responseBody: null, customHeaders);
+
+    /// <summary>
+    /// Creates a 403 Unauthorized response with additional headers.
+    /// </summary>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
+    /// <returns>An API Gateway HTTP response with status 403 Internal Server Error.</returns>
+    public static APIGatewayHttpApiV2ProxyResponse Forbidden(Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.Forbidden, responseBody: null, customHeaders);
 
     /// <summary>
     /// Creates a 302 Found redirect response to the specified location.

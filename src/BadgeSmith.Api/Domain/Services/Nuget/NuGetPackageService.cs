@@ -17,6 +17,8 @@ internal class NuGetPackageService : INuGetPackageService
     private readonly HttpClient _nugetClient;
     private readonly IAppCache _cache;
 
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(15);
+
     public NuGetPackageService(INuGetVersionService nuGetVersionService, ILogger<NuGetPackageService> logger, HttpClient nugetClient, IAppCache cache)
     {
         _nuGetVersionService = nuGetVersionService;
@@ -35,10 +37,9 @@ internal class NuGetPackageService : INuGetPackageService
         ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
         _logger.LogInformation("Fetching NuGet package versions for {PackageId}", packageId);
-        var normalizedPackageId = packageId.ToLowerInvariant();
-        var url = new Uri($"v3-flatcontainer/{normalizedPackageId}/index.json", UriKind.Relative);
-
-        var cacheKey = $"nuget:index:{normalizedPackageId}";
+        var packageIdNormalized = packageId.ToLowerInvariant();
+        var url = new Uri($"v3-flatcontainer/{packageIdNormalized}/index.json", UriKind.Relative);
+        var cacheKey = $"nuget:index:{packageIdNormalized}";
         var hasCache = _cache.TryGetValue<(string Payload, string? ETag, DateTimeOffset? LastModified)>(cacheKey, out var cached);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -85,7 +86,7 @@ internal class NuGetPackageService : INuGetPackageService
                 break;
         }
 
-        _cache.Set(cacheKey, (content, etag, lastMod), TimeSpan.FromMinutes(15));
+        _cache.Set(cacheKey, (content, etag, lastMod), CacheTtl);
 
         var indexResponse = JsonSerializer.Deserialize(content, LambdaFunctionJsonSerializerContext.Default.NuGetIndexResponse);
 

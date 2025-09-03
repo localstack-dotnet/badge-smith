@@ -14,7 +14,7 @@ internal partial class NuGetVersionResult : OneOfBase<NuGetVersion, InvalidVersi
 
     public bool IsFailure => !IsSuccess;
 
-    public NuGetVersion? NuGetVersion => AsT0;
+    public NuGetVersion? NuGetVersion => IsT0 ? AsT0 : null;
 
     public OneOf<InvalidVersionRange, LastVersionNotFound> Failure
     {

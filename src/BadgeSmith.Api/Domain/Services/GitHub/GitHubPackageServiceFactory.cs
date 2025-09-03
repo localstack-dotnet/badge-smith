@@ -36,11 +36,10 @@ internal class GitHubPackageServiceFactory : IGitHubPackageServiceFactory
     private static GitHubPackageService CreateGitHubPackageService()
     {
         var githubClient = HttpClientFactory.CreateGithubClient();
-        var githubOrgSecretsService = GithubOrgSecretsServiceLazy.Value;
         var nuGetVersionService = new NuGetVersionService();
         var memoryAppCache = new MemoryAppCache();
         var gitHubPackageLogger = LoggerFactory.CreateLogger<GitHubPackageService>();
 
-        return new GitHubPackageService(githubClient, githubOrgSecretsService, nuGetVersionService, memoryAppCache, gitHubPackageLogger);
+        return new GitHubPackageService(githubClient, nuGetVersionService, memoryAppCache, gitHubPackageLogger);
     }
 }

@@ -15,7 +15,7 @@ internal partial class NuGetResult : OneOfBase<NuGetPackageInfo, PackageNotFound
 
     public bool IsFailure => !IsSuccess;
 
-    public NuGetPackageInfo? NuGetPackageInfo => AsT0;
+    public NuGetPackageInfo? NuGetPackageInfo => IsT0 ? AsT0 : null;
 
     public bool TryGetFailure(out OneOf<NotFoundFailure, ValidationFailure, Error>? failure)
     {

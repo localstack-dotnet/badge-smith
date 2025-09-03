@@ -9,19 +9,19 @@ internal class NuGetVersionService : INuGetVersionService
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(NuGetVersionService)}.{nameof(ParseAndFilterVersions)}");
 
-        if (string.IsNullOrWhiteSpace(versionRange) && versionStrings.Length > 0)
-        {
-            for (var i = versionStrings.Length - 1; i >= 0; i--)
-            {
-                if (NuGetVersion.TryParse(versionStrings[i], out var version) && (includePrerelease || !version.IsPrerelease))
-                {
-                    return version;
-                }
-            }
-
-            return new LastVersionNotFound("The latest version of the package could not be found");
-        }
-
+        // if (string.IsNullOrWhiteSpace(versionRange) && versionStrings.Length > 0)
+        // {
+        //     for (var i = versionStrings.Length - 1; i >= 0; i--)
+        //     {
+        //         if (NuGetVersion.TryParse(versionStrings[i], out var version) && (includePrerelease || !version.IsPrerelease))
+        //         {
+        //             return version;
+        //         }
+        //     }
+        //
+        //     return new LastVersionNotFound("The latest version of the package could not be found");
+        // }
+        //
         VersionRange? range = null;
         if (!string.IsNullOrWhiteSpace(versionRange) && !VersionRange.TryParse(versionRange, out range))
         {
@@ -54,7 +54,7 @@ internal class NuGetVersionService : INuGetVersionService
             }
         }
 
-        return maxVersion;
+        return maxVersion == null ? new LastVersionNotFound("The latest version of the package could not be found") : new NuGetVersionResult(maxVersion);
     }
 
     private static string BuildCriteriaDescription(string? versionRange, bool includePrerelease)

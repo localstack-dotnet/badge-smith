@@ -65,7 +65,7 @@ internal sealed class GitHubOrgSecretsService : IGitHubOrgSecretsService
             return new Error($"Failed to retrieve GitHub token for organization '{orgLower}'");
         }
 
-        if (getItemResponse.Item.Count == 0)
+        if (getItemResponse.Item == null || getItemResponse.Item.Count == 0)
         {
             _logger.LogWarning("No secret mapping found for organization {Organization}", orgLower);
             return new SecretNotFound($"No secret mapping found for organization {orgLower}");

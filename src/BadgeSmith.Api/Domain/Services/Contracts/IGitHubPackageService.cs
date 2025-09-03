@@ -11,7 +11,7 @@ internal interface IGitHubPackageService
     /// Retrieves the latest version information for a GitHub package.
     /// </summary>
     /// <param name="organization">The GitHub organization name.</param>
-    /// <param name="packageName">The package name.</param>
+    /// <param name="packageId">The package name.</param>
     /// <param name="token">The GitHub Personal Access Token.</param>
     /// <param name="versionRange">Optional version range constraint.</param>
     /// <param name="includePrerelease">Whether to include prerelease versions.</param>
@@ -21,7 +21,7 @@ internal interface IGitHubPackageService
     /// </returns>
     public Task<GitHubPackageResult> GetLatestVersionAsync(
         string organization,
-        string packageName,
+        string packageId,
         string token,
         string? versionRange = null,
         bool includePrerelease = false,

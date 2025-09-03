@@ -1,28 +1,31 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Web;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Infrastructure.Caching;
 using BadgeSmith.Api.Json;
 using Microsoft.Extensions.Logging;
+using ZLinq;
 
 namespace BadgeSmith.Api.Domain.Services.GitHub;
 
 internal sealed class GitHubPackageService : IGitHubPackageService
 {
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _gitHubClient;
     private readonly INuGetVersionService _nuGetVersionService;
     private readonly IAppCache _cache;
     private readonly ILogger<GitHubPackageService> _logger;
 
-    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(15);
 
     public GitHubPackageService(
-        HttpClient httpClient,
+        HttpClient gitHubClient,
         INuGetVersionService nuGetVersionService,
         IAppCache cache,
         ILogger<GitHubPackageService> logger)
     {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _gitHubClient = gitHubClient ?? throw new ArgumentNullException(nameof(gitHubClient));
         _nuGetVersionService = nuGetVersionService ?? throw new ArgumentNullException(nameof(nuGetVersionService));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -30,111 +33,90 @@ internal sealed class GitHubPackageService : IGitHubPackageService
 
     public async Task<GitHubPackageResult> GetLatestVersionAsync(
         string organization,
-        string packageName,
+        string packageId,
         string token,
         string? versionRange = null,
         bool includePrerelease = false,
         CancellationToken ct = default)
     {
+        using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(GitHubPackageService)}.{nameof(GetLatestVersionAsync)}");
         ArgumentException.ThrowIfNullOrWhiteSpace(organization);
-        ArgumentException.ThrowIfNullOrWhiteSpace(packageName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
         ArgumentException.ThrowIfNullOrEmpty(token);
 
-        var orgLower = organization.ToLowerInvariant();
-        var packageLower = packageName.ToLowerInvariant();
-
-        var cacheKey = $"github_package:{orgLower}:{packageLower}:{versionRange ?? "latest"}:{includePrerelease}";
-
-        // Try cache first
-        if (_cache.TryGetValue<GitHubPackageInfo>(cacheKey, out var cachedPackage))
-        {
-            _logger.LogDebug("Retrieved cached GitHub package info for {Org}/{Package}", orgLower, packageLower);
-            return cachedPackage;
-        }
-
-        try
-        {
-            // Fetch package versions from GitHub Packages API
-            var packageVersions = await FetchPackageVersionsAsync(orgLower, packageLower, token, ct).ConfigureAwait(false);
-
-            if (packageVersions == null || packageVersions.Count == 0)
-            {
-                _logger.LogWarning("No versions found for GitHub package {Org}/{Package}", orgLower, packageLower);
-                return new PackageNotFound($"Package '{packageLower}' not found in organization '{orgLower}'");
-            }
-
-            // Filter and select the appropriate version
-            var selectedVersion = SelectVersion(packageVersions, versionRange, includePrerelease);
-            if (selectedVersion == null)
-            {
-                var criteria = string.IsNullOrWhiteSpace(versionRange) ? "latest" : versionRange;
-                return new PackageNotFound($"No matching version found for package '{packageLower}' with criteria '{criteria}' (prerelease: {includePrerelease})");
-            }
-
-            var packageInfo = new GitHubPackageInfo(
-                PackageName: packageLower,
-                Organization: orgLower,
-                VersionString: selectedVersion.Name,
-                IsPrerelease: selectedVersion.Prerelease,
-                LastModifiedUtc: selectedVersion.UpdatedAt
-            );
-
-            // Cache the result
-            _cache.Set(cacheKey, packageInfo, CacheTtl);
-            _logger.LogDebug("Cached GitHub package info for {Org}/{Package} version {Version}", orgLower, packageLower, selectedVersion.Name);
-
-            return packageInfo;
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "HTTP error while fetching GitHub package {Org}/{Package}", orgLower, packageLower);
-            return new Error($"Failed to fetch package information: {ex.Message}");
-        }
-        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-        {
-            _logger.LogError(ex, "Timeout while fetching GitHub package {Org}/{Package}", orgLower, packageLower);
-            return new Error("Request timeout while fetching package information");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while fetching GitHub package {Org}/{Package}", orgLower, packageLower);
-            return new Error($"An unexpected error occurred: {ex.Message}");
-        }
-    }
-
-    private async Task<IReadOnlyList<GithubPackageVersion>?> FetchPackageVersionsAsync(string org, string packageName, string token, CancellationToken ct)
-    {
-        // GitHub Packages API endpoint for package versions
-        var url = new Uri($"orgs/{org}/packages/nuget/{packageName}/versions", UriKind.Relative);
+        _logger.LogInformation("Fetching GitHub package versions for {PackageId}", packageId);
+        var orgNormalized = organization.ToLowerInvariant();
+        var packageIdNormalized = packageId.ToLowerInvariant();
+        var url = new Uri($"orgs/{HttpUtility.UrlEncode(orgNormalized)}/packages/nuget/{HttpUtility.UrlEncode(packageIdNormalized)}/versions", UriKind.Relative);
+        var cacheKey = $"github_package:index:{orgNormalized}:{packageIdNormalized}";
+        var hasCache = _cache.TryGetValue<(string Payload, string? ETag, DateTimeOffset? LastModified)>(cacheKey, out var cached);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("BadgeSmith", "1.0"));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
-        _logger.LogDebug("Fetching GitHub package versions from {Url}", url);
-
-        using var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (hasCache)
         {
-            _logger.LogWarning("GitHub package {Org}/{Package} not found (404)", org, packageName);
-            return null;
+            if (!string.IsNullOrWhiteSpace(cached.ETag))
+            {
+                request.Headers.IfNoneMatch.ParseAdd(cached.ETag);
+            }
+
+            if (cached.LastModified.HasValue)
+            {
+                request.Headers.IfModifiedSince = cached.LastModified.Value;
+            }
         }
 
-        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        using var response = await _gitHubClient.SendAsync(request, ct).ConfigureAwait(false);
+        string content;
+        string? etag;
+        DateTimeOffset? lastMod;
+
+        switch (response.StatusCode)
         {
-            _logger.LogWarning("Access forbidden for GitHub package {Org}/{Package} (403)", org, packageName);
-            return null;
+            case HttpStatusCode.NotModified when !hasCache:
+                return new Error("Received 304 Not Modified without a cached entry");
+            case HttpStatusCode.NotModified when hasCache:
+                content = cached.Payload;
+                etag = response.Headers.ETag?.Tag ?? cached.ETag;
+                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date ?? cached.LastModified;
+                break;
+            case HttpStatusCode.NotFound:
+                return new PackageNotFound($"Package '{packageId}' not found");
+            case HttpStatusCode.Forbidden:
+                return new ForbiddenPackageAccess($"GitHub package {orgNormalized}/{packageIdNormalized} access forbidden");
+            case HttpStatusCode.Unauthorized:
+                return new UnauthorizedPackageAccess($"GitHub package {orgNormalized}/{packageIdNormalized} not authorized");
+            default:
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new Error($"NuGet API error: {response.StatusCode}");
+                }
+
+                content = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                etag = response.Headers.ETag?.Tag;
+                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date;
+                break;
         }
 
-        response.EnsureSuccessStatusCode();
+        _cache.Set(cacheKey, (content, etag, lastMod), CacheTtl);
+        var githubPackageVersions = JsonSerializer.Deserialize(content, LambdaFunctionJsonSerializerContext.Default.IReadOnlyListGithubPackageVersion);
 
-        var content = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-        var versions = JsonSerializer.Deserialize(content, LambdaFunctionJsonSerializerContext.Default.IReadOnlyListGithubPackageVersion);
+        if (githubPackageVersions == null || githubPackageVersions.Count == 0)
+        {
+            return new PackageNotFound($"No versions found for package '{packageId}'");
+        }
 
-        _logger.LogDebug("Retrieved {Count} versions for GitHub package {Org}/{Package}", versions?.Count ?? 0, org, packageName);
+        var versions = githubPackageVersions.AsValueEnumerable().Select(version => version.Name).ToArray();
+        var nuGetVersionResult = _nuGetVersionService.ParseAndFilterVersions(versions, versionRange, includePrerelease);
 
-        return versions;
+        return nuGetVersionResult
+            .Match<GitHubPackageResult>
+            (
+                version => new GitHubPackageInfo(packageIdNormalized, orgNormalized, version.ToString(), version.IsPrerelease, lastMod),
+                range => range,
+                notfound => new PackageNotFound(notfound.Reason)
+            );
     }
 }

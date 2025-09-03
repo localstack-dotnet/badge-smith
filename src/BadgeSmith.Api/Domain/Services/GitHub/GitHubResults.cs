@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using BadgeSmith.Api.Domain.Services.Package;
 using OneOf;
 
 namespace BadgeSmith.Api.Domain.Services.GitHub;
@@ -7,6 +8,10 @@ internal record SecretNotFound(string Reason) : NotFoundFailure(Reason);
 
 internal sealed record PackageNotFound(string Reason) : NotFoundFailure(Reason);
 
+internal sealed record UnauthorizedPackageAccess(string Reason) : Error(Reason);
+
+internal sealed record ForbiddenPackageAccess(string Reason) : Error(Reason);
+
 [GenerateOneOf]
 internal partial class GithubSecretResult : OneOfBase<string, SecretNotFound, Error>
 {
@@ -14,7 +19,7 @@ internal partial class GithubSecretResult : OneOfBase<string, SecretNotFound, Er
 
     public bool IsFailure => !IsSuccess;
 
-    public string? GithubSecret => AsT0;
+    public string? GithubSecret => IsT0 ? AsT0 : null;
 
     public OneOf<SecretNotFound, Error> Failure
     {
@@ -36,21 +41,24 @@ internal partial class GithubSecretResult : OneOfBase<string, SecretNotFound, Er
 }
 
 [GenerateOneOf]
-internal sealed partial class GitHubPackageResult : OneOfBase<GitHubPackageInfo, PackageNotFound, Error>
+internal sealed partial class GitHubPackageResult : OneOfBase<GitHubPackageInfo, PackageNotFound, InvalidVersionRange, UnauthorizedPackageAccess, ForbiddenPackageAccess, Error>
 {
     public bool IsSuccess => IsT0 && AsT0 != null;
     public GitHubPackageInfo? GitHubPackageInfo => IsT0 ? AsT0 : null;
 
-    public OneOf<PackageNotFound, Error> Failure => IsT0
+    public OneOf<PackageNotFound, InvalidVersionRange, UnauthorizedPackageAccess, ForbiddenPackageAccess, Error> Failure => IsT0
         ? throw new InvalidOperationException("Result is successful")
-        : Match<OneOf<PackageNotFound, Error>>(
+        : Match<OneOf<PackageNotFound, InvalidVersionRange, UnauthorizedPackageAccess, ForbiddenPackageAccess, Error>>(
             _ => throw new InvalidOperationException("Result is successful"),
             notFound => notFound,
+            range => range,
+            unAuth => unAuth,
+            forbidden => forbidden,
             error => error
         );
 }
 
-internal sealed record GitHubPackageInfo(string PackageName, string Organization, string VersionString, bool IsPrerelease, DateTime? LastModifiedUtc);
+internal sealed record GitHubPackageInfo(string PackageName, string Organization, string VersionString, bool IsPrerelease, DateTimeOffset? LastModifiedUtc = null);
 
 internal record GithubPackageVersion(
     [property: JsonPropertyName("id")] int Id,

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Domain.Services.Contracts;
@@ -25,64 +26,71 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(RouteContext routeContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(GithubPackagesBadgeHandler)}.{nameof(HandleAsync)}");
-        if (!TryValidateRequest(routeContext, out var org, out var packageId, out var errorResponse))
-        {
-            return errorResponse!;
-        }
 
-        var orgLower = org.ToLowerInvariant();
-
-        var tokenResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(orgLower, ct).ConfigureAwait(false);
-        if (tokenResult is { IsSuccess: false, GithubSecret: null })
+        try
         {
-            return tokenResult.Failure.Match(
-                _ => ResponseHelper.Unauthorized(),
-                error => ResponseHelper.InternalServerError(error.ToErrorResponse())
+            if (!TryValidateRequest(routeContext, out var org, out var packageId, out var errorResponse))
+            {
+                return errorResponse!;
+            }
+
+            var tokenResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(org, ct).ConfigureAwait(false);
+            if (tokenResult is { IsSuccess: false, GithubSecret: null })
+            {
+                return tokenResult.Failure.Match(
+                    _ => ResponseHelper.Unauthorized(),
+                    error => ResponseHelper.InternalServerError(error.ToErrorResponse())
+                );
+            }
+
+            var token = tokenResult.GithubSecret!;
+
+            _logger.LogInformation("Github packages badge request received for {Org}/{Package}", org, packageId);
+
+            var queryParams = routeContext.Request.QueryStringParameters ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var versionRange = queryParams.TryGetValue("version", out var version) ? version : null;
+            var includePrerelease = queryParams.TryGetValue("prerelease", out var prerelease) &&
+                                    bool.TryParse(prerelease, out var includePre) && includePre;
+
+            var packageResult = await _gitHubPackageService.GetLatestVersionAsync(org, packageId, token, versionRange, includePrerelease, ct).ConfigureAwait(false);
+
+            if (packageResult is not { IsSuccess: true, GitHubPackageInfo: not null })
+            {
+                return packageResult.Failure.Match
+                (
+                    notFound => ResponseHelper.NotFound(notFound.ToErrorResponse()),
+                    validation => ResponseHelper.BadRequest(validation.ToErrorResponse()),
+                    _ => ResponseHelper.Unauthorized(),
+                    _ => ResponseHelper.Forbidden(),
+                    error => ResponseHelper.InternalServerError(error.ToErrorResponse())
+                );
+            }
+
+            var gitHubPackageInfo = packageResult.GitHubPackageInfo;
+            var color = gitHubPackageInfo.IsPrerelease ? "orange" : "green";
+            var badge = new ShieldsBadgeResponse(1, "github", gitHubPackageInfo.VersionString, color, NamedLogo: "github");
+
+            routeContext.Request.Headers.TryGetValue("if-none-match", out var ifNoneMatch);
+            var cache = new ResponseHelper.CacheSettings(SMaxAgeSeconds: 300, MaxAgeSeconds: 60, SwrSeconds: 900, SieSeconds: 3600);
+
+            return ResponseHelper.OkCached(
+                badge,
+                LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
+                ifNoneMatchHeader: ifNoneMatch,
+                cache: cache,
+                lastModifiedUtc: gitHubPackageInfo.LastModifiedUtc
             );
         }
+        catch (Exception ex)
+        {
+            const string message = "Unexpected error processing Github badge request";
 
-        var token = tokenResult.GithubSecret;
+            _logger.LogError(ex, message);
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error);
 
-        _logger.LogInformation("Github packages badge request received for {Org}/{Package}", org, packageId);
-
-        routeContext.Request.Headers.TryGetValue("if-none-match", out var ifNoneMatch);
-
-        var cache = new ResponseHelper.CacheSettings(
-            SMaxAgeSeconds: 10, // CloudFront caches 60s
-            MaxAgeSeconds: 5, // browsers 10s
-            SwrSeconds: 15,
-            SieSeconds: 60);
-
-        var packageResult = await _gitHubPackageService.GetLatestVersionAsync(org, packageId, ct: ct).ConfigureAwait(false);
-
-        return packageResult.Match(
-            success =>
-            {
-                var shieldsBadgeResponse = new ShieldsBadgeResponse(1, "github", success.VersionString, "green", NamedLogo: "github");
-                return ResponseHelper.OkCached(
-                    shieldsBadgeResponse,
-                    LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
-                    ifNoneMatchHeader: ifNoneMatch,
-                    cache: cache,
-                    lastModifiedUtc: success.LastModifiedUtc);
-            },
-            _ =>
-            {
-                _logger.LogWarning("GitHub package not found: {Org}/{Package}", org, packageId);
-                var error = new ErrorResponse(
-                    $"Package '{packageId}' not found in organization '{org}'",
-                    [new ErrorDetail("PACKAGE_NOT_FOUND", "package")]);
-                return ResponseHelper.NotFound(error);
-            },
-            gitHubError =>
-            {
-                _logger.LogError("GitHub API error for {Org}/{Package}: {Message}", org, packageId, gitHubError.Reason);
-                var error = new ErrorResponse(
-                    "GitHub API error occurred",
-                    [new ErrorDetail("GITHUB_API_ERROR", "server")]);
-                return ResponseHelper.InternalServerError(error);
-            }
-        );
+            return ResponseHelper.InternalServerError(message);
+        }
     }
 
     private bool TryValidateRequest(RouteContext routeContext, out string org, out string packageId, out APIGatewayHttpApiV2ProxyResponse? errorResponse)
