@@ -7,7 +7,7 @@
         "AWS:Region": "eu-central-1",
         "LocalStack:UseLocalStack": "false",
         "WORKER_TIMEOUT_IN_SECONDS": "60",
-        "AWS_RESOURCE_ORG_SECRETS_TABLE": "github-org-secrets"
+        "AWS_RESOURCE_ORG_SECRETS_TABLE": "badge-smith-github-org-secrets"
       }
     }
   }
