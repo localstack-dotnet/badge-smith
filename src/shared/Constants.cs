@@ -6,7 +6,7 @@ internal static class Constants
 
     public const string TestResultsTableId = "TestResultsTable";
 
-    public const string TestResultsTableName = "badge-test-result";
+    public const string TestResultsTableName = "badge-smith-test-result";
 
     public const string TestResultsOutputTableArn = "TestResultsTableArn";
 
@@ -14,7 +14,7 @@ internal static class Constants
 
     public const string NonceTableId = "NonceTable";
 
-    public const string NonceTableName = "hmac-nonce";
+    public const string NonceTableName = "badge-smith-hmac-nonce";
 
     public const string NonceTableOutputArn = "NonceTableArn";
 
@@ -22,7 +22,7 @@ internal static class Constants
 
     public const string OrgSecretsTableId = "OrgSecretsTable";
 
-    public const string OrgSecretsTableName = "github-org-secrets";
+    public const string OrgSecretsTableName = "badge-smith-github-org-secrets";
 
     public const string OrgSecretsTableOutputArn = "OrgSecretsTableArn";
 

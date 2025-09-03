@@ -4,6 +4,7 @@ using Amazon.DynamoDBv2;
 using Amazon.SecretsManager;
 using BadgeSmith.DynamoDb.Seeders;
 using LocalStack.Client.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using static System.Environment;
@@ -12,6 +13,7 @@ var builder = Host.CreateApplicationBuilder();
 
 builder.Services
     .AddLocalStack(builder.Configuration)
+    .AddDefaultAWSOptions(builder.Configuration.GetAWSOptions())
     .AddAwsService<IAmazonDynamoDB>()
     .AddAwsService<IAmazonSecretsManager>();
 
