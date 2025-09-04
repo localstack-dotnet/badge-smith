@@ -1,5 +1,6 @@
 ﻿#pragma warning disable S125, RCS1093
 
+using BadgeSmith.Api.Domain.Services.Authentication;
 using BadgeSmith.Api.Domain.Services.GitHub;
 using BadgeSmith.Api.Domain.Services.Nuget;
 using BadgeSmith.Api.Infrastructure.Handlers.Contracts;
@@ -64,6 +65,7 @@ internal class HandlerFactory : IHandlerFactory
     private static TestResultIngestionHandler CreateTestResultIngestionHandler()
     {
         var logger = LoggerFactory.CreateLogger<TestResultIngestionHandler>();
-        return new TestResultIngestionHandler(logger);
+        var authFactory = new AuthenticationServiceFactory();
+        return new TestResultIngestionHandler(logger, authFactory.HmacAuthenticationService);
     }
 }

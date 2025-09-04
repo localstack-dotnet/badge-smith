@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BadgeSmith.Api.Infrastructure.Routing;
 using BadgeSmith.Api.Tests.TestHelpers;
 using Xunit;
@@ -24,10 +25,10 @@ public sealed class RouteResolverTests
 
     [Theory]
     [InlineData("GET", "/health", true, "Health")]
-    [InlineData("get", "/health", true, "Health")]  // Case insensitive method
-    [InlineData("GET", "/Health", true, "Health")]  // Case insensitive path (exact pattern)
+    [InlineData("get", "/health", true, "Health")] // Case insensitive method
+    [InlineData("GET", "/Health", true, "Health")] // Case insensitive path (exact pattern)
     [InlineData("POST", "/tests/results", true, "TestIngestion")]
-    [InlineData("post", "/tests/results", true, "TestIngestion")]  // Case insensitive method
+    [InlineData("post", "/tests/results", true, "TestIngestion")] // Case insensitive method
     [InlineData("GET", "/badges/packages/nuget/Newtonsoft.Json", true, "NugetPackageBadge")]
     [InlineData("GET", "/badges/packages/github/localstack-dotnet/localstack.client", true, "GithubPackagesBadge")]
     [InlineData("GET", "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main", true, "TestsBadge")]
@@ -53,17 +54,17 @@ public sealed class RouteResolverTests
 
     [Theory]
     [InlineData("GET", "/nonexistent")]
-    [InlineData("POST", "/health")]  // Wrong method for health
-    [InlineData("GET", "/tests/results")]  // Wrong method for test ingestion
-    [InlineData("DELETE", "/health")]  // Unsupported method
-    [InlineData("GET", "/badges")]  // Incomplete path
-    [InlineData("GET", "/badges/packages")]  // Incomplete path
-    [InlineData("GET", "/badges/packages/nuget")]  // Incomplete path
-    [InlineData("GET", "/badges/tests")]  // Incomplete path
-    [InlineData("GET", "/badges/tests/linux")]  // Incomplete path
-    [InlineData("GET", "/badges/tests/linux/owner")]  // Incomplete path
-    [InlineData("GET", "/badges/tests/linux/owner/repo")]  // Incomplete path
-    [InlineData("GET", "")]  // Empty path
+    [InlineData("POST", "/health")] // Wrong method for health
+    [InlineData("GET", "/tests/results")] // Wrong method for test ingestion
+    [InlineData("DELETE", "/health")] // Unsupported method
+    [InlineData("GET", "/badges")] // Incomplete path
+    [InlineData("GET", "/badges/packages")] // Incomplete path
+    [InlineData("GET", "/badges/packages/nuget")] // Incomplete path
+    [InlineData("GET", "/badges/tests")] // Incomplete path
+    [InlineData("GET", "/badges/tests/linux")] // Incomplete path
+    [InlineData("GET", "/badges/tests/linux/owner")] // Incomplete path
+    [InlineData("GET", "/badges/tests/linux/owner/repo")] // Incomplete path
+    [InlineData("GET", "")] // Empty path
     public void TryResolve_Should_ReturnFalseForInvalidRoutes(string method, string path)
     {
         // Arrange
@@ -160,10 +161,10 @@ public sealed class RouteResolverTests
     }
 
     [Theory]
-    [InlineData("HEAD", "GET")]  // HEAD should be normalized to GET
-    [InlineData("head", "GET")]  // Case insensitive HEAD
-    [InlineData("Head", "GET")]  // Mixed case HEAD
-    [InlineData("GET", "GET")]   // GET stays GET
+    [InlineData("HEAD", "GET")] // HEAD should be normalized to GET
+    [InlineData("head", "GET")] // Case insensitive HEAD
+    [InlineData("Head", "GET")] // Mixed case HEAD
+    [InlineData("GET", "GET")] // GET stays GET
     [InlineData("POST", "POST")] // Other methods stay unchanged
     [InlineData("PUT", "PUT")]
     [InlineData("DELETE", "DELETE")]
@@ -215,15 +216,15 @@ public sealed class RouteResolverTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal("SpecificHealth", match.Descriptor.Name);  // Exact pattern should win
+        Assert.Equal("SpecificHealth", match.Descriptor.Name); // Exact pattern should win
     }
 
     [Theory]
     [InlineData("/health", new[] { "GET", "HEAD", "OPTIONS" })]
-    [InlineData("/tests/results", new[] { "POST", "OPTIONS" })]  // POST routes don't support HEAD per HTTP standards
+    [InlineData("/tests/results", new[] { "POST", "OPTIONS" })] // POST routes don't support HEAD per HTTP standards
     [InlineData("/badges/packages/nuget/Newtonsoft.Json", new[] { "GET", "HEAD", "OPTIONS" })]
     [InlineData("/badges/tests/linux/owner/repo/main", new[] { "GET", "HEAD", "OPTIONS" })]
-    [InlineData("/nonexistent/path", new[] { "OPTIONS" })]  // Non-matching paths still get OPTIONS
+    [InlineData("/nonexistent/path", new[] { "OPTIONS" })] // Non-matching paths still get OPTIONS
     public void GetAllowedMethods_Should_ReturnCorrectMethods(string path, string[] expectedMethods)
     {
         // Arrange
@@ -344,7 +345,8 @@ public sealed class RouteResolverTests
 
     [Theory]
     [MemberData(nameof(GetRealWorldRoutingScenarios))]
-    public void TryResolve_Should_HandleRealWorldScenarios(string method, string path, bool expectedMatch, string? expectedRouteName, IDictionary<string, string>? expectedParameters)
+    public void TryResolve_Should_HandleRealWorldScenarios(string method, string path, bool expectedMatch, string? expectedRouteName,
+        IDictionary<string, string>? expectedParameters)
     {
         // Arrange
         var routes = CreateTestRoutes();
@@ -374,31 +376,51 @@ public sealed class RouteResolverTests
         }
     }
 
+    [SuppressMessage("Design", "MA0051:Method is too long")]
     public static IEnumerable<object?[]> GetRealWorldRoutingScenarios()
     {
         // Valid scenarios with parameters
         yield return
         [
             "GET", "/badges/packages/nuget/Newtonsoft.Json", true, "NugetPackageBadge",
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["provider"] = "nuget", ["package"] = "Newtonsoft.Json" },
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["provider"] = "nuget",
+                ["package"] = "Newtonsoft.Json"
+            },
         ];
 
         yield return
         [
             "GET", "/badges/packages/nuget/Microsoft.Extensions.Http", true, "NugetPackageBadge",
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["provider"] = "nuget", ["package"] = "Microsoft.Extensions.Http" },
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["provider"] = "nuget",
+                ["package"] = "Microsoft.Extensions.Http"
+            },
         ];
 
         yield return
         [
             "GET", "/badges/packages/github/localstack-dotnet/localstack.client", true, "GithubPackagesBadge",
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["provider"] = "github", ["org"] = "localstack-dotnet", ["package"] = "localstack.client" },
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["provider"] = "github",
+                ["org"] = "localstack-dotnet",
+                ["package"] = "localstack.client"
+            },
         ];
 
         yield return
         [
             "GET", "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main", true, "TestsBadge",
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["platform"] = "linux", ["owner"] = "localstack-dotnet", ["repo"] = "dotnet-aspire-for-localstack", ["branch"] = "main" },
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["platform"] = "linux",
+                ["owner"] = "localstack-dotnet",
+                ["repo"] = "dotnet-aspire-for-localstack",
+                ["branch"] = "main"
+            },
         ];
 
         // Exact pattern scenarios
@@ -421,7 +443,11 @@ public sealed class RouteResolverTests
         yield return
         [
             "HEAD", "/badges/packages/nuget/AutoMapper", true, "NugetPackageBadge",
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["provider"] = "nuget", ["package"] = "AutoMapper" },
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["provider"] = "nuget",
+                ["package"] = "AutoMapper"
+            },
         ];
 
         // Invalid scenarios
@@ -478,8 +504,7 @@ public sealed class RouteResolverTests
             RouteTestBuilder.CreateRouteDescriptor(
                 "TestIngestion",
                 "POST",
-                RouteTestBuilder.CreateExactPattern("/tests/results"),
-                requiresAuth: true),
+                RouteTestBuilder.CreateExactPattern("/tests/results")),
 
             RouteTestBuilder.CreateRouteDescriptor(
                 "BadgeRedirect",

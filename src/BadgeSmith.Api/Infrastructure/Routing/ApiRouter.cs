@@ -52,12 +52,7 @@ internal class ApiRouter : IApiRouter
                 return Helpers.ResponseHelper.NotFound($"Route not found: {httpMethod} {path}");
             }
 
-            // Check authentication requirements
-            if (routeMatch.Descriptor.RequiresAuth)
-            {
-                // Implement authentication check
-                // For now, just continue
-            }
+            // Authentication is now handled at the handler level for maximum flexibility
 
             var routeHandler = routeMatch.Descriptor.HandlerFactory(_handlerFactory);
 

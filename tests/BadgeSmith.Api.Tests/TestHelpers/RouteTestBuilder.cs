@@ -61,18 +61,15 @@ internal static class RouteTestBuilder
     /// <param name="name">The route name.</param>
     /// <param name="method">The HTTP method.</param>
     /// <param name="pattern">The route pattern.</param>
-    /// <param name="requiresAuth">Whether the route requires authentication.</param>
     /// <returns>A RouteDescriptor instance.</returns>
     public static RouteDescriptor CreateRouteDescriptor(
         string name,
         string method,
-        IRoutePattern pattern,
-        bool requiresAuth = false)
+        IRoutePattern pattern)
     {
         return new RouteDescriptor(
             Name: name,
             Method: method,
-            RequiresAuth: requiresAuth,
             HandlerFactory: _ => new MockRouteHandler(),
             Pattern: pattern);
     }

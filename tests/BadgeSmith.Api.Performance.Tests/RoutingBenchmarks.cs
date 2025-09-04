@@ -164,17 +164,18 @@ public class RoutingBenchmarks
         // This tests the complete routing pipeline for a successful match
         var resolved = _resolver.TryResolve(method, path, out var match);
 
-        if (resolved)
+        if (!resolved)
         {
-            // Access the matched route information
-            _ = match.Descriptor.Name;
-            _ = match.Descriptor.Method;
-            _ = match.Descriptor.RequiresAuth;
-
-            // Extract parameters
-            _ = match.Values.TryGetString("provider", out _);
-            _ = match.Values.TryGetString("package", out _);
+            return;
         }
+
+        // Access the matched route information
+        _ = match.Descriptor.Name;
+        _ = match.Descriptor.Method;
+
+        // Extract parameters
+        _ = match.Values.TryGetString("provider", out _);
+        _ = match.Values.TryGetString("package", out _);
     }
 
     [Benchmark]

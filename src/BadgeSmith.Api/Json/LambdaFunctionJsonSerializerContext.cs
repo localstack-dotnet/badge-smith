@@ -20,4 +20,5 @@ namespace BadgeSmith.Api.Json;
 [JsonSerializable(typeof(GithubPackageVersion))]
 [JsonSerializable(typeof(IReadOnlyList<GithubPackageVersion>))]
 [JsonSerializable(typeof(PackageMetadata))]
+[JsonSerializable(typeof(TestResultIngestionResponse))]
 internal partial class LambdaFunctionJsonSerializerContext : JsonSerializerContext;
