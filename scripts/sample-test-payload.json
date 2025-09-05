@@ -1,0 +1,12 @@
+{
+  "platform": "Linux",
+  "passed": 190,
+  "failed": 0,
+  "skipped": 0,
+  "total": 190,
+  "url_html": "https://github.com/localstack-dotnet/dotnet-aspire-for-localstack/runs/47628811004",
+  "timestamp": "2025-09-05T10:57:00Z",
+  "commit": "4d8474bda0b16fbbb69887d0d08c3885843bbdc7",
+  "run_id": "16814735762",
+  "workflow_run_url": "https://github.com/localstack-dotnet/dotnet-aspire-for-localstack/actions/runs/16814735762"
+}

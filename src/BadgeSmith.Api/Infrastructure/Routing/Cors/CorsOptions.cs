@@ -57,7 +57,6 @@ internal sealed class CorsOptions
     {
         "content-type",
         "x-signature",
-        "x-repo-secret",
         "x-timestamp",
         "x-nonce",
     };

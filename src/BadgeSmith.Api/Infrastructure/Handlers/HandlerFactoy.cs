@@ -3,6 +3,7 @@
 using BadgeSmith.Api.Domain.Services.Authentication;
 using BadgeSmith.Api.Domain.Services.GitHub;
 using BadgeSmith.Api.Domain.Services.Nuget;
+using BadgeSmith.Api.Domain.Services.TestResults;
 using BadgeSmith.Api.Infrastructure.Handlers.Contracts;
 using BadgeSmith.Api.Infrastructure.Observability;
 
@@ -73,6 +74,10 @@ internal class HandlerFactory : IHandlerFactory
     {
         var logger = LoggerFactory.CreateLogger<TestResultIngestionHandler>();
         var authFactory = new AuthenticationServiceFactory();
-        return new TestResultIngestionHandler(logger, authFactory.HmacAuthenticationService);
+        var testResultsFactory = new TestResultsServiceFactory();
+        return new TestResultIngestionHandler(
+            logger,
+            authFactory.HmacAuthenticationService,
+            testResultsFactory.TestResultsService);
     }
 }

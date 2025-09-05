@@ -176,6 +176,15 @@ internal static class ResponseHelper
         CreateResponse(HttpStatusCode.NotFound, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);
 
     /// <summary>
+    /// Creates a 409 Conflict response with structured error information.
+    /// </summary>
+    /// <param name="errorResponse">The error response object containing conflict details to serialize in the response body.</param>
+    /// <param name="customHeaders">Optional function that returns custom headers to include in the response.</param>
+    /// <returns>An API Gateway HTTP response with status 409 Conflict containing the serialized error response.</returns>
+    public static APIGatewayHttpApiV2ProxyResponse Conflict(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.Conflict, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);
+
+    /// <summary>
     /// Creates a 500 Internal Server Error response with additional headers.
     /// </summary>
     /// <param name="responseBody">The optional response body content.</param>

@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Services.Authentication.Contracts;
 using Microsoft.Extensions.Logging;
 
@@ -19,7 +18,6 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
 
     private static readonly TimeSpan MaxTimestampAge = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan MaxTimestampSkew = TimeSpan.FromMinutes(1);
-
     private const string TokenType = "TestData";
 
     public HmacAuthenticationService(IGitHubOrgSecretsService gitHubOrgSecretsService, INonceService nonceService, ILogger<HmacAuthenticationService> logger)
@@ -29,29 +27,30 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<HmacAuthenticationResult> ValidateRequestAsync(APIGatewayHttpApiV2ProxyRequest request, CancellationToken ct = default)
+    public async Task<HmacAuthenticationResult> ValidateRequestAsync(HmacAuthContext authContext, CancellationToken ct = default)
     {
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(HmacAuthenticationService)}.{nameof(ValidateRequestAsync)}");
 
-        if (!TryExtractAuthHeaders(request.Headers, out var authHeaders, out var headerError))
-        {
-            return headerError;
-        }
+        ValidateHmacAuthContext(authContext);
 
-        var (signature, repoIdentifier, timestampStr, nonce) = authHeaders;
-
-        if (!TryParseTimestamp(timestampStr, out var requestTimestamp, out var timestampError))
+        if (!TryParseTimestamp(authContext.Timestamp, out var requestTimestamp, out var timestampError))
         {
             return timestampError;
         }
 
-        var nonceResult = await _nonceService.ValidateAndMarkNonceAsync(nonce, repoIdentifier, requestTimestamp, ct).ConfigureAwait(false);
+        var repoIdentifier = $"{authContext.Owner}/{authContext.Repo}/{authContext.Repo}/{authContext.Branch}";
+        var nonceResult = await _nonceService.ValidateAndMarkNonceAsync(authContext.Nonce, repoIdentifier, requestTimestamp, ct).ConfigureAwait(false);
+
         if (!nonceResult.IsSuccess)
         {
-            return nonceResult.Failure.Match<HmacAuthenticationResult>(alreadyUsed => alreadyUsed, error => error);
+            return nonceResult.Failure.Match<HmacAuthenticationResult>
+            (
+                alreadyUsed => alreadyUsed,
+                error => error
+            );
         }
 
-        var secretResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(repoIdentifier, TokenType, ct).ConfigureAwait(false);
+        var secretResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(authContext.Owner, TokenType, ct).ConfigureAwait(false);
         if (secretResult is { IsSuccess: false, GithubSecret: null })
         {
             return secretResult.Failure.Match<HmacAuthenticationResult>
@@ -63,7 +62,7 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
 
         var secret = secretResult.GithubSecret!;
 
-        if (!ValidateHmacSignature(signature, request.Body ?? string.Empty, secret))
+        if (!ValidateHmacSignature(authContext.Signature, authContext.RequestBody, secret))
         {
             _logger.LogWarning("Invalid HMAC signature for repository {RepoIdentifier}", repoIdentifier);
             return new InvalidSignature("HMAC signature verification failed");
@@ -73,46 +72,17 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         return new AuthenticatedRequest(repoIdentifier, requestTimestamp);
     }
 
-    private static bool TryExtractAuthHeaders(
-        IDictionary<string, string>? headers,
-        out (string Signature, string RepoIdentifier, string Timestamp, string Nonce) authHeaders,
-        out MissingAuthHeaders? error)
+    private static void ValidateHmacAuthContext(HmacAuthContext routeContext)
     {
-        authHeaders = default;
-        error = null;
-
-        if (headers == null)
-        {
-            error = new MissingAuthHeaders("Request headers are missing");
-            return false;
-        }
-
-        if (!headers.TryGetValue("x-signature", out var signature) || string.IsNullOrWhiteSpace(signature))
-        {
-            error = new MissingAuthHeaders("X-Signature header is required");
-            return false;
-        }
-
-        if (!headers.TryGetValue("x-repo-secret", out var repoIdentifier) || string.IsNullOrWhiteSpace(repoIdentifier))
-        {
-            error = new MissingAuthHeaders("X-Repo-Secret header is required");
-            return false;
-        }
-
-        if (!headers.TryGetValue("x-timestamp", out var timestampStr) || string.IsNullOrWhiteSpace(timestampStr))
-        {
-            error = new MissingAuthHeaders("X-Timestamp header is required");
-            return false;
-        }
-
-        if (!headers.TryGetValue("x-nonce", out var nonce) || string.IsNullOrWhiteSpace(nonce))
-        {
-            error = new MissingAuthHeaders("X-Nonce header is required");
-            return false;
-        }
-
-        authHeaders = (signature.Trim(), repoIdentifier.Trim(), timestampStr.Trim(), nonce.Trim());
-        return true;
+        ArgumentNullException.ThrowIfNull(routeContext);
+        ArgumentNullException.ThrowIfNull(routeContext.Owner);
+        ArgumentNullException.ThrowIfNull(routeContext.Repo);
+        ArgumentNullException.ThrowIfNull(routeContext.Platform);
+        ArgumentNullException.ThrowIfNull(routeContext.Branch);
+        ArgumentNullException.ThrowIfNull(routeContext.Signature);
+        ArgumentNullException.ThrowIfNull(routeContext.Timestamp);
+        ArgumentNullException.ThrowIfNull(routeContext.Nonce);
+        ArgumentNullException.ThrowIfNull(routeContext.RequestBody);
     }
 
     private static bool TryParseTimestamp(string timestampStr, out DateTimeOffset requestTimestamp, out InvalidTimestamp? error)
@@ -147,7 +117,6 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
 
     private static bool ValidateHmacSignature(string providedSignature, string payload, string secret)
     {
-        // Expected format: "sha256=<hex>"
         if (!providedSignature.StartsWith("sha256=", StringComparison.OrdinalIgnoreCase))
         {
             return false;

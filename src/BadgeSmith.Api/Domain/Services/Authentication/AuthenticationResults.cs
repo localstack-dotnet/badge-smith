@@ -18,17 +18,16 @@ internal record SecretNotFound(string Reason) : NotFoundFailure(Reason);
 
 [GenerateOneOf]
 internal partial class HmacAuthenticationResult
-    : OneOfBase<AuthenticatedRequest, InvalidSignature, MissingAuthHeaders, InvalidTimestamp, NonceAlreadyUsed, RepoSecretNotFound, Error>
+    : OneOfBase<AuthenticatedRequest, InvalidSignature, InvalidTimestamp, NonceAlreadyUsed, RepoSecretNotFound, Error>
 {
     public bool IsSuccess => IsT0;
     public AuthenticatedRequest? AuthenticatedRequest => IsT0 ? AsT0 : null;
 
-    public OneOf<InvalidSignature, MissingAuthHeaders, InvalidTimestamp, NonceAlreadyUsed, RepoSecretNotFound, Error> Failure => IsT0
+    public OneOf<InvalidSignature, InvalidTimestamp, NonceAlreadyUsed, RepoSecretNotFound, Error> Failure => IsT0
         ? throw new InvalidOperationException("Result is successful")
-        : Match<OneOf<InvalidSignature, MissingAuthHeaders, InvalidTimestamp, NonceAlreadyUsed, RepoSecretNotFound, Error>>(
+        : Match<OneOf<InvalidSignature, InvalidTimestamp, NonceAlreadyUsed, RepoSecretNotFound, Error>>(
             _ => throw new InvalidOperationException("Result is successful"),
             invalidSig => invalidSig,
-            missingHeaders => missingHeaders,
             invalidTimestamp => invalidTimestamp,
             nonceUsed => nonceUsed,
             secretNotFound => secretNotFound,
@@ -80,3 +79,5 @@ internal partial class NonceValidationResult : OneOfBase<ValidNonce, NonceAlread
 }
 
 internal sealed record ValidNonce(string Nonce, DateTimeOffset MarkedAt);
+
+internal sealed record HmacAuthContext(string Owner, string Repo, string Platform, string Branch, string Signature, string Timestamp, string Nonce, string RequestBody);

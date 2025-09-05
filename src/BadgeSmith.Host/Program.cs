@@ -29,7 +29,8 @@ badgeSmithStack.AddOutput(OrgSecretsOutputTableName, stack => stack.OrgSecretsTa
 var dynamoDbSeeder = builder.AddProject<Projects.BadgeSmith_DynamoDb_Seeders>(name: "BadgeSmithDynamoDbSeeders")
     .WithReference(badgeSmithStack)
     .WithEnvironment("AWS_RESOURCE_ORG_SECRETS_TABLE", badgeSmithStack.GetOutput(OrgSecretsOutputTableName))
-    .WithEnvironment("WORKER_TIMEOUT_IN_SECONDS", "300");
+    .WithEnvironment("WORKER_TIMEOUT_IN_SECONDS", "300")
+    .ExcludeFromManifest();
 
 var badgeSmithApi = builder
     .AddAWSLambdaFunction<Projects.BadgeSmith_Api>(name: "BadgeSmithApi", lambdaHandler: "bootstrap")

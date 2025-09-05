@@ -3,6 +3,7 @@ using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
 using BadgeSmith.Api.Domain.Services.GitHub;
 using BadgeSmith.Api.Domain.Services.Nuget;
+using BadgeSmith.Api.Domain.Services.TestResults.Models;
 
 namespace BadgeSmith.Api.Json;
 
@@ -21,4 +22,5 @@ namespace BadgeSmith.Api.Json;
 [JsonSerializable(typeof(IReadOnlyList<GithubPackageVersion>))]
 [JsonSerializable(typeof(PackageMetadata))]
 [JsonSerializable(typeof(TestResultIngestionResponse))]
+[JsonSerializable(typeof(TestResultPayload))]
 internal partial class LambdaFunctionJsonSerializerContext : JsonSerializerContext;

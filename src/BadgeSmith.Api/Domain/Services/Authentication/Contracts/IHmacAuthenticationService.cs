@@ -1,5 +1,3 @@
-using Amazon.Lambda.APIGatewayEvents;
-
 namespace BadgeSmith.Api.Domain.Services.Authentication.Contracts;
 
 /// <summary>
@@ -10,11 +8,10 @@ internal interface IHmacAuthenticationService
 {
     /// <summary>
     /// Validates an HMAC-signed request with nonce-based replay protection.
+    /// Extracts organization from route parameters for secret lookup.
     /// </summary>
-    /// <param name="request">The API Gateway request containing headers and body</param>
+    /// <param name="authContext">The auth context containing request and route parameters</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Authentication result indicating success or specific failure type</returns>
-    public Task<HmacAuthenticationResult> ValidateRequestAsync(
-        APIGatewayHttpApiV2ProxyRequest request,
-        CancellationToken ct = default);
+    public Task<HmacAuthenticationResult> ValidateRequestAsync(HmacAuthContext authContext, CancellationToken ct = default);
 }

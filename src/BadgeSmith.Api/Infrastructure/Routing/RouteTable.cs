@@ -34,7 +34,7 @@ internal static class RouteTable
             Name: "TestIngestion",
             Method: "POST",
             HandlerFactory: factory => factory.TestResultIngestionHandler,
-            Pattern: new ExactPattern("/tests/results")),
+            Pattern: new TemplatePattern("/tests/results/{platform}/{owner}/{repo}/{branch}")),
 
         new RouteDescriptor(
             Name: "BadgeRedirect",
