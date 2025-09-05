@@ -57,7 +57,7 @@ internal sealed class OrgSecretSeeder : IHostedService
             try
             {
                 var configuration = await LoadConfigurationAsync(linkedCts.Token).ConfigureAwait(false);
-                if (configuration?.Organizations is null or { Length: 0 })
+                if (configuration?.Secrets is null or { Length: 0 })
                 {
                     return;
                 }
@@ -69,7 +69,7 @@ internal sealed class OrgSecretSeeder : IHostedService
                     return;
                 }
 
-                await SeedOrganizationsAsync(tableName, configuration.Organizations, linkedCts.Token).ConfigureAwait(false);
+                await SeedOrganizationsAsync(tableName, configuration.Secrets, linkedCts.Token).ConfigureAwait(false);
 
                 _exitCode = 0;
                 _logger.LogInformation("Work completed successfully, stopping the application");
@@ -104,7 +104,7 @@ internal sealed class OrgSecretSeeder : IHostedService
         return Task.CompletedTask;
     }
 
-    private async Task<OrganizationConfig?> LoadConfigurationAsync(CancellationToken cancellationToken = default)
+    private async Task<SecretConfig?> LoadConfigurationAsync(CancellationToken cancellationToken = default)
     {
         const string configPath = "organization-pat-mapping.json";
 
@@ -117,7 +117,7 @@ internal sealed class OrgSecretSeeder : IHostedService
         try
         {
             var configJson = await File.ReadAllTextAsync(configPath, cancellationToken).ConfigureAwait(false);
-            return JsonSerializer.Deserialize<OrganizationConfig>(configJson, SeederJsonSerializerContext.Default.OrganizationConfig);
+            return JsonSerializer.Deserialize<SecretConfig>(configJson, SeederJsonSerializerContext.Default.SecretConfig);
         }
         catch (Exception ex)
         {
@@ -126,43 +126,45 @@ internal sealed class OrgSecretSeeder : IHostedService
         }
     }
 
-    private async Task SeedOrganizationsAsync(string tableName, OrganizationInfo[] organizations, CancellationToken cancellationToken = default)
+    private async Task SeedOrganizationsAsync(string tableName, SecretInfo[] organizations, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Processing {Count} organizations from config", organizations.Length);
 
         foreach (var orgConfig in organizations)
         {
-            if (string.IsNullOrWhiteSpace(orgConfig.Name) || string.IsNullOrWhiteSpace(orgConfig.GitHubPersonalAccessToken))
+            if (string.IsNullOrWhiteSpace(orgConfig.Name) || string.IsNullOrWhiteSpace(orgConfig.Secret))
             {
                 _logger.LogWarning("Skipping organization with missing name or token");
                 continue;
             }
 
-            var orgLower = orgConfig.Name.ToLowerInvariant();
-            var secretName = $"badgesmith/github/{orgLower}";
+            var orgLower = orgConfig.OrgName.ToLowerInvariant();
+            var secretType = orgConfig.Type.ToLowerInvariant();
+            var keyName = orgConfig.Name.ToLowerInvariant();
+            var secretName = $"badgesmith/github/{keyName}";
 
             try
             {
-                await CreateOrUpdateSecretAsync(secretName, orgConfig.GitHubPersonalAccessToken, orgLower, cancellationToken).ConfigureAwait(false);
-                await CreateDynamoDbMappingAsync(tableName, orgLower, secretName, cancellationToken).ConfigureAwait(false);
+                await CreateOrUpdateSecretAsync(secretName, orgConfig.Secret, orgLower, cancellationToken).ConfigureAwait(false);
+                await CreateDynamoDbMappingAsync(tableName, orgLower, secretType, secretName, cancellationToken).ConfigureAwait(false);
 
-                _logger.LogInformation("Seeded org mapping for {Org}", orgLower);
+                _logger.LogInformation("Seeded org mapping for {Org}", keyName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to seed organization {Org}", orgLower);
+                _logger.LogError(ex, "Failed to seed organization {Org}", keyName);
             }
         }
     }
 
-    private async Task CreateOrUpdateSecretAsync(string secretName, string pat, string orgLower, CancellationToken cancellationToken = default)
+    private async Task CreateOrUpdateSecretAsync(string secretName, string token, string orgLower, CancellationToken cancellationToken = default)
     {
         try
         {
             await _secretsManager.CreateSecretAsync(new CreateSecretRequest
             {
                 Name = secretName,
-                SecretString = pat,
+                SecretString = token,
             }, cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("Created secret {SecretName} for org {Org}", secretName, orgLower);
@@ -172,19 +174,19 @@ internal sealed class OrgSecretSeeder : IHostedService
             await _secretsManager.PutSecretValueAsync(new PutSecretValueRequest
             {
                 SecretId = secretName,
-                SecretString = pat,
+                SecretString = token,
             }, cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation(ex, "Updated secret {SecretName} for org {Org}", secretName, orgLower);
         }
     }
 
-    private async Task CreateDynamoDbMappingAsync(string tableName, string orgLower, string secretName, CancellationToken cancellationToken = default)
+    private async Task CreateDynamoDbMappingAsync(string tableName, string orgLower, string secretType, string secretName, CancellationToken cancellationToken = default)
     {
         var item = new Dictionary<string, AttributeValue>(StringComparer.Ordinal)
         {
             ["PK"] = new($"ORG#{orgLower}"),
-            ["SK"] = new("CONST#GITHUB"),
+            ["SK"] = new($"CONST#GITHUB#{secretType}"),
             ["SecretName"] = new(secretName),
             ["CreatedAt"] = new(DateTime.UtcNow.ToString("O")),
         };

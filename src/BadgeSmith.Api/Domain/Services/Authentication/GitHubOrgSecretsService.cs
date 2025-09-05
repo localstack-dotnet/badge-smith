@@ -10,26 +10,24 @@ using ResourceNotFoundException = Amazon.SecretsManager.Model.ResourceNotFoundEx
 
 namespace BadgeSmith.Api.Domain.Services.Authentication;
 
-/// <summary>
-/// Service for retrieving repository-specific HMAC secrets from AWS Secrets Manager.
-/// Follows the same pattern as GitHubOrgSecretsService but for repo-level authentication.
-/// </summary>
-internal sealed class RepoSecretsService : IRepoSecretsService
+internal sealed class GitHubOrgSecretsService : IGitHubOrgSecretsService
 {
     private readonly IAmazonSecretsManager _secretsManager;
     private readonly IAmazonDynamoDB _dynamoDb;
     private readonly string _tableName;
     private readonly IAppCache _cache;
-    private readonly ILogger<RepoSecretsService> _logger;
+    private readonly ILogger<GitHubOrgSecretsService> _logger;
 
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(15);
 
-    public RepoSecretsService(
+    public GitHubOrgSecretsService
+    (
         IAmazonSecretsManager secretsManager,
         IAmazonDynamoDB dynamoDb,
         string tableName,
         IAppCache cache,
-        ILogger<RepoSecretsService> logger)
+        ILogger<GitHubOrgSecretsService> logger
+    )
     {
         _secretsManager = secretsManager ?? throw new ArgumentNullException(nameof(secretsManager));
         _dynamoDb = dynamoDb ?? throw new ArgumentNullException(nameof(dynamoDb));
@@ -38,16 +36,18 @@ internal sealed class RepoSecretsService : IRepoSecretsService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<RepoSecretResult> GetRepoSecretAsync(string repoIdentifier, CancellationToken ct = default)
+    public async Task<GithubSecretResult> GetGitHubTokenAsync(string orgName, string tokenType, CancellationToken ct = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(repoIdentifier);
+        ArgumentException.ThrowIfNullOrWhiteSpace(orgName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tokenType);
 
-        var repoLower = repoIdentifier.ToLowerInvariant();
-        var cacheKey = $"repo_secret:{repoLower}";
+        var orgLower = orgName.ToLowerInvariant();
+        var tokenTypeLower = tokenType.ToLowerInvariant();
+        var cacheKey = $"github_token:{orgLower}:{tokenTypeLower}";
 
-        if (_cache.TryGetValue<string>(cacheKey, out var cachedSecret))
+        if (_cache.TryGetValue<string>(cacheKey, out var cachedToken))
         {
-            return cachedSecret;
+            return cachedToken;
         }
 
         var getItemRequest = new GetItemRequest
@@ -55,8 +55,8 @@ internal sealed class RepoSecretsService : IRepoSecretsService
             TableName = _tableName,
             Key = new Dictionary<string, AttributeValue>(StringComparer.Ordinal)
             {
-                ["PK"] = new($"REPO#{repoLower}"),
-                ["SK"] = new("CONST#HMAC"),
+                ["PK"] = new($"ORG#{orgLower}"),
+                ["SK"] = new($"CONST#GITHUB#{tokenTypeLower}"),
             },
             ProjectionExpression = "SecretName",
             ConsistentRead = false,
@@ -66,13 +66,13 @@ internal sealed class RepoSecretsService : IRepoSecretsService
 
         if (!IsSuccessStatusCode(getItemResponse.HttpStatusCode))
         {
-            return new Error($"Failed to retrieve HMAC secret for repository '{repoLower}'");
+            return new Error($"Failed to retrieve GitHub token for organization '{orgLower}'");
         }
 
         if (getItemResponse.Item == null || getItemResponse.Item.Count == 0)
         {
-            _logger.LogWarning("No secret mapping found for repository {Repository}", repoLower);
-            return new RepoSecretNotFound($"No secret mapping found for repository {repoLower}");
+            _logger.LogWarning("No secret mapping found for organization {Organization}", orgLower);
+            return new SecretNotFound($"No secret mapping found for organization {orgLower}");
         }
 
         var secretName = getItemResponse.Item["SecretName"].S;
@@ -88,25 +88,25 @@ internal sealed class RepoSecretsService : IRepoSecretsService
 
             if (!IsSuccessStatusCode(secretValueResponse.HttpStatusCode))
             {
-                return new Error($"Failed to retrieve HMAC secret for repository '{repoLower}'");
+                return new Error($"Failed to retrieve GitHub token for organization '{orgLower}'");
             }
 
-            var secret = secretValueResponse.SecretString;
-            _cache.Set(cacheKey, secret, CacheTtl);
+            var token = secretValueResponse.SecretString;
+            _cache.Set(cacheKey, token, CacheTtl);
 
-            return secret;
+            return token;
         }
         catch (ResourceNotFoundException ex)
         {
-            _logger.LogWarning(ex, "Secret {SecretName} not found for repository {Repository}", secretName, repoLower);
-            return new RepoSecretNotFound($"Secret '{secretName}' not found for repository '{repoLower}'");
+            _logger.LogWarning(ex, "Secret {SecretName} not found for organization {Organization}", secretName, orgLower);
+            return new SecretNotFound($"Secret '{secretName}' not found for organization '{orgLower}'");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve HMAC secret for repository {Repository} from secret {SecretName}", repoLower, secretName);
-            return new Error($"Failed to retrieve HMAC secret for repository '{repoLower}' from secret {secretName}");
+            _logger.LogError(ex, "Failed to retrieve GitHub token for organization {Organization} from secret {SecretName}", orgLower, secretName);
+            return new Error($"Failed to retrieve GitHub token for organization '{orgLower}' from secret {secretName}");
         }
     }
 
-    private static bool IsSuccessStatusCode(HttpStatusCode statusCode) => (int)statusCode is >= 200 and <= 299;
+    public static bool IsSuccessStatusCode(HttpStatusCode statusCode) => (int)statusCode is >= 200 and <= 299;
 }

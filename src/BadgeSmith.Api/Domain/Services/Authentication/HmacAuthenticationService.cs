@@ -13,16 +13,18 @@ namespace BadgeSmith.Api.Domain.Services.Authentication;
 /// </summary>
 internal sealed class HmacAuthenticationService : IHmacAuthenticationService
 {
-    private readonly IRepoSecretsService _repoSecretsService;
+    private readonly IGitHubOrgSecretsService _gitHubOrgSecretsService;
     private readonly INonceService _nonceService;
     private readonly ILogger<HmacAuthenticationService> _logger;
 
     private static readonly TimeSpan MaxTimestampAge = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan MaxTimestampSkew = TimeSpan.FromMinutes(1);
 
-    public HmacAuthenticationService(IRepoSecretsService repoSecretsService, INonceService nonceService, ILogger<HmacAuthenticationService> logger)
+    private const string TokenType = "TestData";
+
+    public HmacAuthenticationService(IGitHubOrgSecretsService gitHubOrgSecretsService, INonceService nonceService, ILogger<HmacAuthenticationService> logger)
     {
-        _repoSecretsService = repoSecretsService ?? throw new ArgumentNullException(nameof(repoSecretsService));
+        _gitHubOrgSecretsService = gitHubOrgSecretsService ?? throw new ArgumentNullException(nameof(gitHubOrgSecretsService));
         _nonceService = nonceService ?? throw new ArgumentNullException(nameof(nonceService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -49,17 +51,17 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
             return nonceResult.Failure.Match<HmacAuthenticationResult>(alreadyUsed => alreadyUsed, error => error);
         }
 
-        var secretResult = await _repoSecretsService.GetRepoSecretAsync(repoIdentifier, ct).ConfigureAwait(false);
-        if (secretResult is { IsSuccess: false, Secret: null })
+        var secretResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(repoIdentifier, TokenType, ct).ConfigureAwait(false);
+        if (secretResult is { IsSuccess: false, GithubSecret: null })
         {
             return secretResult.Failure.Match<HmacAuthenticationResult>
             (
-                notFound => notFound,
+                notFound => new RepoSecretNotFound(notFound.Reason),
                 error => error
             );
         }
 
-        var secret = secretResult.Secret!;
+        var secret = secretResult.GithubSecret!;
 
         if (!ValidateHmacSignature(signature, request.Body ?? string.Empty, secret))
         {

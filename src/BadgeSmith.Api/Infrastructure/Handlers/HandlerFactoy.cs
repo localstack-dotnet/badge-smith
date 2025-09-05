@@ -46,8 +46,15 @@ internal class HandlerFactory : IHandlerFactory
     private static GithubPackagesBadgeHandler CreateGithubPackagesBadgeHandler()
     {
         var githubPackagesLogger = LoggerFactory.CreateLogger<GithubPackagesBadgeHandler>();
-        var factory = new GitHubPackageServiceFactory();
-        return new GithubPackagesBadgeHandler(githubPackagesLogger, factory.GitHubOrgSecretsService, factory.GitHubPackageService);
+        var packageFactory = new GitHubPackageServiceFactory();
+        var authServiceFactory = new AuthenticationServiceFactory();
+
+        return new GithubPackagesBadgeHandler
+        (
+            githubPackagesLogger,
+            authServiceFactory.GitHubOrgSecretsService,
+            packageFactory.GitHubPackageService
+        );
     }
 
     private static TestResultsBadgeHandler CreateTestResultsBadgeHandler()

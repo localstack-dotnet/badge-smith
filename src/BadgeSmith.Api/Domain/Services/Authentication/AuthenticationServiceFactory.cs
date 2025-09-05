@@ -7,15 +7,15 @@ namespace BadgeSmith.Api.Domain.Services.Authentication;
 
 internal class AuthenticationServiceFactory : IAuthenticationServiceFactory
 {
-    private static readonly Lazy<IRepoSecretsService> RepoSecretsServiceLazy = new(CreateRepoSecretsService);
+    private static readonly Lazy<GitHubOrgSecretsService> GithubOrgSecretsServiceLazy = new(CreateGithubOrgSecretsService);
     private static readonly Lazy<INonceService> NonceServiceLazy = new(CreateNonceService);
     private static readonly Lazy<IHmacAuthenticationService> HmacAuthenticationServiceLazy = new(CreateHmacAuthenticationService);
 
-    public IRepoSecretsService RepoSecretsService => RepoSecretsServiceLazy.Value;
+    public GitHubOrgSecretsService GitHubOrgSecretsService => GithubOrgSecretsServiceLazy.Value;
     public INonceService NonceService => NonceServiceLazy.Value;
     public IHmacAuthenticationService HmacAuthenticationService => HmacAuthenticationServiceLazy.Value;
 
-    private static RepoSecretsService CreateRepoSecretsService()
+    private static GitHubOrgSecretsService CreateGithubOrgSecretsService()
     {
         var amazonDynamoDbClient = AwsClientFactory.AmazonDynamoDbClient;
         var amazonSecretsManagerClient = AwsClientFactory.AmazonSecretsManagerClient;
@@ -27,10 +27,10 @@ internal class AuthenticationServiceFactory : IAuthenticationServiceFactory
             throw new InvalidOperationException("AWS_RESOURCE_ORG_SECRETS_TABLE environment variable is not set");
         }
 
-        var logger = LoggerFactory.CreateLogger<RepoSecretsService>();
-        var cache = new MemoryAppCache();
+        var githubSecretsLogger = LoggerFactory.CreateLogger<GitHubOrgSecretsService>();
 
-        return new RepoSecretsService(amazonSecretsManagerClient, amazonDynamoDbClient, secretsTableName, cache, logger);
+        var memoryAppCache = new MemoryAppCache();
+        return new GitHubOrgSecretsService(amazonSecretsManagerClient, amazonDynamoDbClient, secretsTableName, memoryAppCache, githubSecretsLogger);
     }
 
     private static NonceService CreateNonceService()
@@ -52,7 +52,7 @@ internal class AuthenticationServiceFactory : IAuthenticationServiceFactory
 
     private static HmacAuthenticationService CreateHmacAuthenticationService()
     {
-        var repoSecretsService = CreateRepoSecretsService();
+        var repoSecretsService = CreateGithubOrgSecretsService();
         var nonceService = CreateNonceService();
         var logger = LoggerFactory.CreateLogger<HmacAuthenticationService>();
 

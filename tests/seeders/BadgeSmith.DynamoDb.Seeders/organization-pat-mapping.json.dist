@@ -1,13 +1,17 @@
 {
-  "organizations": [
+  "secrets": [
     {
-      "name": "example-org",
-      "github_personal_access_token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "org_name": "<org-name>",
+      "name": "<secret-name>,
+      "secret": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "type": "Package",
       "description": "Example organization configuration"
     },
     {
-      "name": "another-org",
-      "github_personal_access_token": "ghp_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "org_name": "<org-name>",
+      "name": "<secret-name>,
+      "secret": "ghp_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "type": "TestData",
       "description": "Another example organization"
     }
   ]

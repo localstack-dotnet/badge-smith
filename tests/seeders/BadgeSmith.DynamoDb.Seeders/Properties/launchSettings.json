@@ -1,6 +1,22 @@
 {
   "profiles": {
-    "BadgeSmith.DynamoDb.Seeders": {
+    "https": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "LocalStack:UseLocalStack": "true",
+        "WORKER_TIMEOUT_IN_SECONDS": "60",
+        "AWS_RESOURCE_ORG_SECRETS_TABLE": "badge-smith-github-org-secrets"
+      }
+    },
+    "http": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "LocalStack:UseLocalStack": "true",
+        "WORKER_TIMEOUT_IN_SECONDS": "60",
+        "AWS_RESOURCE_ORG_SECRETS_TABLE": "badge-smith-github-org-secrets"
+      }
+    },
+    "production": {
       "commandName": "Project",
       "environmentVariables": {
         "AWS:Profile": "personal",

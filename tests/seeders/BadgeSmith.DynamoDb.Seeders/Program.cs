@@ -37,16 +37,18 @@ await builder.Build().RunAsync().ConfigureAwait(false);
 
 namespace BadgeSmith.DynamoDb.Seeders
 {
-    internal sealed record OrganizationConfig(
-        [property: JsonPropertyName("organizations")] OrganizationInfo[] Organizations);
+    internal sealed record SecretConfig(
+        [property: JsonPropertyName("secrets")] SecretInfo[] Secrets);
 
-    internal sealed record OrganizationInfo(
+    internal sealed record SecretInfo(
+        [property: JsonPropertyName("org_name")] string OrgName,
         [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("github_personal_access_token")] string GitHubPersonalAccessToken,
+        [property: JsonPropertyName("secret")] string Secret,
+        [property: JsonPropertyName("type")] string Type,
         [property: JsonPropertyName("description")] string Description);
 
     [JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonSerializable(typeof(OrganizationConfig))]
-    [JsonSerializable(typeof(OrganizationInfo))]
+    [JsonSerializable(typeof(SecretConfig))]
+    [JsonSerializable(typeof(SecretInfo))]
     internal sealed partial class SeederJsonSerializerContext : JsonSerializerContext;
 }

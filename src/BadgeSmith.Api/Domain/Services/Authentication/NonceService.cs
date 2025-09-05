@@ -47,7 +47,6 @@ internal sealed class NonceService : INonceService
         }
 
         var partitionKey = $"NONCE#{repoIdentifier}";
-        var sortKey = nonce;
         var ttlTimestamp = DateTimeOffset.UtcNow.Add(NonceTtl).ToUnixTimeSeconds();
 
         var putRequest = new PutItemRequest
@@ -56,10 +55,10 @@ internal sealed class NonceService : INonceService
             Item = new Dictionary<string, AttributeValue>(StringComparer.Ordinal)
             {
                 ["PK"] = new(partitionKey),
-                ["SK"] = new(sortKey),
+                ["SK"] = new(nonce),
                 ["RequestTimestamp"] = new(requestTimestamp.ToString("O")),
                 ["MarkedAt"] = new(DateTimeOffset.UtcNow.ToString("O")),
-                ["TTL"] = new AttributeValue
+                ["TTL"] = new()
                 {
                     N = ttlTimestamp.ToString(CultureInfo.InvariantCulture),
                 },
@@ -71,14 +70,14 @@ internal sealed class NonceService : INonceService
         {
             await _dynamoDb.PutItemAsync(putRequest, ct).ConfigureAwait(false);
 
-            _cache.Set(cacheKey, true, NonceTtl);
+            _cache.Set(cacheKey, value: true, NonceTtl);
 
             _logger.LogDebug("Successfully marked nonce {Nonce} as used for repository {RepoIdentifier}", nonce, repoIdentifier);
             return new ValidNonce(nonce, DateTimeOffset.UtcNow);
         }
         catch (ConditionalCheckFailedException ex)
         {
-            _cache.Set(cacheKey, true, NonceTtl);
+            _cache.Set(cacheKey, value: true, NonceTtl);
 
             _logger.LogWarning(ex, "Nonce {Nonce} for repository {RepoIdentifier} already used (DynamoDB)", nonce, repoIdentifier);
             return new NonceAlreadyUsed($"Nonce '{nonce}' has already been used");

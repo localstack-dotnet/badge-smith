@@ -1,6 +1,4 @@
-using BadgeSmith.Api.Domain.Services.GitHub;
-
-namespace BadgeSmith.Api.Domain.Services.Contracts;
+namespace BadgeSmith.Api.Domain.Services.Authentication.Contracts;
 
 /// <summary>
 /// Service for managing GitHub authentication secrets with caching.
@@ -12,10 +10,11 @@ internal interface IGitHubOrgSecretsService
     /// Retrieves a GitHub Personal Access Token for the specified organization.
     /// Uses in-memory caching with TTL to minimize Secrets Manager calls.
     /// </summary>
-    /// <param name="organizationName">The GitHub organization name.</param>
+    /// <param name="orgName">The GitHub organization name.</param>
+    /// <param name="tokenType">The token type</param>
     /// <param name="ct">Cancellation token for the async operation.</param>
     /// <returns>
     /// The Personal Access Token if found; otherwise, null.
     /// </returns>
-    public Task<GithubSecretResult> GetGitHubTokenAsync(string organizationName, CancellationToken ct = default);
+    public Task<GithubSecretResult> GetGitHubTokenAsync(string orgName, string tokenType, CancellationToken ct = default);
 }

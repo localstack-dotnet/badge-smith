@@ -14,6 +14,8 @@ internal sealed record RepoSecretNotFound(string Reason) : NotFoundFailure(Reaso
 
 internal sealed record AuthenticatedRequest(string RepoIdentifier, DateTimeOffset RequestTimestamp);
 
+internal record SecretNotFound(string Reason) : NotFoundFailure(Reason);
+
 [GenerateOneOf]
 internal partial class HmacAuthenticationResult
     : OneOfBase<AuthenticatedRequest, InvalidSignature, MissingAuthHeaders, InvalidTimestamp, NonceAlreadyUsed, RepoSecretNotFound, Error>
@@ -35,18 +37,31 @@ internal partial class HmacAuthenticationResult
 }
 
 [GenerateOneOf]
-internal partial class RepoSecretResult : OneOfBase<string, RepoSecretNotFound, Error>
+internal partial class GithubSecretResult : OneOfBase<string, SecretNotFound, Error>
 {
-    public bool IsSuccess => IsT0;
-    public string? Secret => IsT0 ? AsT0 : null;
+    public bool IsSuccess => IsT0 && AsT0 != null;
 
-    public OneOf<RepoSecretNotFound, Error> Failure => IsT0
-        ? throw new InvalidOperationException("Result is successful")
-        : Match<OneOf<RepoSecretNotFound, Error>>(
-            _ => throw new InvalidOperationException("Result is successful"),
-            notFound => notFound,
-            error => error
-        );
+    public bool IsFailure => !IsSuccess;
+
+    public string? GithubSecret => IsT0 ? AsT0 : null;
+
+    public OneOf<SecretNotFound, Error> Failure
+    {
+        get
+        {
+            if (TryPickT1(out var notFound, out _))
+            {
+                return notFound;
+            }
+
+            if (TryPickT2(out var error, out _))
+            {
+                return error;
+            }
+
+            throw new InvalidOperationException("Failure was not found");
+        }
+    }
 }
 
 [GenerateOneOf]

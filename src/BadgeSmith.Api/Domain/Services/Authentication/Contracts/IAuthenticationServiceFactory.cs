@@ -6,7 +6,9 @@ namespace BadgeSmith.Api.Domain.Services.Authentication.Contracts;
 /// </summary>
 internal interface IAuthenticationServiceFactory
 {
-    public IRepoSecretsService RepoSecretsService { get; }
+    public GitHubOrgSecretsService GitHubOrgSecretsService { get; }
+
     public INonceService NonceService { get; }
+
     public IHmacAuthenticationService HmacAuthenticationService { get; }
 }

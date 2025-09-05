@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Domain.Models;
+using BadgeSmith.Api.Domain.Services.Authentication.Contracts;
 using BadgeSmith.Api.Domain.Services.Contracts;
 using BadgeSmith.Api.Infrastructure.Handlers.Contracts;
 using BadgeSmith.Api.Infrastructure.Routing;
@@ -15,6 +16,8 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
     private readonly ILogger<GithubPackagesBadgeHandler> _logger;
     private readonly IGitHubOrgSecretsService _gitHubOrgSecretsService;
     private readonly IGitHubPackageService _gitHubPackageService;
+
+    private const string TokenType = "Package";
 
     public GithubPackagesBadgeHandler(ILogger<GithubPackagesBadgeHandler> logger, IGitHubOrgSecretsService gitHubOrgSecretsService, IGitHubPackageService gitHubPackageService)
     {
@@ -34,7 +37,7 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
                 return errorResponse!;
             }
 
-            var tokenResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(org, ct).ConfigureAwait(false);
+            var tokenResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(org, TokenType, ct).ConfigureAwait(false);
             if (tokenResult is { IsSuccess: false, GithubSecret: null })
             {
                 return tokenResult.Failure.Match(
