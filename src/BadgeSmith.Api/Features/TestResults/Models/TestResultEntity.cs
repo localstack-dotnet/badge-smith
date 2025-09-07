@@ -35,8 +35,7 @@ internal record TestResultEntity(
         var gsi1Pk = $"LATEST#{owner}#{repo}#{platform}#{branch}";
         var gsi1Sk = payload.Timestamp.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
 
-        // TTL: Keep test results for 90 days
-        var ttl = createdAt.AddDays(90).ToUnixTimeSeconds();
+        var ttl = createdAt.AddDays(730).ToUnixTimeSeconds();
 
         return new TestResultEntity(
             Pk: pk,
