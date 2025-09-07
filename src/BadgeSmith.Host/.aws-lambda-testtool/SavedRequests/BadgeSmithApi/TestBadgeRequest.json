@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "routeKey": "$default",
-  "rawPath": "/badges/tests/linux/dotnet/runtime/main",
+  "rawPath": "/badges/tests/linux/localstack-dotnet/badge-smith/main",
   "rawQueryString": "",
   "cookies": [],
   "headers": {
@@ -18,7 +18,7 @@
     "domainPrefix": "domain-id",
     "http": {
       "method": "GET",
-      "path": "/badges/tests/linux/dotnet/runtime/main",
+      "path": "/badges/tests/linux/localstack-dotnet/badge-smith/main",
       "protocol": "HTTP/1.1",
       "sourceIp": "203.0.113.77",
       "userAgent": "badge-smith-client/1.0"
@@ -33,8 +33,8 @@
   "body": null,
   "pathParameters": {
     "platform": "linux",
-    "owner": "dotnet",
-    "repo": "runtime",
+    "owner": "localstack-dotnet",
+    "repo": "badge-smith",
     "branch": "main"
   },
   "isBase64Encoded": false,

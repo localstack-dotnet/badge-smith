@@ -58,7 +58,7 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
             if (!authResult.IsSuccess)
             {
                 return authResult.Failure.Match(
-                    invalidSig => ResponseHelper.BadRequest(invalidSig.ToErrorResponse()),
+                    _ => ResponseHelper.Unauthorized(),
                     invalidTimestamp => ResponseHelper.BadRequest(invalidTimestamp.ToErrorResponse()),
                     nonceUsed => ResponseHelper.BadRequest(nonceUsed.ToErrorResponse()),
                     _ => ResponseHelper.Unauthorized(),

@@ -73,7 +73,7 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
             var badge = new ShieldsBadgeResponse(1, "github", gitHubPackageInfo.VersionString, color, NamedLogo: "github");
 
             routeContext.Request.Headers.TryGetValue("if-none-match", out var ifNoneMatch);
-            var cache = new ResponseHelper.CacheSettings(SMaxAgeSeconds: 300, MaxAgeSeconds: 60, SwrSeconds: 900, SieSeconds: 3600);
+            var cache = new ResponseHelper.CacheSettings(SMaxAgeSeconds: 600, MaxAgeSeconds: 300, SwrSeconds: 1200, SieSeconds: 3600);
 
             return ResponseHelper.OkCached(
                 badge,

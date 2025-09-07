@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "routeKey": "$default",
-  "rawPath": "/badges/packages/github/dotnet/runtime",
+  "rawPath": "/badges/packages/github/localstack-dotnet/LocalStack.Client",
   "rawQueryString": "",
   "cookies": [],
   "headers": {
@@ -18,7 +18,7 @@
     "domainPrefix": "domain-id",
     "http": {
       "method": "GET",
-      "path": "/badges/packages/github/dotnet/runtime",
+      "path": "/badges/packages/github/localstack-dotnet/LocalStack.Client",
       "protocol": "HTTP/1.1",
       "sourceIp": "198.51.100.23",
       "userAgent": "badge-smith-client/1.0"

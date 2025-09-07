@@ -109,14 +109,14 @@ internal static class ApplicationRegistry
     {
         var logger = LoggerFactory.CreateLogger<TestResultsBadgeHandler>();
 
-        return new TestResultsBadgeHandler(logger);
+        return new TestResultsBadgeHandler(logger, TestResultsService);
     }
 
     private static TestResultRedirectionHandler CreateTestResultRedirectionHandler()
     {
         var logger = LoggerFactory.CreateLogger<TestResultRedirectionHandler>();
 
-        return new TestResultRedirectionHandler(logger);
+        return new TestResultRedirectionHandler(logger, TestResultsService);
     }
 
     private static TestResultIngestionHandler CreateTestResultIngestionHandler()
