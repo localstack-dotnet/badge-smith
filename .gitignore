@@ -50,8 +50,10 @@ bld/
 # Visual Studio 2017 auto generated files
 Generated\ Files/
 
-# MSTest test Results
-[Tt]est[Rr]esult*/
+# MSTest test Results (only in test output directories, not source code)
+tests/**/[Tt]est[Rr]esults/
+**/bin/**/[Tt]est[Rr]esults/
+**/obj/**/[Tt]est[Rr]esults/
 [Bb]uild[Ll]og.*
 *.trx
 
