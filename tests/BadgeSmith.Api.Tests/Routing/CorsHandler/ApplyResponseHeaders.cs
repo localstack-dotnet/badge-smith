@@ -1,5 +1,5 @@
-﻿using BadgeSmith.Api.Infrastructure.Routing.Contracts;
-using BadgeSmith.Api.Infrastructure.Routing.Cors;
+﻿using BadgeSmith.Api.Core.Routing.Contracts;
+using BadgeSmith.Api.Core.Routing.Cors;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -9,12 +9,12 @@ namespace BadgeSmith.Api.Tests.Routing.CorsHandler;
 public class ApplyResponseHeadersTests : TestBase
 {
     private readonly Mock<IRouteResolver> _mockRouteResolver;
-    private readonly Mock<ILogger<Infrastructure.Routing.Cors.CorsHandler>> _mockLogger;
+    private readonly Mock<ILogger<Core.Routing.Cors.CorsHandler>> _mockLogger;
 
     public ApplyResponseHeadersTests()
     {
         _mockRouteResolver = new Mock<IRouteResolver>();
-        _mockLogger = SetupILoggerWithService<Infrastructure.Routing.Cors.CorsHandler>();
+        _mockLogger = SetupILoggerWithService<Core.Routing.Cors.CorsHandler>();
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class ApplyResponseHeadersTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Infrastructure.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // Act
@@ -41,7 +41,7 @@ public class ApplyResponseHeadersTests : TestBase
         {
             UseWildcardWhenNoCredentials = false,
         };
-        var handler = new Infrastructure.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // Act
@@ -66,7 +66,7 @@ public class ApplyResponseHeadersTests : TestBase
             AllowCredentials = true,
             AllowedOrigins = allowedOrigins,
         };
-        var handler = new Infrastructure.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // Act
@@ -92,7 +92,7 @@ public class ApplyResponseHeadersTests : TestBase
             AllowCredentials = true,
             AllowedOrigins = allowedOrigins,
         };
-        var handler = new Infrastructure.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // Act
@@ -117,7 +117,7 @@ public class ApplyResponseHeadersTests : TestBase
         {
             ExposeHeaders = exposeHeaders,
         };
-        var handler = new Infrastructure.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // Act
@@ -135,7 +135,7 @@ public class ApplyResponseHeadersTests : TestBase
     {
         // Arrange
         var options = CorsOptions.Default;
-        var handler = new Infrastructure.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
+        var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // Act

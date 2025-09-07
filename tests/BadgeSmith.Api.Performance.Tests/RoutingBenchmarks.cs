@@ -1,7 +1,7 @@
 ﻿#pragma warning disable CA1812,CA1852,CA1515
 
-using BadgeSmith.Api.Infrastructure.Routing;
-using BadgeSmith.Api.Infrastructure.Routing.Patterns;
+using BadgeSmith.Api.Core.Routing;
+using BadgeSmith.Api.Core.Routing.Patterns;
 using BadgeSmith.Api.Performance.Tests.TestHelpers;
 using BenchmarkDotNet.Attributes;
 

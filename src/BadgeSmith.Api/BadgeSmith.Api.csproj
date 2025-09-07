@@ -63,8 +63,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(SharedDir)\ActivitySources\BadgeSmithApiActivitySource.cs" Link="Infrastructure\BadgeSmithApiActivitySource.cs"/>
-    <Compile Include="$(SharedDir)\Constants.cs" Link="Infrastructure\Constants.cs"/>
+    <Compile Include="..\shared\ActivitySources\BadgeSmithApiActivitySource.cs">
+      <Link>Core\BadgeSmithApiActivitySource.cs</Link>
+    </Compile>
+    <Compile Include="..\shared\Constants.cs">
+      <Link>Core\Constants.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -84,4 +88,5 @@
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+
 </Project>

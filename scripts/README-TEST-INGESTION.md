@@ -7,9 +7,11 @@ Scripts for testing HMAC authentication and test result ingestion endpoints.
 ### Prerequisites
 
 **PowerShell (Windows/Linux/macOS):**
+
 - PowerShell 7.0+
 
 **Bash (Linux/macOS/WSL):**
+
 - bash 4.0+
 - curl
 - openssl
@@ -44,6 +46,7 @@ Make sure you have a test organization configured in your `tests/seeders/BadgeSm
 ### 3. Test the Ingestion Endpoint
 
 **PowerShell:**
+
 ```powershell
 # Using sample payload file
 .\scripts\test-ingestion.ps1 -BaseUrl "http://localhost:9474" `
@@ -59,6 +62,7 @@ Make sure you have a test organization configured in your `tests/seeders/BadgeSm
 ```
 
 **Bash:**
+
 ```bash
 # Using sample payload file
 ./scripts/test-ingestion.sh --base-url "http://localhost:9474" \

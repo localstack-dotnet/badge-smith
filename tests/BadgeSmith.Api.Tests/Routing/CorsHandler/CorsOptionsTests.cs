@@ -1,4 +1,4 @@
-using BadgeSmith.Api.Infrastructure.Routing.Cors;
+using BadgeSmith.Api.Core.Routing.Cors;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.CorsHandler;

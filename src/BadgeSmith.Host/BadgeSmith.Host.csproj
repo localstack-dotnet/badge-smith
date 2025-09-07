@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\build\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj" IsAspireProjectResource="false"/>
-    <ProjectReference Include="..\..\tests\seeders\BadgeSmith.DynamoDb.Seeders\BadgeSmith.DynamoDb.Seeders.csproj" />
+    <ProjectReference Include="..\..\tests\seeders\BadgeSmith.DynamoDb.Seeders\BadgeSmith.DynamoDb.Seeders.csproj"/>
     <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj"/>
   </ItemGroup>
 

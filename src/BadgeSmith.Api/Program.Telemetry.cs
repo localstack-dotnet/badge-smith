@@ -6,22 +6,23 @@ using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
-using BadgeSmith.Api.Json;
-using Microsoft.Extensions.Logging;
-using LoggerFactory = BadgeSmith.Api.Infrastructure.Observability.LoggerFactory;
 using BadgeSmith;
-using BadgeSmith.Api.Infrastructure.Observability;
-using BadgeSmith.Api.Infrastructure.Routing;
-using BadgeSmith.Api.Infrastructure.Routing.Helpers;
-using static BadgeSmith.Api.Settings;
-using OpenTelemetry.Trace;
+using BadgeSmith.Api.Core;
+using BadgeSmith.Api.Core.Observability;
+using BadgeSmith.Api.Core.Routing;
+using BadgeSmith.Api.Core.Routing.Helpers;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.AWSLambda;
+using OpenTelemetry.Trace;
+using static BadgeSmith.Api.Core.Settings;
+using LambdaFunctionJsonSerializerContext = BadgeSmith.Api.Core.Infrastructure.LambdaFunctionJsonSerializerContext;
+using LoggerFactory = BadgeSmith.Api.Core.Observability.LoggerFactory;
 
 using var tracerProvider = TelemetryFactory.CreateTracerProvider(ApplicationName, ApplicationVersion);
 LambdaBootstrap lambdaBootstrap;
 using (var _ = BadgeSmithApiActivitySource.ActivitySource.StartActivity("Lambda Initialization"))
 {
-    var apiRouter = ApiRouterBuilder.BuildApiRouter();
+    var apiRouter = ApplicationRegistry.ApiRouter;
     var handler = BuildHandler(tracerProvider, apiRouter);
 
     var jsonSerializer = new SourceGeneratorLambdaJsonSerializer<LambdaFunctionJsonSerializerContext>();

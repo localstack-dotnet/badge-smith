@@ -1,7 +1,7 @@
 using Amazon.Lambda.APIGatewayEvents;
-using BadgeSmith.Api.Infrastructure.Routing;
-using BadgeSmith.Api.Infrastructure.Routing.Contracts;
-using BadgeSmith.Api.Infrastructure.Routing.Patterns;
+using BadgeSmith.Api.Core.Routing;
+using BadgeSmith.Api.Core.Routing.Contracts;
+using BadgeSmith.Api.Core.Routing.Patterns;
 
 namespace BadgeSmith.Api.Performance.Tests.TestHelpers;
 
@@ -70,7 +70,7 @@ internal static class RouteTestBuilder
         return new RouteDescriptor(
             Name: name,
             Method: method,
-            HandlerFactory: _ => new MockRouteHandler(),
+            HandlerResolver: () => new MockRouteHandler(),
             Pattern: pattern);
     }
 

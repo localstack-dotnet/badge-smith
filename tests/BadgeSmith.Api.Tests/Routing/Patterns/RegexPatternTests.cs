@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using BadgeSmith.Api.Infrastructure.Routing.Patterns;
+using BadgeSmith.Api.Core.Routing.Patterns;
 using BadgeSmith.Api.Tests.TestHelpers;
 using Xunit;
 
