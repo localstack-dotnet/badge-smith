@@ -48,8 +48,41 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
 
-      - name: Run unit tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
+      - name: Run tests with BadgeSmith integration
+        uses: ./.github/workflows/run-dotnet-tests
+        with:
+          project-path: 'tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj'
+          results-dir: 'test-results'
+          configuration: 'Release'
+
+      - name: Publish Test Results
+        id: test-results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: 'Test Results (Linux)'
+          path: 'test-results/**/*.trx'
+          reporter: 'dotnet-trx'
+          path-replace-backslashes: true
+          fail-on-error: true
+          max-annotations: 50
+
+      - name: Update test badge via BadgeSmith API
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        continue-on-error: true
+        uses: ./.github/workflows/update-test-badge
+        with:
+          platform: 'Linux'
+          test_passed: '${{ steps.test-results.outputs.passed || 0 }}'
+          test_failed: '${{ steps.test-results.outputs.failed || 0 }}'
+          test_skipped: '${{ steps.test-results.outputs.skipped || 0 }}'
+          test_url_html: ${{ steps.test-results.outputs.url_html || '' }}
+          commit_sha: '${{ github.sha }}'
+          run_id: '${{ github.run_id }}'
+          repository: '${{ github.repository }}'
+          server_url: '${{ github.server_url }}'
+          api_domain: 'api.localstackfor.net'
+          hmac_secret: '${{ secrets.TESTDATASECRET }}'
 
   continuous-deployment:
     needs: build-and-test
