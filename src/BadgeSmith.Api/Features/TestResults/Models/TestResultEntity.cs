@@ -1,34 +1,25 @@
 namespace BadgeSmith.Api.Features.TestResults.Models;
 
 internal record TestResultEntity(
-    // DynamoDB Keys
     string Pk, // TEST#{owner}#{repo}
     string Sk, // RESULT#{platform}#{branch}#{timestamp}
     string Gsi1Pk, // LATEST#{owner}#{repo}#{platform}#{branch}
     string Gsi1Sk, // {timestamp} (for sorting latest first)
-
-    // Route Context (enriched from URL)
     string Owner,
     string Repo,
     string Platform,
     string Branch,
-
-    // Test Results (from payload)
     int Passed,
     int Failed,
     int Skipped,
     int Total,
     DateTimeOffset Timestamp,
-
-    // GitHub Context (from payload)
     string Commit,
     string RunId,
     string UrlHtml,
     string WorkflowRunUrl,
-
-    // Metadata
     DateTimeOffset CreatedAt,
-    long Ttl // Auto-expire old test results
+    long Ttl
 )
 {
     public static TestResultEntity FromPayload(
