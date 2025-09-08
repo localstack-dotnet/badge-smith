@@ -1,7 +1,7 @@
 ﻿namespace BadgeSmith.Api.Core.Routing.Cors;
 
 /// <summary>
-/// Comprehensive CORS configuration options for AWS Lambda API Gateway routing.
+/// CORS configuration options for AWS Lambda API Gateway routing.
 /// Supports both public APIs and credential-based authentication scenarios with appropriate security measures.
 /// Implements CORS specification (RFC 6454) with security best practices for production APIs.
 /// </summary>

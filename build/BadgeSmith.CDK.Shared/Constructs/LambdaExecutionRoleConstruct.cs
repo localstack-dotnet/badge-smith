@@ -45,9 +45,5 @@ public class LambdaExecutionRoleConstruct : Construct
         });
     }
 
-    /// <summary>
-    /// IAM execution role for the BadgeSmith Lambda function with least-privilege permissions.
-    /// Includes CloudWatch Logs access, DynamoDB read/write permissions, and Secrets Manager access for authentication tokens.
-    /// </summary>
     public Role Role { get; }
 }

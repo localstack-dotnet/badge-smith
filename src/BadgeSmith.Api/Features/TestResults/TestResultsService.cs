@@ -10,6 +10,9 @@ using TestResultStorageResult = BadgeSmith.Api.Features.TestResults.Models.TestR
 
 namespace BadgeSmith.Api.Features.TestResults;
 
+/// <summary>
+/// Business service for managing test results. Handles payload validation, enrichment
+/// </summary>
 internal sealed class TestResultsService : ITestResultsService
 {
     private readonly IAmazonDynamoDB _dynamoDb;

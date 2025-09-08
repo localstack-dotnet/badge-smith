@@ -4,22 +4,16 @@ using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing;
 
-/// <summary>
-/// Tests for RouteValues ref struct for parameter extraction and manipulation.
-/// </summary>
 public sealed class RouteValuesTests
 {
     [Fact]
     public void Constructor_Should_InitializeCorrectly()
     {
-        // Arrange
         const string path = "/test/path";
         var buffer = new (string, int, int)[8];
 
-        // Act
         var values = new RouteValues(path.AsSpan(), buffer.AsSpan());
 
-        // Assert - We can't directly access private fields, but we can test behavior
         var parameters = values.ToImmutableDictionary();
         Assert.Empty(parameters);
     }
@@ -27,14 +21,11 @@ public sealed class RouteValuesTests
     [Fact]
     public void Set_Should_StoreParameterCorrectly()
     {
-        // Arrange
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         values.Set("provider", 17, 5); // "nuget" starts at position 17, length 5
 
-        // Assert
         Assert.True(values.TryGetString("provider", out var result));
         Assert.Equal("nuget", result);
     }
@@ -42,15 +33,12 @@ public sealed class RouteValuesTests
     [Fact]
     public void Set_Should_StoreMultipleParametersCorrectly()
     {
-        // Arrange
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         values.Set("provider", 17, 5); // "nuget"
         values.Set("package", 23, 15); // "Newtonsoft.Json"
 
-        // Assert
         Assert.True(values.TryGetString("provider", out var provider));
         Assert.True(values.TryGetString("package", out var package));
         Assert.Equal("nuget", provider);
@@ -60,10 +48,8 @@ public sealed class RouteValuesTests
     [Fact]
     public void Set_Should_ThrowWhenBufferIsFull()
     {
-        // Arrange
         const string path = "/test/path";
 
-        // Act & Assert - Test overflow scenario
         var exception = Assert.Throws<InvalidOperationException>(() => CreateFullBufferAndOverflow(path));
         Assert.Equal("RouteValues buffer is full.", exception.Message);
     }
@@ -87,16 +73,13 @@ public sealed class RouteValuesTests
     [InlineData("", false, null)]
     public void TryGetString_Should_HandleCaseInsensitiveLookup(string paramName, bool expectedFound, string? expectedValue)
     {
-        // Arrange
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
             ("provider", 17, 5), // "nuget"
             ("package", 23, 15)); // "Newtonsoft.Json"
 
-        // Act
         var found = values.TryGetString(paramName, out var actualValue);
 
-        // Assert
         Assert.Equal(expectedFound, found);
         Assert.Equal(expectedValue, actualValue);
     }
@@ -109,16 +92,13 @@ public sealed class RouteValuesTests
     [InlineData("", false)]
     public void TryGetSpan_Should_HandleCaseInsensitiveLookup(string paramName, bool expectedFound)
     {
-        // Arrange
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
             ("provider", 17, 5), // "nuget"
             ("package", 23, 15)); // "Newtonsoft.Json"
 
-        // Act
         var found = values.TryGetSpan(paramName, out var span);
 
-        // Assert
         Assert.Equal(expectedFound, found);
 
         if (expectedFound)
@@ -134,17 +114,14 @@ public sealed class RouteValuesTests
     [Fact]
     public void TryGetSpan_Should_ReturnCorrectSpanData()
     {
-        // Arrange
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
             ("provider", 17, 5), // "nuget"
             ("package", 23, 15)); // "Newtonsoft.Json"
 
-        // Act
         var providerFound = values.TryGetSpan("provider", out var providerSpan);
         var packageFound = values.TryGetSpan("package", out var packageSpan);
 
-        // Assert
         Assert.True(providerFound);
         Assert.True(packageFound);
         Assert.Equal("nuget", providerSpan.ToString());
@@ -154,30 +131,24 @@ public sealed class RouteValuesTests
     [Fact]
     public void ToImmutableDictionary_Should_ReturnEmptyForNoParameters()
     {
-        // Arrange
         const string path = "/health";
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var dictionary = values.ToImmutableDictionary();
 
-        // Assert
         Assert.Empty(dictionary);
     }
 
     [Fact]
     public void ToImmutableDictionary_Should_ReturnAllParameters()
     {
-        // Arrange
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
             ("provider", 17, 5), // "nuget"
             ("package", 23, 15)); // "Newtonsoft.Json"
 
-        // Act
         var dictionary = values.ToImmutableDictionary();
 
-        // Assert
         Assert.Equal(2, dictionary.Count);
         Assert.Equal("nuget", dictionary["provider"]);
         Assert.Equal("Newtonsoft.Json", dictionary["package"]);
@@ -186,16 +157,13 @@ public sealed class RouteValuesTests
     [Fact]
     public void ToImmutableDictionary_Should_UseCaseInsensitiveKeys()
     {
-        // Arrange
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
             ("provider", 17, 5), // "nuget"
             ("package", 23, 15)); // "Newtonsoft.Json"
 
-        // Act
         var dictionary = values.ToImmutableDictionary();
 
-        // Assert
         Assert.True(dictionary.ContainsKey("provider"));
         Assert.True(dictionary.ContainsKey("PROVIDER")); // Case insensitive
         Assert.True(dictionary.ContainsKey("Provider")); // Case insensitive
@@ -206,17 +174,14 @@ public sealed class RouteValuesTests
     [Fact]
     public void ToImmutableDictionary_Should_OverwriteDuplicateKeys()
     {
-        // Arrange
         const string path = "/test/value1/value2";
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act - Set the same key twice
         values.Set("key", 6, 6); // "value1"
         values.Set("key", 13, 6); // "value2" (should overwrite)
 
         var dictionary = values.ToImmutableDictionary();
 
-        // Assert
         Assert.Single(dictionary);
         Assert.Equal("value2", dictionary["key"]);
     }
@@ -229,7 +194,6 @@ public sealed class RouteValuesTests
     [InlineData("/badges/tests/linux/owner/repo/release%2F8.0", "branch", "release/8.0")]
     public void Parameters_Should_HandleSpecialCharacters(string path, string paramName, string expectedValue)
     {
-        // Arrange - We need to calculate positions dynamically for these tests
         const string provider = "nuget";
         var package = expectedValue;
         var fullPath = paramName == "package"
@@ -255,10 +219,8 @@ public sealed class RouteValuesTests
             values.Set("branch", branchStart, branchLength);
         }
 
-        // Act
         var found = values.TryGetString(paramName, out var actualValue);
 
-        // Assert
         Assert.True(found);
         Assert.Equal(expectedValue, actualValue);
     }
@@ -266,17 +228,14 @@ public sealed class RouteValuesTests
     [Fact]
     public void Parameters_Should_HandleEmptyValues()
     {
-        // Arrange
         const string path = "/badges/packages//package"; // Empty provider
         var values = RouteTestBuilder.CreateRouteValues(path);
         values.Set("provider", 17, 0); // Empty string
         values.Set("package", 18, 7); // "package"
 
-        // Act
         var providerFound = values.TryGetString("provider", out var provider);
         var packageFound = values.TryGetString("package", out var package);
 
-        // Assert
         Assert.True(providerFound);
         Assert.True(packageFound);
         Assert.Equal("", provider);
@@ -287,14 +246,11 @@ public sealed class RouteValuesTests
     [MemberData(nameof(GetRealWorldTemplateScenarios))]
     public void Parameters_Should_HandleRealWorldScenarios(string template, string path, IDictionary<string, string> expectedValues)
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateTemplatePattern(template);
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var matched = pattern.TryMatch(path.AsSpan(), ref values);
 
-        // Assert
         Assert.True(matched, $"Pattern '{template}' should match path '{path}'");
 
         foreach (var (expectedKey, expectedValue) in expectedValues)
@@ -373,14 +329,5 @@ public sealed class RouteValuesTests
                 ["package"] = "Microsoft.Extensions.DependencyInjection.Abstractions",
             },
         ];
-    }
-
-    /// <summary>
-    /// Deprecated: Use GetRealWorldTemplateScenarios instead for template-based testing.
-    /// </summary>
-    public static IEnumerable<object[]> GetRealWorldParameterData()
-    {
-        // This method is deprecated - use GetRealWorldTemplateScenarios instead
-        return Array.Empty<object[]>();
     }
 }

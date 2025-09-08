@@ -20,15 +20,12 @@ public class ApplyResponseHeadersTests : TestBase
     [Fact]
     public void ApplyResponseHeaders_Should_AddWildcardForPublicAPI()
     {
-        // Arrange
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        // Act
         handler.ApplyResponseHeaders(responseHeaders, "https://example.com");
 
-        // Assert
         Assert.Equal("*", responseHeaders["Access-Control-Allow-Origin"]);
         Assert.False(responseHeaders.ContainsKey("Access-Control-Allow-Credentials"));
     }
@@ -36,7 +33,6 @@ public class ApplyResponseHeadersTests : TestBase
     [Fact]
     public void ApplyResponseHeaders_Should_EchoOriginWhenUseWildcardIsFalse()
     {
-        // Arrange
         var options = new CorsOptions
         {
             UseWildcardWhenNoCredentials = false,
@@ -44,10 +40,8 @@ public class ApplyResponseHeadersTests : TestBase
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        // Act
         handler.ApplyResponseHeaders(responseHeaders, "https://example.com");
 
-        // Assert
         Assert.Equal("https://example.com", responseHeaders["Access-Control-Allow-Origin"]);
         Assert.Contains("Origin", responseHeaders["Vary"], StringComparison.OrdinalIgnoreCase);
     }
@@ -55,7 +49,6 @@ public class ApplyResponseHeadersTests : TestBase
     [Fact]
     public void ApplyResponseHeaders_Should_HandleCredentialsWithTrustedOrigin()
     {
-        // Arrange
         var allowedOrigins = new HashSet<string>
             (StringComparer.OrdinalIgnoreCase)
             {
@@ -69,10 +62,8 @@ public class ApplyResponseHeadersTests : TestBase
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        // Act
         handler.ApplyResponseHeaders(responseHeaders, "https://trusted.com");
 
-        // Assert
         Assert.Equal("https://trusted.com", responseHeaders["Access-Control-Allow-Origin"]);
         Assert.Equal("true", responseHeaders["Access-Control-Allow-Credentials"]);
         Assert.Contains("Origin", responseHeaders["Vary"], StringComparison.OrdinalIgnoreCase);
@@ -81,7 +72,6 @@ public class ApplyResponseHeadersTests : TestBase
     [Fact]
     public void ApplyResponseHeaders_Should_RejectUntrustedOriginWithCredentials()
     {
-        // Arrange
         var allowedOrigins = new HashSet<string>
             (StringComparer.OrdinalIgnoreCase)
             {
@@ -95,10 +85,8 @@ public class ApplyResponseHeadersTests : TestBase
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        // Act
         handler.ApplyResponseHeaders(responseHeaders, "https://malicious.com");
 
-        // Assert
         Assert.False(responseHeaders.ContainsKey("Access-Control-Allow-Origin"));
         Assert.False(responseHeaders.ContainsKey("Access-Control-Allow-Credentials"));
     }
@@ -106,7 +94,6 @@ public class ApplyResponseHeadersTests : TestBase
     [Fact]
     public void ApplyResponseHeaders_Should_AddExposeHeaders()
     {
-        // Arrange
         var exposeHeaders = new HashSet<string>
             (StringComparer.OrdinalIgnoreCase)
             {
@@ -120,10 +107,8 @@ public class ApplyResponseHeadersTests : TestBase
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        // Act
         handler.ApplyResponseHeaders(responseHeaders, "https://example.com");
 
-        // Assert
         Assert.Equal("x-custom-header, x-rate-limit", responseHeaders["Access-Control-Expose-Headers"]);
     }
 
@@ -133,15 +118,12 @@ public class ApplyResponseHeadersTests : TestBase
     [InlineData("   ")]
     public void ApplyResponseHeaders_Should_HandleMissingOrigin(string? origin)
     {
-        // Arrange
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
         var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        // Act
         handler.ApplyResponseHeaders(responseHeaders, origin);
 
-        // Assert
         Assert.Equal("*", responseHeaders["Access-Control-Allow-Origin"]); // Default wildcard
     }
 }

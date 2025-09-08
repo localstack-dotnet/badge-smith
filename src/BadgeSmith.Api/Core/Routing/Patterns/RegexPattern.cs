@@ -17,14 +17,12 @@ internal sealed class RegexPattern : IRoutePattern
 
     public bool TryMatch(ReadOnlySpan<char> path, ref RouteValues values)
     {
-        // .NET 8 Regex still needs string here; unavoidable alloc
         var m = _regex.Match(path.ToString());
         if (!m.Success)
         {
             return false;
         }
 
-        // Use pre-computed named groups array
         foreach (var name in _namedGroups)
         {
             var g = m.Groups[name];

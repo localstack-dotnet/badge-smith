@@ -8,10 +8,8 @@ public class CorsOptionsTests
     [Fact]
     public void CorsOptions_Default_Should_HaveCorrectValues()
     {
-        // Arrange & Act
         var options = CorsOptions.Default;
 
-        // Assert
         Assert.False(options.AllowCredentials);
         Assert.Equal(3600, options.MaxAgeSeconds);
         Assert.True(options.UseWildcardWhenNoCredentials);
@@ -24,7 +22,6 @@ public class CorsOptionsTests
     [Fact]
     public void CorsOptions_Should_SupportCustomConfiguration()
     {
-        // Arrange & Act
         var customOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "https://app.example.com",
@@ -43,7 +40,6 @@ public class CorsOptionsTests
             ExposeHeaders = customHeaders,
         };
 
-        // Assert
         Assert.True(options.AllowCredentials);
         Assert.Equal(7200, options.MaxAgeSeconds);
         Assert.False(options.UseWildcardWhenNoCredentials);

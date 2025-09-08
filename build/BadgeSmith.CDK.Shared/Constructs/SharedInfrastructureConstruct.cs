@@ -19,40 +19,21 @@ public class SharedInfrastructureConstruct : Construct
         LambdaExecutionRoleConstruct = new LambdaExecutionRoleConstruct(this, LambdaExecutionRoleConstructId);
         DynamoDbTablesConstruct = new DynamoDbTablesConstruct(this, LambdaExecutionRoleConstruct.Role, DynamoDbTablesConstructId);
 
-        // Expose the resources through properties for easy access
         TestResultsTable = DynamoDbTablesConstruct.TestResultsTable;
         NonceTable = DynamoDbTablesConstruct.NonceTable;
         OrgSecretsTable = DynamoDbTablesConstruct.OrgSecretsTable;
         LambdaExecutionRole = LambdaExecutionRoleConstruct.Role;
     }
 
-    /// <summary>
-    /// Lambda execution role construct that provides IAM permissions for the BadgeSmith function.
-    /// </summary>
     public LambdaExecutionRoleConstruct LambdaExecutionRoleConstruct { get; }
 
-    /// <summary>
-    /// DynamoDB tables construct containing test results and nonce tables with proper IAM permissions.
-    /// </summary>
     public DynamoDbTablesConstruct DynamoDbTablesConstruct { get; }
 
-    /// <summary>
-    /// DynamoDB table for storing test results with TTL and GSI for latest lookup
-    /// </summary>
     public Table TestResultsTable { get; }
 
-    /// <summary>
-    /// DynamoDB table for HMAC nonce storage to prevent replay attacks
-    /// </summary>
     public Table NonceTable { get; }
 
-    /// <summary>
-    /// DynamoDB table mapping GitHub org to Secrets Manager secret name
-    /// </summary>
     public Table OrgSecretsTable { get; }
 
-    /// <summary>
-    /// IAM role used by the Lambda function with least-privilege permissions for DynamoDB and Secrets Manager access.
-    /// </summary>
     public Role LambdaExecutionRole { get; }
 }

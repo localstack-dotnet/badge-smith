@@ -37,7 +37,7 @@ public class DynamoDbTablesConstruct : Construct
             },
             BillingMode = BillingMode.PAY_PER_REQUEST,
             TimeToLiveAttribute = "TTL",
-            RemovalPolicy = RemovalPolicy.DESTROY, // For development/testing
+            RemovalPolicy = RemovalPolicy.DESTROY,
         });
 
         // GSI for latest results lookup
@@ -86,7 +86,7 @@ public class DynamoDbTablesConstruct : Construct
             },
             SortKey = new Attribute
             {
-                Name = "SK", // CONST#GITHUB
+                Name = "SK", // CONST#GITHUB#{secret_type}
                 Type = AttributeType.STRING,
             },
             BillingMode = BillingMode.PAY_PER_REQUEST,
@@ -117,18 +117,9 @@ public class DynamoDbTablesConstruct : Construct
         });
     }
 
-    /// <summary>
-    /// DynamoDB table for storing test results with TTL and GSI for latest lookup
-    /// </summary>
     public Table TestResultsTable { get; }
 
-    /// <summary>
-    /// DynamoDB table for HMAC nonce storage to prevent replay attacks
-    /// </summary>
     public Table NonceTable { get; }
 
-    /// <summary>
-    /// DynamoDB table mapping GitHub org to Secrets Manager secret name
-    /// </summary>
     public Table OrgSecretsTable { get; }
 }

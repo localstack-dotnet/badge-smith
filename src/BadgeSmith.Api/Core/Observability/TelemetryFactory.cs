@@ -16,12 +16,6 @@ namespace BadgeSmith.Api.Core.Observability;
 /// </summary>
 internal static class TelemetryFactory
 {
-    /// <summary>
-    /// Creates a TracerProvider with BadgeSmith-specific instrumentation configured.
-    /// </summary>
-    /// <param name="serviceName">The service name for resource identification</param>
-    /// <param name="serviceVersion">Optional service version</param>
-    /// <returns>Configured TracerProvider instance</returns>
     public static TracerProvider CreateTracerProvider(string serviceName, string? serviceVersion = null)
     {
         return Sdk.CreateTracerProviderBuilder()
@@ -63,7 +57,6 @@ internal static class TelemetryFactory
                 return true;
             }
 
-            // 1) Compare to env-provided host:port (preferred)
             if (!string.IsNullOrWhiteSpace(runtimeHost) &&
                 requestRequestUri.Host.Equals(runtimeHost, StringComparison.OrdinalIgnoreCase) &&
                 (!runtimePort.HasValue || requestRequestUri.Port == runtimePort.Value))
@@ -71,7 +64,6 @@ internal static class TelemetryFactory
                 return false;
             }
 
-            // 2) Fallback: any Lambda Runtime API path (covers if host compare failed)
             return !requestRequestUri.AbsolutePath.StartsWith("/2018-06-01/runtime/", StringComparison.OrdinalIgnoreCase);
         };
     }

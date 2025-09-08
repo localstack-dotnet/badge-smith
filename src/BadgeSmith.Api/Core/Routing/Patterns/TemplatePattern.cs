@@ -9,10 +9,8 @@ internal sealed class TemplatePattern : IRoutePattern
 
     public TemplatePattern(string template)
     {
-        // parse once at startup: split by '/', mark {param} vs literal
-        // keep it simple; enforce fixed segment counts for speed
         var raw = template.AsSpan().TrimStart('/');
-        var parts = raw.ToString().Split('/'); // one-time startup cost
+        var parts = raw.ToString().Split('/');
         _keys = new string[parts.Length];
         _literals = new string[parts.Length];
         for (var i = 0; i < parts.Length; i++)
@@ -21,7 +19,7 @@ internal sealed class TemplatePattern : IRoutePattern
             if (part.Length >= 2 && part[0] == '{' && part[^1] == '}')
             {
                 _keys[i] = part[1..^1];
-                _literals[i] = string.Empty; // Mark as parameter segment
+                _literals[i] = string.Empty;
             }
             else
             {
@@ -32,7 +30,7 @@ internal sealed class TemplatePattern : IRoutePattern
 
     public bool TryMatch(ReadOnlySpan<char> path, ref RouteValues values)
     {
-        var currentOffset = 0; // Track our position in the original path
+        var currentOffset = 0;
 
         if (!path.IsEmpty && path[0] == '/')
         {
@@ -63,7 +61,7 @@ internal sealed class TemplatePattern : IRoutePattern
 
             if (slash < 0)
             {
-                // must be last segment
+                // must be the last segment
                 return segIdx == _literals.Length - 1;
             }
 

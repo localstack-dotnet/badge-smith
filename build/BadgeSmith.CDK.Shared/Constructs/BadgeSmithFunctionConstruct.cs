@@ -58,9 +58,5 @@ public class BadgeSmithFunctionConstruct : Construct
         });
     }
 
-    /// <summary>
-    /// BadgeSmith Lambda function with Native AOT runtime for high-performance badge generation.
-    /// Deployed with ARM64 architecture and configured with environment variables for DynamoDB access.
-    /// </summary>
     public Function BadgeSmithFunction { get; }
 }

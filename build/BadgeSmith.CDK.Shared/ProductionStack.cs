@@ -199,44 +199,19 @@ public sealed class ProductionStack : Stack
         });
     }
 
-    /// <summary>
-    /// Reference to the shared infrastructure containing DynamoDB tables, IAM roles, etc.
-    /// </summary>
     public SharedInfrastructureConstruct SharedInfrastructureConstruct { get; }
 
-    /// <summary>
-    /// BadgeSmith Lambda function construct with Native AOT runtime and environment configuration.
-    /// </summary>
     public BadgeSmithFunctionConstruct BadgeSmithFunctionConstruct { get; }
 
-    /// <summary>
-    /// BadgeSmith Lambda function with Native AOT runtime
-    /// </summary>
     public Function BadgeSmithFunction { get; }
 
-    /// <summary>
-    /// DynamoDB table for storing test results with TTL and GSI for latest lookup
-    /// </summary>
     public Table TestResultsTable { get; }
 
-    /// <summary>
-    /// DynamoDB table for HMAC nonce storage to prevent replay attacks
-    /// </summary>
     public Table NonceTable { get; }
 
-    /// <summary>
-    /// DynamoDB table mapping GitHub org to Secrets Manager secret name
-    /// </summary>
     public Table OrgSecretsTable { get; }
 
-    /// <summary>
-    /// API Gateway HTTP API v2 for Lambda integration
-    /// </summary>
     public HttpApi ApiGateway { get; }
 
-    /// <summary>
-    /// CloudFront CDN distribution for global edge caching with origin-controlled cache policies.
-    /// Provides worldwide performance optimization and includes security headers for origin authentication.
-    /// </summary>
     public Distribution CloudFrontDistribution { get; }
 }

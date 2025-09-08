@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace BadgeSmith.Api.Core.Security;
 
 /// <summary>
-/// DynamoDB-based nonce service for preventing replay attacks.
-/// Uses atomic conditional writes to ensure each nonce can only be used once.
+/// Service for managing nonce-based replay attack prevention using DynamoDB.
+/// Stores used nonces with TTL to prevent the same request from being processed twice.
 /// </summary>
 internal sealed class NonceService : INonceService
 {

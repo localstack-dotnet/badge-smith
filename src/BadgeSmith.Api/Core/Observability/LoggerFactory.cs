@@ -15,29 +15,16 @@ internal static class LoggerFactory
 {
     private static readonly Lazy<ILoggerFactory> Factory = new(CreateFactory());
 
-    /// <summary>
-    /// Creates a typed logger instance for the specified type.
-    /// </summary>
-    /// <typeparam name="T">The type to create a logger for</typeparam>
-    /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
     public static ILogger<T> CreateLogger<T>()
     {
         return Factory.Value.CreateLogger<T>();
     }
 
-    /// <summary>
-    /// Creates a logger instance for the specified category name.
-    /// </summary>
-    /// <param name="categoryName">The category name for the logger</param>
-    /// <returns>A logger instance with OpenTelemetry integration when telemetry is enabled</returns>
     public static ILogger CreateLogger(string categoryName)
     {
         return Factory.Value.CreateLogger(categoryName);
     }
 
-    /// <summary>
-    /// Creates the internal logger factory with appropriate providers based on compilation settings.
-    /// </summary>
     private static ILoggerFactory CreateFactory()
     {
         var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>

@@ -4,9 +4,6 @@ using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.Patterns;
 
-/// <summary>
-/// Tests for ExactPattern route matching.
-/// </summary>
 public sealed class ExactPatternTests
 {
     [Theory]
@@ -16,19 +13,17 @@ public sealed class ExactPatternTests
     [InlineData("/api/v1/endpoint")]
     public void Constructor_Should_StoreLiteralCorrectly(string literal)
     {
-        // Arrange & Act
         var pattern = new ExactPattern(literal);
 
-        // Assert
         Assert.Equal(literal, pattern.Literal);
     }
 
     [Theory]
     [InlineData("/health", "/health", true)]
-    [InlineData("/health", "/Health", true)]  // Case insensitive
-    [InlineData("/health", "/HEALTH", true)]  // Case insensitive
+    [InlineData("/health", "/Health", true)] // Case insensitive
+    [InlineData("/health", "/HEALTH", true)] // Case insensitive
     [InlineData("/tests/results", "/tests/results", true)]
-    [InlineData("/tests/results", "/Tests/Results", true)]  // Case insensitive
+    [InlineData("/tests/results", "/Tests/Results", true)] // Case insensitive
     [InlineData("/health", "/healthz", false)]
     [InlineData("/health", "/health/check", false)]
     [InlineData("/health", "/api/health", false)]
@@ -37,79 +32,64 @@ public sealed class ExactPatternTests
     [InlineData("/tests/results", "/results", false)]
     public void TryMatch_Should_HandleCaseInsensitiveMatching(string literal, string path, bool expectedMatch)
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern(literal);
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var result = pattern.TryMatch(path.AsSpan(), ref values);
 
-        // Assert
         Assert.Equal(expectedMatch, result);
     }
 
     [Fact]
     public void TryMatch_Should_ReturnTrueForExactHealthMatch()
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern("/health");
         const string path = "/health";
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var result = pattern.TryMatch(path.AsSpan(), ref values);
 
-        // Assert
         Assert.True(result);
     }
 
     [Fact]
     public void TryMatch_Should_ReturnTrueForTestResultsMatch()
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern("/tests/results");
         const string path = "/tests/results";
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var result = pattern.TryMatch(path.AsSpan(), ref values);
 
-        // Assert
         Assert.True(result);
     }
 
     [Theory]
     [InlineData("/health", "/healthcheck")]
     [InlineData("/health", "/health/")]
-    [InlineData("/health", "health")]  // Missing leading slash
+    [InlineData("/health", "health")] // Missing leading slash
     [InlineData("/tests/results", "/tests/results/")]
     [InlineData("/tests/results", "/tests/result")]
     [InlineData("/tests/results", "/test/results")]
     public void TryMatch_Should_ReturnFalseForNonExactMatches(string literal, string path)
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern(literal);
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var result = pattern.TryMatch(path.AsSpan(), ref values);
 
-        // Assert
         Assert.False(result);
     }
 
     [Fact]
     public void TryMatch_Should_NotModifyRouteValues()
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern("/health");
         const string path = "/health";
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var result = pattern.TryMatch(path.AsSpan(), ref values);
 
-        // Assert
         Assert.True(result);
 
         // ExactPattern should not set any parameters
@@ -124,14 +104,11 @@ public sealed class ExactPatternTests
     [InlineData("/badges/clear-cache")]
     public void TryMatch_Should_WorkWithVariousExactPaths(string exactPath)
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern(exactPath);
         var values = RouteTestBuilder.CreateRouteValues(exactPath);
 
-        // Act
         var result = pattern.TryMatch(exactPath.AsSpan(), ref values);
 
-        // Assert
         Assert.True(result);
     }
 
@@ -141,25 +118,22 @@ public sealed class ExactPatternTests
     [InlineData("/health.check")]
     [InlineData("/health/check")]
     [InlineData("/api/health")]
-    [InlineData("health")]     // Missing leading slash (from formatting test)
-    [InlineData("/health/")]   // Extra trailing slash (from formatting test)
-    [InlineData(" /health")]   // Leading space (from formatting test)
-    [InlineData("/health ")]   // Trailing space (from formatting test)
-    [InlineData("/tests//results")]  // Double slash (from formatting test)
-    [InlineData("")]          // Empty string
-    [InlineData(" ")]         // Space
-    [InlineData("\t")]        // Tab
-    [InlineData("\n")]        // Newline
+    [InlineData("health")] // Missing leading slash (from formatting test)
+    [InlineData("/health/")] // Extra trailing slash (from formatting test)
+    [InlineData(" /health")] // Leading space (from formatting test)
+    [InlineData("/health ")] // Trailing space (from formatting test)
+    [InlineData("/tests//results")] // Double slash (from formatting test)
+    [InlineData("")] // Empty string
+    [InlineData(" ")] // Space
+    [InlineData("\t")] // Tab
+    [InlineData("\n")] // Newline
     public void TryMatch_Should_NotMatchSimilarOrMalformedPaths(string path)
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern("/health");
         var values = RouteTestBuilder.CreateRouteValues(path);
 
-        // Act
         var result = pattern.TryMatch(path.AsSpan(), ref values);
 
-        // Assert
         Assert.False(result);
     }
 
@@ -167,14 +141,11 @@ public sealed class ExactPatternTests
     [MemberData(nameof(GetRealWorldExactPatterns))]
     public void TryMatch_Should_HandleRealWorldExactPatterns(string literal, string testPath, bool shouldMatch)
     {
-        // Arrange
         var pattern = RouteTestBuilder.CreateExactPattern(literal);
         var values = RouteTestBuilder.CreateRouteValues(testPath);
 
-        // Act
         var result = pattern.TryMatch(testPath.AsSpan(), ref values);
 
-        // Assert
         Assert.Equal(shouldMatch, result);
     }
 

@@ -5,21 +5,15 @@ using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing;
 
-/// <summary>
-/// Tests for RouteResolver which handles route matching and method resolution.
-/// </summary>
 public sealed class RouteResolverTests
 {
     [Fact]
     public void Constructor_Should_StoreRoutesCorrectly()
     {
-        // Arrange
         var routes = CreateTestRoutes();
 
-        // Act
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Assert
         Assert.NotNull(resolver);
     }
 
@@ -35,14 +29,11 @@ public sealed class RouteResolverTests
     [InlineData("GET", "/redirect/test-results/linux/localstack-dotnet/dotnet-aspire-for-localstack/main", true, "BadgeRedirect")]
     public void TryResolve_Should_MatchValidRoutes(string method, string path, bool expectedMatch, string expectedRouteName)
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve(method, path, out var match);
 
-        // Assert
         Assert.Equal(expectedMatch, result);
 
         if (expectedMatch)
@@ -67,14 +58,11 @@ public sealed class RouteResolverTests
     [InlineData("GET", "")] // Empty path
     public void TryResolve_Should_ReturnFalseForInvalidRoutes(string method, string path)
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve(method, path, out _);
 
-        // Assert
         Assert.False(result);
         // For ref struct, when no match is found, we just verify the result is false
     }
@@ -82,14 +70,11 @@ public sealed class RouteResolverTests
     [Fact]
     public void TryResolve_Should_ExtractParametersForNuGetPackage()
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve("GET", "/badges/packages/nuget/Newtonsoft.Json", out var match);
 
-        // Assert
         Assert.True(result);
         Assert.Equal("NugetPackageBadge", match.Descriptor.Name);
 
@@ -102,14 +87,11 @@ public sealed class RouteResolverTests
     [Fact]
     public void TryResolve_Should_ExtractParametersForGitHubPackage()
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve("GET", "/badges/packages/github/localstack-dotnet/localstack.client", out var match);
 
-        // Assert
         Assert.True(result);
         Assert.Equal("GithubPackagesBadge", match.Descriptor.Name);
 
@@ -123,14 +105,11 @@ public sealed class RouteResolverTests
     [Fact]
     public void TryResolve_Should_ExtractParametersForTestBadge()
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve("GET", "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main", out var match);
 
-        // Assert
         Assert.True(result);
         Assert.Equal("TestsBadge", match.Descriptor.Name);
 
@@ -145,14 +124,11 @@ public sealed class RouteResolverTests
     [Fact]
     public void TryResolve_Should_HandleUrlEncodedBranches()
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve("GET", "/badges/tests/linux/localstack-dotnet/localstack.client/feature%2Fawesome-badge", out var match);
 
-        // Assert
         Assert.True(result);
         Assert.Equal("TestsBadge", match.Descriptor.Name);
 
@@ -172,14 +148,11 @@ public sealed class RouteResolverTests
     [InlineData("OPTIONS", "OPTIONS")]
     public void TryResolve_Should_NormalizeHeadToGet(string inputMethod, string expectedNormalizedMethod)
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve(inputMethod, "/health", out var match);
 
-        // Assert
         if (expectedNormalizedMethod == "GET")
         {
             // HEAD and GET should match routes that accept GET
@@ -203,7 +176,6 @@ public sealed class RouteResolverTests
     [Fact]
     public void TryResolve_Should_PrioritizeExactPatternsOverTemplates()
     {
-        // Arrange - Create routes with both exact and template patterns that could conflict
         var routes = new[]
         {
             RouteTestBuilder.CreateRouteDescriptor("SpecificHealth", "GET", RouteTestBuilder.CreateExactPattern("/health/specific")),
@@ -211,10 +183,8 @@ public sealed class RouteResolverTests
         };
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve("GET", "/health/specific", out var match);
 
-        // Assert
         Assert.True(result);
         Assert.Equal("SpecificHealth", match.Descriptor.Name); // Exact pattern should win
     }
@@ -227,14 +197,11 @@ public sealed class RouteResolverTests
     [InlineData("/nonexistent/path", new[] { "OPTIONS" })] // Non-matching paths still get OPTIONS
     public void GetAllowedMethods_Should_ReturnCorrectMethods(string path, string[] expectedMethods)
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var allowedMethods = resolver.GetAllowedMethods(path);
 
-        // Assert
         Assert.Equal(expectedMethods.Length, allowedMethods.Count);
         foreach (var expectedMethod in expectedMethods)
         {
@@ -245,14 +212,11 @@ public sealed class RouteResolverTests
     [Fact]
     public void GetAllowedMethods_Should_AddHeadForGetRoutes()
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var allowedMethods = resolver.GetAllowedMethods("/health");
 
-        // Assert
         Assert.Contains("GET", allowedMethods);
         Assert.Contains("HEAD", allowedMethods);
         Assert.Contains("OPTIONS", allowedMethods);
@@ -261,21 +225,17 @@ public sealed class RouteResolverTests
     [Fact]
     public void GetAllowedMethods_Should_AlwaysIncludeOptions()
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var allowedMethods = resolver.GetAllowedMethods("/some/random/path");
 
-        // Assert
         Assert.Contains("OPTIONS", allowedMethods);
     }
 
     [Fact]
     public void GetAllowedMethods_Should_NotDuplicateHeadIfAlreadyPresent()
     {
-        // Arrange - Create a route that explicitly supports HEAD
         var routes = new[]
         {
             RouteTestBuilder.CreateRouteDescriptor("GetHealth", "GET", RouteTestBuilder.CreateExactPattern("/health")),
@@ -283,10 +243,8 @@ public sealed class RouteResolverTests
         };
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var allowedMethods = resolver.GetAllowedMethods("/health");
 
-        // Assert
         var headCount = allowedMethods.Count(m => m.Equals("HEAD", StringComparison.OrdinalIgnoreCase));
         Assert.Equal(1, headCount);
     }
@@ -298,7 +256,6 @@ public sealed class RouteResolverTests
     [InlineData("PATCH", "/api/data/123")]
     public void GetAllowedMethods_Should_NotIncludeHeadForNonGetMethods(string method, string path)
     {
-        // Arrange - Create routes with non-GET methods
         var routes = new[]
         {
             RouteTestBuilder.CreateRouteDescriptor("PostData", "POST", RouteTestBuilder.CreateExactPattern("/api/data")),
@@ -308,10 +265,8 @@ public sealed class RouteResolverTests
         };
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var allowedMethods = resolver.GetAllowedMethods(path);
 
-        // Assert
         Assert.DoesNotContain("HEAD", allowedMethods, StringComparer.OrdinalIgnoreCase);
         Assert.Contains("OPTIONS", allowedMethods, StringComparer.OrdinalIgnoreCase); // Should still have OPTIONS
         Assert.Contains(method, allowedMethods, StringComparer.OrdinalIgnoreCase); // Should have the actual method
@@ -320,7 +275,6 @@ public sealed class RouteResolverTests
     [Fact]
     public void GetAllowedMethods_Should_OnlyAddHeadForGetRoutes()
     {
-        // Arrange - Mixed route methods for the same path pattern
         var routes = new[]
         {
             RouteTestBuilder.CreateRouteDescriptor("GetUser", "GET", RouteTestBuilder.CreateTemplatePattern("/users/{id}")),
@@ -329,14 +283,12 @@ public sealed class RouteResolverTests
         };
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act & Assert for GET route (should include HEAD)
         var getRouteAllowedMethods = resolver.GetAllowedMethods("/users/123");
         Assert.Contains("GET", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
         Assert.Contains("HEAD", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
         Assert.Contains("PUT", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
         Assert.Contains("OPTIONS", getRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
 
-        // Act & Assert for POST route (should NOT include HEAD for POST specifically)
         var postRouteAllowedMethods = resolver.GetAllowedMethods("/users");
         Assert.Contains("POST", postRouteAllowedMethods, StringComparer.OrdinalIgnoreCase);
         Assert.DoesNotContain("HEAD", postRouteAllowedMethods, StringComparer.OrdinalIgnoreCase); // No GET route matches this path
@@ -348,14 +300,11 @@ public sealed class RouteResolverTests
     public void TryResolve_Should_HandleRealWorldScenarios(string method, string path, bool expectedMatch, string? expectedRouteName,
         IDictionary<string, string>? expectedParameters)
     {
-        // Arrange
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
 
-        // Act
         var result = resolver.TryResolve(method, path, out var match);
 
-        // Assert
         Assert.Equal(expectedMatch, result);
 
         if (expectedMatch)

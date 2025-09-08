@@ -180,7 +180,7 @@ internal sealed class CorsHandler : ICorsHandler
             return _options.OriginAllowed(origin);
         }
 
-        return true; // default public API (no restrictions configured)
+        return true;
     }
 
     private static void AppendVary(IDictionary<string, string> headers, string token)

@@ -52,7 +52,6 @@ internal sealed class ResilienceRetryHandler : DelegatingHandler
 
     private TimeSpan ComputeBackoff(int attempt)
     {
-        // exponential backoff with jitter
         var pow = Math.Pow(2, attempt);
         var jitter = (GetSecureRandomDouble() * 0.5) + 0.5; // 0.5x-1.0x
         var ms = _baseDelay.TotalMilliseconds * pow * jitter;

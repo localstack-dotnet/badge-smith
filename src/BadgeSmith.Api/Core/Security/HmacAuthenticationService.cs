@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 namespace BadgeSmith.Api.Core.Security;
 
 /// <summary>
-/// HMAC-SHA256 authentication service with replay protection.
-/// Validates request signatures using repository-specific secrets and prevent replay attacks via nonces.
+/// Service for validating HMAC-SHA256 signatures with replay protection.
+/// Used to authenticate test result ingestion requests from CI/CD systems.
 /// </summary>
 internal sealed class HmacAuthenticationService : IHmacAuthenticationService
 {
