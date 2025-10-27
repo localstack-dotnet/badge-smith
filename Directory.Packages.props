@@ -14,8 +14,8 @@
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848"/>
     <PackageVersion Include="xunit.analyzers" Version="1.23.0"/>
     <!-- aspire packages -->
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1"/>
-    <PackageVersion Include="LocalStack.Aspire.Hosting" Version="9.4.0-rc.1"/>
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.5.2"/>
+    <PackageVersion Include="LocalStack.Aspire.Hosting" Version="9.5.2"/>
     <!-- aws packages -->
     <PackageVersion Include="AWSSDK.Core" Version="4.0.0.26"/>
     <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.6.1"/>
