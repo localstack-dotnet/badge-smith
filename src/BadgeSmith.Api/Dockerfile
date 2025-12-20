@@ -3,7 +3,7 @@
 ###############################
 # Stage 0: Build (Native AOT)
 ###############################
-ARG DOTNET_VERSION=9.0
+ARG DOTNET_VERSION=10.0
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 
 # Build args (override at build time if needed)

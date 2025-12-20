@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -72,6 +73,7 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         return new AuthenticatedRequest(repoIdentifier, requestTimestamp);
     }
 
+    [SuppressMessage("Usage", "MA0015:Specify the parameter name in ArgumentException")]
     private static void ValidateHmacAuthContext(HmacAuthContext routeContext)
     {
         ArgumentNullException.ThrowIfNull(routeContext);

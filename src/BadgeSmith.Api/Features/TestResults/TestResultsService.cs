@@ -31,7 +31,9 @@ internal sealed class TestResultsService : ITestResultsService
         using var activity = BadgeSmithApiActivitySource.ActivitySource.StartActivity($"{nameof(TestResultsService)}.{nameof(StoreTestResultAsync)}");
 
         ArgumentNullException.ThrowIfNull(testResultRequest);
+#pragma warning disable MA0015
         ArgumentNullException.ThrowIfNull(testResultRequest.Payload);
+#pragma warning restore MA0015
 
         var payload = testResultRequest.Payload;
 

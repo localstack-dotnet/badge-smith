@@ -18,7 +18,7 @@ Client → CloudFront → API Gateway → Lambda → DynamoDB
 
 - **CloudFront**: Global edge caching with configurable TTL
 - **API Gateway HTTP v2**: Request routing and CORS handling
-- **Lambda Function**: .NET 9 Native AOT runtime
+- **Lambda Function**: .NET 10 Native AOT runtime
 - **DynamoDB**: NoSQL storage with optimized access patterns
 - **Secrets Manager**: Secure credential storage
 

@@ -1,14 +1,14 @@
 # BadgeSmith
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![.NET](https://img.shields.io/badge/.NET-9.0-purple.svg)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
 [![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange.svg)](https://aws.amazon.com/lambda/)
 [![Native AOT](https://img.shields.io/badge/Native-AOT-blue.svg)](https://docs.microsoft.com/en-us/dotnet/core/deploying/native-aot/)
 [![Test Results (Linux)](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.localstackfor.net%2Fbadges%2Ftests%2Flinux%2Flocalstack-dotnet%2Fbadge-smith%2Fmaster)](https://api.localstackfor.net/redirect/test-results/linux/localstack-dotnet/badge-smith/master)
 
 > **Badge service** for .NET packages and CI/CD test results with secure authentication and performance optimizations.
 
-**BadgeSmith** is a general-purpose, high-performance badge service that provides [Shields.io](https://shields.io)-compatible endpoints for **NuGet packages**, **GitHub packages**, and **CI/CD test results**. Built with .NET 9 Native AOT for sub-100ms cold starts and designed for extensibility.
+**BadgeSmith** is a general-purpose, high-performance badge service that provides [Shields.io](https://shields.io)-compatible endpoints for **NuGet packages**, **GitHub packages**, and **CI/CD test results**. Built with .NET 10 Native AOT for sub-100ms cold starts and designed for extensibility.
 
 **Successor to [localstack-nuget-badge-lambda](https://github.com/localstack-dotnet/localstack-nuget-badge-lambda)** with 5-10x performance improvements and security features.
 
@@ -101,7 +101,7 @@ Client → CloudFront → API Gateway → Lambda → DynamoDB/Secrets Manager
 
 **Key Technologies:**
 
-- **.NET 9 Native AOT** - Sub-100ms cold starts
+- **.NET 10 Native AOT** - Sub-100ms cold starts
 - **AWS Lambda** - Serverless compute
 - **DynamoDB** - NoSQL storage with GSI optimization
 - **Custom routing** - High-performance request handling
