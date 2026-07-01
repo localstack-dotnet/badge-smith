@@ -431,3 +431,15 @@ cdk.out
 
 # Local development configuration files
 **/organization-pat-mapping.json
+
+.mcp.active
+.mcp.claude.json
+.mcp.copilot-cli.json
+.mcp.json
+opencode.jsonc
+
+.opencode/agents/
+.opencode/skills/subagent-model-routing/
+
+# Editor / local harness config (machine-specific; may contain local MCP ports and personal settings)
+.vscode/
