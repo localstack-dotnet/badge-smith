@@ -65,18 +65,25 @@ Tier meanings:
 - **Out of scope** — do not use unless this repo adds that technology or Deniz
   explicitly asks.
 
-OpenCode exposes skill *frontmatter* names, which differ from Claude/Copilot plugin
-IDs and depend on the local install. Resolve the exact OpenCode name from the running
-harness's `skill` list; the names below reflect the established local convention
-(Microsoft skills carry `ms-dotnet-*` prefixes to avoid colliding with Aaron's
-`dotnet-skills` set). Specialist agents are not skills in OpenCode; dispatch them with
-`task` only when the harness exposes the matching `subagent_type`.
+Claude Code uses plugin-qualified names. Copilot CLI exposes the installed skill IDs
+directly through the running harness's `skill` list. OpenCode exposes skill
+*frontmatter* names, which depend on the local install; the names below reflect the
+established local convention (Microsoft skills carry `ms-dotnet-*` prefixes to avoid
+colliding with Aaron's `dotnet-skills` set). Specialist agents are not skills; dispatch
+them with `task` only when the harness exposes the matching `subagent_type`.
+
+When importing Microsoft-derived agent markdown into OpenCode, normalize the frontmatter
+to OpenCode's agent schema before restart. Claude/Copilot fields such as `tools`,
+`agents`, `handoffs`, `license`, `user-invocable`, `user-invokable`, and
+`disable-model-invocation` are not valid OpenCode agent metadata and can break startup.
+Restart OpenCode after changing global or project skill/agent files; running sessions keep
+the previously loaded registry.
 
 ### Tier 0 — Process discipline
 
-| Capability | Claude Code / Copilot CLI | OpenCode |
-| --- | --- | --- |
-| Brainstorming, planning, debugging, TDD, review, verification, plan execution | Harness-injected process skills, when installed (e.g. `superpowers:<name>`) | `<name>` via `skill`, when installed |
+| Capability | Claude Code | Copilot CLI | OpenCode |
+| --- | --- | --- | --- |
+| Brainstorming, planning, debugging, TDD, review, verification, plan execution | Harness-injected process skills, when installed (e.g. `superpowers:<name>`) | `<name>` via `skill`, when installed | `<name>` via `skill`, when installed |
 
 Follow a process skill immediately when the harness injects it; use this guide to map
 additional capabilities after the active process workflow tells you what to invoke. Not
@@ -85,90 +92,124 @@ manually.
 
 ### Tier 1 — .NET domain and Aspire-local (required when triggered)
 
-| Capability | Claude Code / Copilot CLI | OpenCode |
-| --- | --- | --- |
-| System.Text.Json AOT source-generation / serialization contracts | `dotnet-skills:serialization` | `serialization` |
-| Modern C# coding standards | `dotnet-skills:csharp-coding-standards` | `modern-csharp-coding-standards` |
-| Type design and performance (seal, readonly struct, static pure) | `dotnet-skills:csharp-type-design-performance` | `type-design-performance` |
-| Concurrency / async patterns | `dotnet-skills:csharp-concurrency-patterns` | `csharp-concurrency-patterns` |
-| Project / MSBuild structure | `dotnet-skills:project-structure` | `dotnet-project-structure` |
-| NuGet package management (CPM) | `dotnet-skills:package-management` | `package-management` |
-| OpenTelemetry instrumentation | `dotnet-skills:opentelementry-dotnet-instrumentation` | resolve via `skill` |
-| Slopwatch quality gate | `dotnet-skills:slopwatch` | `dotnet-slopwatch` |
-| Aspire explicit configuration (Host AppHost) | `dotnet-skills:aspire-configuration` | `aspire-configuration` |
+| Capability | Claude Code | Copilot CLI | OpenCode |
+| --- | --- | --- | --- |
+| System.Text.Json AOT source-generation / serialization contracts | `dotnet-skills:serialization` | `serialization` | `serialization` |
+| Modern C# coding standards | `dotnet-skills:csharp-coding-standards` | `modern-csharp-coding-standards` | `modern-csharp-coding-standards` |
+| Type design and performance (seal, readonly struct, static pure) | `dotnet-skills:csharp-type-design-performance` | `type-design-performance` | `type-design-performance` |
+| Concurrency / async patterns | `dotnet-skills:csharp-concurrency-patterns` | `csharp-concurrency-patterns` | `csharp-concurrency-patterns` |
+| Project / MSBuild structure | `dotnet-skills:project-structure` | `dotnet-project-structure` | `dotnet-project-structure` |
+| NuGet package management (CPM) | `dotnet-skills:package-management` | `package-management` | `package-management` |
+| OpenTelemetry instrumentation | `dotnet-skills:opentelementry-dotnet-instrumentation` | `OpenTelemetry-NET-Instrumentation` | `OpenTelemetry-NET-Instrumentation` |
+| Slopwatch quality gate | `dotnet-skills:slopwatch` | `dotnet-slopwatch` | `dotnet-slopwatch` |
+| Aspire explicit configuration (Host AppHost) | `dotnet-skills:aspire-configuration` | `aspire-configuration` | `aspire-configuration` |
 
 ### Tier 2 — Test (xUnit v3; use by judgment)
 
-| Capability | Claude Code / Copilot CLI | OpenCode |
-| --- | --- | --- |
-| Running / filtering tests | `dotnet-test:run-tests` | `ms-dotnet-test-run-tests` |
-| Test anti-pattern audit | `dotnet-test:test-anti-patterns` | `ms-dotnet-test-test-anti-patterns` |
-| Test gap (mutation-style) analysis | `dotnet-test:test-gap-analysis` | `ms-dotnet-test-test-gap-analysis` |
-| Assertion quality analysis | `dotnet-test:assertion-quality` | `ms-dotnet-test-assertion-quality` |
-| Test generation | `dotnet-test:code-testing-agent` | `ms-dotnet-test-code-testing-agent` |
-| Find untested sources | `dotnet-test:find-untested-sources` | `ms-dotnet-test-find-untested-sources` |
-| Grade a curated set of tests | `dotnet-test:grade-tests` | `ms-dotnet-test-grade-tests` |
-| Coverage + CRAP analysis | `dotnet-test:coverage-analysis`, `dotnet-test:crap-score` | `ms-dotnet-test-coverage-analysis`, `ms-dotnet-test-crap-score` |
-| Broad test-suite audit (agent) | `dotnet-test:test-quality-auditor` agent | `task` when exposed |
-| Aspire integration testing | `dotnet-skills:aspire-integration-testing` | `aspire-integration-testing` |
-| Snapshot testing (Verify) for badge JSON/HTTP output | `dotnet-skills:snapshot-testing` | `snapshot-testing` |
+| Capability | Claude Code | Copilot CLI | OpenCode |
+| --- | --- | --- | --- |
+| Running / filtering tests | `dotnet-test:run-tests` | `run-tests` | `ms-dotnet-test-run-tests` |
+| Test anti-pattern audit | `dotnet-test:test-anti-patterns` | `test-anti-patterns` | `ms-dotnet-test-test-anti-patterns` |
+| Mock usage audit (Moq/NSubstitute/FakeItEasy) | Not available (unpublished plugin) | Not available | `ms-dotnet-experimental-exp-mock-usage-analysis` |
+| Test maintainability / duplicate boilerplate audit | Not available (unpublished plugin) | Not available | `ms-dotnet-experimental-exp-test-maintainability` |
+| Test gap (mutation-style) analysis | `dotnet-test:test-gap-analysis` | `test-gap-analysis` | `ms-dotnet-test-test-gap-analysis` |
+| Assertion quality analysis | `dotnet-test:assertion-quality` | `assertion-quality` | `ms-dotnet-test-assertion-quality` |
+| Test generation | `dotnet-test:code-testing-agent` | `code-testing-agent`, then `dotnet-test:code-testing-generator` via `task` | `ms-dotnet-test-code-testing-agent`, then `code-testing-generator` via `task` |
+| Find untested sources | `dotnet-test:find-untested-sources` | `find-untested-sources` | `ms-dotnet-test-find-untested-sources` |
+| Grade a curated set of tests | `dotnet-test:grade-tests` | `grade-tests` | `ms-dotnet-test-grade-tests` |
+| Coverage + CRAP analysis | `dotnet-test:coverage-analysis`, `dotnet-test:crap-score` | `coverage-analysis`, `crap-score` | `ms-dotnet-test-coverage-analysis`, `ms-dotnet-test-crap-score` |
+| Broad test-suite audit (agent) | `dotnet-test:test-quality-auditor` agent | `dotnet-test:test-quality-auditor` via `task` | `test-quality-auditor` via `task` |
+| Aspire integration testing | `dotnet-skills:aspire-integration-testing` | `aspire-integration-testing` | `aspire-integration-testing` |
+| Snapshot testing (Verify) for badge JSON/HTTP output | `dotnet-skills:snapshot-testing` | `snapshot-testing` | `snapshot-testing` |
+| Container-backed integration tests (Docker) — alternative to Aspire + LocalStack, use only when the Aspire path doesn't fit | `dotnet-skills:testcontainers` | `testcontainers-integration-tests` | `testcontainers-integration-tests` |
+
+OpenCode notes: the experimental mock-usage and test-maintainability skills are installed
+locally and have no direct invocation dependency. Use reference-only helper skills such
+as `ms-dotnet-test-filter-syntax`, `ms-dotnet-test-platform-detection`,
+`ms-dotnet-test-frameworks`, `ms-dotnet-test-code-testing-extensions`, and
+`ms-dotnet-test-test-analysis-extensions` only when a parent test workflow asks for
+framework lookup data.
+
+Claude Code / Copilot CLI notes: `dotnet-experimental` exists in the marketplace repo but
+is unpublished from the Claude manifest and is not loaded in the verified Copilot CLI
+skill list, so the `exp-*` rows are unavailable through those harnesses.
 
 ### Tier 2 — Performance and diagnostics (BenchmarkDotNet present)
 
-| Capability | Claude Code / Copilot CLI | OpenCode |
-| --- | --- | --- |
-| Microbenchmarking (BenchmarkDotNet) | `dotnet-diag:microbenchmarking` | resolve via `skill` |
-| Performance anti-pattern analysis | `dotnet-diag:analyzing-dotnet-performance` | resolve via `skill` |
-| Performance optimization (agent) | `dotnet-diag:optimizing-dotnet-performance` agent | `task` when exposed |
-| Benchmark design (agent) | `dotnet-skills:dotnet-benchmark-designer` agent | `dotnet-benchmark-designer` via `task` |
-| Performance analysis of measured data (agent) | `dotnet-skills:dotnet-performance-analyst` agent | `dotnet-performance-analyst` via `task` |
-| Concurrency / race analysis (agent) | `dotnet-skills:dotnet-concurrency-specialist` agent | `dotnet-concurrency-specialist` via `task` |
-| Trace / dump collection | `dotnet-diag:dotnet-trace-collect`, `dotnet-diag:dump-collect` | resolve via `skill` |
-| Decompile assemblies (AWS SDK / framework AOT-trim insight) | `dotnet-skills:ilspy-decompile` | `ilspy-decompile` |
+| Capability | Claude Code | Copilot CLI | OpenCode |
+| --- | --- | --- | --- |
+| Microbenchmarking (BenchmarkDotNet) | `dotnet-diag:microbenchmarking` | `microbenchmarking` | `ms-dotnet-diag-microbenchmarking` |
+| Performance anti-pattern analysis | `dotnet-diag:analyzing-dotnet-performance` | `analyzing-dotnet-performance` | `ms-dotnet-diag-analyzing-dotnet-performance` |
+| SIMD/vectorization opportunity analysis | Not available (unpublished plugin) | Not available | `ms-dotnet-experimental-exp-simd-vectorization` |
+| Performance optimization (agent) | `dotnet-diag:optimizing-dotnet-performance` agent | `dotnet-diag:optimizing-dotnet-performance` via `task` | `optimizing-dotnet-performance` via `task` |
+| Benchmark design (agent) | `dotnet-skills:dotnet-benchmark-designer` agent | `dotnet-benchmark-designer` via `task` | `dotnet-benchmark-designer` via `task` |
+| Performance analysis of measured data (agent) | `dotnet-skills:dotnet-performance-analyst` agent | `dotnet-performance-analyst` via `task` | `dotnet-performance-analyst` via `task` |
+| Concurrency / race analysis (agent) | `dotnet-skills:dotnet-concurrency-specialist` agent | `dotnet-concurrency-specialist` via `task` | `dotnet-concurrency-specialist` via `task` |
+| Trace / dump collection | `dotnet-diag:dotnet-trace-collect`, `dotnet-diag:dump-collect` | `dotnet-trace-collect`, `dump-collect` | `ms-dotnet-diag-dotnet-trace-collect`, `ms-dotnet-diag-dump-collect` |
+| Decompile assemblies (AWS SDK / framework AOT-trim insight) | `dotnet-skills:ilspy-decompile` | `ilspy-decompile` | `ilspy-decompile` |
+
+OpenCode notes: the SIMD/vectorization skill is installed locally and has no direct skill
+or agent dependency. Use it only for measured hot CPU paths; prefer `Span<T>` /
+`MemoryExtensions` first, pair code changes with benchmarks, and keep AOT/ARM64/x64
+fallbacks explicit. `System.Numerics.Tensors` remains approval-gated package work, and
+BadgeSmith still uses VSTest with `dotnet test`.
 
 ### Tier 2 — Meta / maintenance
 
-| Capability | Claude Code / Copilot CLI | OpenCode |
-| --- | --- | --- |
-| Maintain the `AGENTS.md` / this file's capability index | `dotnet-skills:skills-index-snippets` | `skills-index-snippets` |
+| Capability | Claude Code | Copilot CLI | OpenCode |
+| --- | --- | --- | --- |
+| Public HTTP contract / wire compatibility (routes, response schema, compatibility-sensitive endpoint changes) | `dotnet-skills:csharp-api-design` | `api-design` | `api-design` |
+| Maintain the `AGENTS.md` / this file's capability index | `dotnet-skills:skills-index-snippets` | `skills-index-snippets` | `skills-index-snippets` |
+| Working-diff code review (findings-first, severity-ordered) | `code-review` (harness built-in) | `code-review` via `task` | `codex-review` via `task` when present |
+| Security review of pending changes (HMAC, nonce, secrets, replay protection) | `security-review` (harness built-in) | `security-review` via `task` | N/A |
 
 ### Tier 3 — Local-only
 
-| Capability | Claude Code / Copilot CLI | OpenCode |
-| --- | --- | --- |
-| OpenCode local model routing | Not applicable | `subagent-model-routing` via `skill` when present |
+| Capability | Claude Code | Copilot CLI | OpenCode |
+| --- | --- | --- | --- |
+| OpenCode local model routing | Not applicable | Not applicable | `subagent-model-routing` via `skill` when present |
 
 ### Out of scope
 
 Do not invoke these unless the repo adds the technology or Deniz explicitly asks:
 
 - **Akka.NET**: `akka-*` skills and `akka-net-specialist` — no Akka.NET here.
-- **Test-framework mismatch**: `writing-mstest-tests` (this repo uses xUnit v3, not
-  MSTest); `mtp-hot-reload` (this repo runs on VSTest, not Microsoft.Testing.Platform).
+- **Test-framework mismatch**: `ms-dotnet-test-writing-mstest-tests` /
+  `writing-mstest-tests` (this repo uses xUnit v3, not MSTest);
+  `ms-dotnet-test-mtp-hot-reload` / `mtp-hot-reload` and
+  `ms-dotnet-test-migration-migrate-vstest-to-mtp` (this repo runs on VSTest, not
+  Microsoft.Testing.Platform).
 - **Data layer**: `efcore-patterns`, `database-performance` — storage is DynamoDB via
   the AWS SDK, not EF/SQL.
 - **Email**: `mjml-email-templates`, `verify-email-snapshots`,
-  `aspire-mailpit-integration`.
-- **UI**: `playwright-blazor`, `playwright-ci-caching`.
+  `dotnet-skills:aspire-mailpit-integration` / `mailpit-integration`.
+- **UI**: `dotnet-skills:playwright-blazor` / `playwright-blazor-testing`,
+  `playwright-ci-caching`.
 - **Reactive**: `r3-reactive-extensions`.
-- **Deliberately absent patterns**: `microsoft-extensions-dependency-injection`
-  (no DI — `ApplicationRegistry`), `microsoft-extensions-configuration` (no config
-  framework — env vars), `aspire-service-defaults` (no ServiceDefaults project).
-- **Testability/static-wrapper**: `detect-static-dependencies`,
-  `generate-testability-wrappers`, `migrate-static-to-wrapper`, `testability-migration`
-  — conflict with the intentional static/AOT/no-DI design.
-- **Redundant**: `crap-analysis` (OpenCover) — superseded by `dotnet-test:coverage-analysis`
-  / `crap-score` (Cobertura).
-- **Narrow/academic (only if explicitly asked)**: `test-smell-detection`, `test-tagging`.
-- **Other**: `csharp-api-design` (assembly/NuGet API compat, not HTTP contract),
-  `marketplace-publishing`, `docfx-specialist`, `roslyn-incremental-generator-specialist`
+- **Deliberately absent patterns**: `dotnet-skills:microsoft-extensions-dependency-injection` /
+  `dependency-injection-patterns` (no DI — `ApplicationRegistry`),
+  `microsoft-extensions-configuration` (no config framework — env vars),
+  `aspire-service-defaults` (no ServiceDefaults project).
+- **Testability/static-wrapper**: `ms-dotnet-test-detect-static-dependencies` /
+  `detect-static-dependencies`, `ms-dotnet-test-generate-testability-wrappers` /
+  `generate-testability-wrappers`, `ms-dotnet-test-migrate-static-to-wrapper` /
+  `migrate-static-to-wrapper`, `dotnet-test:testability-migration` via `task`,
+  `testability-migration` via `task` —
+  conflict with the intentional static/AOT/no-DI design.
+- **Redundant**: `crap-analysis` (OpenCover) — superseded by
+  `coverage-analysis` / `crap-score` and `ms-dotnet-test-coverage-analysis` /
+  `ms-dotnet-test-crap-score` (Cobertura).
+- **Narrow/academic (only if explicitly asked)**: `ms-dotnet-test-test-smell-detection` /
+  `test-smell-detection`, `ms-dotnet-test-test-tagging` / `test-tagging`.
+- **Other**: `marketplace-publishing`, `docfx-specialist`, `roslyn-incremental-generator-specialist`
   (we consume OneOf.SourceGenerator, not author generators), `clr-activation-debugging`
-  (.NET Framework), crash symbolication skills, `dotnet-devcert-trust`, `local-tools`,
-  `setup-local-sdk`.
+  (.NET Framework), crash symbolication skills, `dotnet-devcert-trust`,
+  `dotnet-skills:local-tools` / `dotnet-local-tools`, `setup-local-sdk`.
 
 There is no dedicated Native AOT skill in the installed marketplaces; AOT coverage comes
-from `serialization` + `csharp-type-design-performance` + `analyzing-dotnet-performance`,
-backed by the "Native AOT And Lambda Constraints" section of `AGENTS.md`.
+from `serialization` + `type-design-performance` +
+`ms-dotnet-diag-analyzing-dotnet-performance`, backed by the "Native AOT And Lambda
+Constraints" section of `AGENTS.md`.
 
 Availability is not activation. Except for the process bootstrap, skills do not run
 automatically; invoke the mapped skill or dispatch the mapped specialist agent when the
