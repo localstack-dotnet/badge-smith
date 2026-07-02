@@ -11,6 +11,7 @@ new ideas land in Inbox / Untriaged until they are scoped.
 | Workstream | Status | Plan | Notes |
 | --- | --- | --- | --- |
 | Agent contract adoption | done | — (landed as a single `docs:` commit) | Re-authored `AGENTS.md`, harness relays, and `docs/agents/` for BadgeSmith after they were copied from another repo |
+| Iteration 0 — AOT contract tier, baseline harness, multi-arch build | plan approved, execution pending | [plans/2026-07-02-iteration0-aot-contract-tier-plan.md](plans/2026-07-02-iteration0-aot-contract-tier-plan.md) | Spec: [plans/2026-07-02-iteration0-aot-contract-tier-design.md](plans/2026-07-02-iteration0-aot-contract-tier-design.md); pickup: [agents/handover-prompts/s1-deep-dive-and-iteration0.prompt.md](agents/handover-prompts/s1-deep-dive-and-iteration0.prompt.md); execution mode (subagent vs inline) undecided |
 
 ## Backlog
 
