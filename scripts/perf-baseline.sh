@@ -7,11 +7,20 @@ ARCH="amd64"
 VUS="${K6_VUS:-5}"
 DURATION="${K6_DURATION:-60s}"
 
+require_value() {
+  local option="$1"
+  local value="${2-}"
+  if [[ -z "$value" || "$value" == --* ]]; then
+    echo "$option requires a value" >&2
+    exit 1
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --label) LABEL="$2"; shift 2 ;;
-    --upstream) UPSTREAM="$2"; shift 2 ;;
-    --arch) ARCH="$2"; shift 2 ;;
+    --label) require_value "$1" "${2-}"; LABEL="$2"; shift 2 ;;
+    --upstream) require_value "$1" "${2-}"; UPSTREAM="$2"; shift 2 ;;
+    --arch) require_value "$1" "${2-}"; ARCH="$2"; shift 2 ;;
     *) echo "unknown arg $1"; exit 1 ;;
   esac
 done
@@ -23,6 +32,11 @@ fi
 
 if [[ "$ARCH" != "amd64" && "$ARCH" != "arm64" ]]; then
   echo "--arch must be amd64 or arm64" >&2
+  exit 1
+fi
+
+if [[ "$UPSTREAM" == "real" && -z "${GITHUB_TOKEN:-}" ]]; then
+  echo "GITHUB_TOKEN is required when --upstream real so GitHub package checks can authenticate" >&2
   exit 1
 fi
 
@@ -147,6 +161,65 @@ wait_for_http() {
   done
 }
 
+wait_for_lambda_health() {
+  local timeout_seconds="$1"
+  local start
+  start="$(date +%s)"
+  while true; do
+    local status
+    status="$(curl -s -o /dev/null -w '%{http_code}' -XPOST http://localhost:9000/2015-03-31/functions/function/invocations \
+      -d '{"version":"2.0","routeKey":"$default","rawPath":"/health","headers":{},"requestContext":{"http":{"method":"GET","path":"/health"},"stage":"$default","requestId":"warm"},"isBase64Encoded":false}' || true)"
+    if [[ "$status" == "200" ]]; then
+      return 0
+    fi
+
+    if ! docker ps --format '{{.Names}}' | grep -qx bs-perf-lambda; then
+      echo "Lambda container exited before becoming healthy" >&2
+      docker logs bs-perf-lambda >&2 || true
+      return 1
+    fi
+
+    if (( $(date +%s) - start >= timeout_seconds )); then
+      echo "timed out waiting for Lambda /health via RIE" >&2
+      docker logs bs-perf-lambda >&2 || true
+      return 1
+    fi
+
+    sleep 0.2
+  done
+}
+
+validate_k6_summary() {
+  "${PYTHON[@]}" - "$1" <<'PY'
+import json
+import sys
+
+summary_path = sys.argv[1]
+with open(summary_path, encoding="utf-8") as f:
+    summary = json.load(f)
+
+checks = summary.get("metrics", {}).get("checks")
+if not checks:
+    print("k6 summary did not contain aggregate checks metric", file=sys.stderr)
+    raise SystemExit(1)
+
+values = checks.get("values", checks)
+rate = values.get("rate", values.get("value"))
+passes = values.get("passes", 0)
+fails = values.get("fails", 0)
+if rate is None:
+    total = passes + fails
+    if total == 0:
+        print("k6 summary checks metric did not contain check counts", file=sys.stderr)
+        raise SystemExit(1)
+    rate = passes / total
+
+if fails != 0 or rate < 1.0:
+    print(f"k6 checks failed: rate={rate}, passes={passes}, fails={fails}", file=sys.stderr)
+    raise SystemExit(1)
+PY
+}
+
 echo "== build image + artifacts =="
 docker build --platform "$PLATFORM" -f "$ROOT/src/BadgeSmith.Api/Dockerfile" --build-arg RID="$RID" --target lambda-image -t "$IMG" "$ROOT"
 docker build --platform "$PLATFORM" -f "$ROOT/src/BadgeSmith.Api/Dockerfile" --build-arg RID="$RID" --build-arg MSTAT=true --target export-mstat -o "$ROOT/artifacts/mstat" "$ROOT"
@@ -223,10 +296,7 @@ docker run -d --name bs-perf-lambda --network "$NET" -p 9000:8080 \
   -e HTTP_NUGET_BASE_URL="$NUGET_URL" -e HTTP_GITHUB_BASE_URL="$GITHUB_URL" \
   "$IMG" >/dev/null
 
-until curl -s -o /dev/null -w '%{http_code}' -XPOST http://localhost:9000/2015-03-31/functions/function/invocations \
-  -d '{"version":"2.0","routeKey":"$default","rawPath":"/health","headers":{},"requestContext":{"http":{"method":"GET","path":"/health"},"stage":"$default","requestId":"warm"},"isBase64Encoded":false}' | grep -q 200; do
-  sleep 0.2
-done
+wait_for_lambda_health 60
 READY_MS=$(( ($(date +%s%N) - START_NS) / 1000000 ))
 RSS_IDLE=$(docker stats --no-stream --format '{{.MemUsage}}' bs-perf-lambda | awk '{print $1}')
 
@@ -244,6 +314,8 @@ if [[ "$K6_NEEDS_WIN_PATHS" == "true" ]]; then
   K6_SCRIPT_ARG="$(to_host_path "$K6_SCRIPT_ARG")"
 fi
 RSS_PEAK_FILE="$ROOT/artifacts/rss-peak-kb.txt"
+K6_LOG="$ROOT/artifacts/k6-run.log"
+rm -f "$K6_JSON" "$K6_LOG" "$RSS_PEAK_FILE"
 RSS_PEAK_KB=0
 echo "$RSS_PEAK_KB" > "$RSS_PEAK_FILE"
 (
@@ -259,7 +331,6 @@ echo "$RSS_PEAK_KB" > "$RSS_PEAK_FILE"
 ) &
 STATS_PID=$!
 K6_EXIT=0
-K6_LOG="$ROOT/artifacts/k6-run.log"
 if [[ "$K6_MODE" == "windows" ]]; then
   K6_COMMAND="k6.exe run --summary-export $K6_JSON_ARG -e K6_API_URL=$K6_API_URL -e K6_TARGET_MODE=rie -e K6_VUS=$VUS -e K6_DURATION=$DURATION $K6_SCRIPT_ARG"
   cmd.exe /C "$K6_COMMAND" > "$K6_LOG" 2>&1 || K6_EXIT=$?
@@ -279,6 +350,11 @@ if (( K6_EXIT != 0 )); then
   echo "k6 failed with exit code $K6_EXIT" >&2
   exit "$K6_EXIT"
 fi
+K6_JSON_CHECK="$K6_JSON"
+if [[ "$PYTHON_NEEDS_WIN_PATHS" == "true" ]]; then
+  K6_JSON_CHECK="$(to_host_path "$K6_JSON")"
+fi
+validate_k6_summary "$K6_JSON_CHECK"
 
 OUT_ARG="$OUT"
 K6_JSON_PY="$K6_JSON"
@@ -287,9 +363,9 @@ if [[ "$PYTHON_NEEDS_WIN_PATHS" == "true" ]]; then
   K6_JSON_PY="$(to_host_path "$K6_JSON")"
 fi
 GIT_SHA="$(git rev-parse --short HEAD)"
-"${PYTHON[@]}" - "$OUT_ARG" "$K6_JSON_PY" <<EOF
+"${PYTHON[@]}" - "$OUT_ARG" "$K6_JSON_PY" "$STAMP" "$LABEL" "$GIT_SHA" "$ARCH" "$UPSTREAM" "$BIN_BYTES" "$ZIP_BYTES" "$READY_MS" "$RSS_IDLE" "$RSS_PEAK_KB" <<'PY'
 import json, sys
-out, k6file = sys.argv[1], sys.argv[2]
+out, k6file, stamp, label, git_sha, arch, upstream, bin_bytes, zip_bytes, ready_ms, rss_idle, rss_peak_kb = sys.argv[1:]
 with open(k6file, encoding="utf-8") as f:
     k6 = json.load(f)
 def metric(name):
@@ -299,17 +375,17 @@ m = metric("http_req_duration")
 http_reqs = metric("http_reqs")
 http_failed = metric("http_req_failed")
 json.dump({
-  "date": "$STAMP", "label": "$LABEL",
-  "gitSha": "$GIT_SHA",
-  "arch": "$ARCH", "upstream": "$UPSTREAM",
-  "image": {"binaryBytes": int("$BIN_BYTES"), "zipBytes": int("$ZIP_BYTES"), "mstat": "artifacts/mstat/bootstrap.mstat"},
-  "boot": {"startToReadyMs": int("$READY_MS")},
+  "date": stamp, "label": label,
+  "gitSha": git_sha,
+  "arch": arch, "upstream": upstream,
+  "image": {"binaryBytes": int(bin_bytes), "zipBytes": int(zip_bytes), "mstat": "artifacts/mstat/bootstrap.mstat"},
+  "boot": {"startToReadyMs": int(ready_ms)},
   "k6": {"p50Ms": m.get("med"), "p95Ms": m.get("p(95)"), "p99Ms": m.get("p(99)"),
           "rps": http_reqs.get("rate"), "errorRate": http_failed.get("rate", http_failed.get("value", 0))},
-  "memory": {"rssIdle": "$RSS_IDLE", "rssPeakKb": int("$RSS_PEAK_KB")},
+  "memory": {"rssIdle": rss_idle, "rssPeakKb": int(rss_peak_kb)},
 }, open(out, "w", encoding="utf-8"), indent=2)
 print("wrote", out)
-EOF
+PY
 
 cleanup
 trap - EXIT
