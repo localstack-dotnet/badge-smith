@@ -47,6 +47,11 @@ function invoke(method, path, headers, params) {
     });
   }
 
+  // __VU and __ITER are only defined inside VU iteration context, not in
+  // setup()/teardown(). Use safe fallbacks so invoke() works from all phases.
+  const vu = typeof __VU !== 'undefined' ? __VU : 0;
+  const iter = typeof __ITER !== 'undefined' ? __ITER : 0;
+
   var event = {
     version: "2.0",
     routeKey: "$default",
@@ -56,7 +61,7 @@ function invoke(method, path, headers, params) {
     requestContext: {
       http: { method: method, path: rawPath },
       stage: "$default",
-      requestId: "k6-" + __VU + "-" + __ITER,
+      requestId: "k6-" + vu + "-" + iter,
     },
     isBase64Encoded: false,
   };
@@ -76,11 +81,16 @@ function invoke(method, path, headers, params) {
     rieParams
   );
 
+  // Extract Lambda status from invocation response body.
+  // k6 host response objects are frozen — use Object.create() to produce a
+  // delegating wrapper that exposes lambdaStatus without mutating the host.
+  var lambdaStatus = 0;
   try {
-    res.lambdaStatus = JSON.parse(res.body).statusCode;
+    lambdaStatus = JSON.parse(res.body).statusCode;
   } catch (e) {
-    res.lambdaStatus = 0;
+    // keep lambdaStatus = 0
   }
+  res = Object.assign(Object.create(res), { lambdaStatus: lambdaStatus });
   return res;
 }
 
