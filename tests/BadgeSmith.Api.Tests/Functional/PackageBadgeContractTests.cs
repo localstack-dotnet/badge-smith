@@ -62,9 +62,9 @@ public sealed class PackageBadgeContractTests(BadgeSmithStackFixture stack)
     }
 
     [Fact]
-    public async Task GitHubBadge_OrgWithoutSecret_Should_Return401()
+    public async Task GitHubBadge_UpstreamUnauthorized_Should_Return401()
     {
-        var r = await stack.Lambda.InvokeAsync("GET", "/badges/packages/github/unknown-org/some.pkg", ct: TestContext.Current.CancellationToken);
+        var r = await stack.Lambda.InvokeAsync("GET", "/badges/packages/github/unauthorized-org/any.pkg", ct: TestContext.Current.CancellationToken);
         Assert.Equal(401, r.StatusCode);
     }
 

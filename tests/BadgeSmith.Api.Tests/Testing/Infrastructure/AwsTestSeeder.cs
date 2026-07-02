@@ -15,19 +15,26 @@ public static class AwsTestSeeder
 
         await CreateSecretAsync(secrets, "badgesmith/github/test-org/testdata", BadgeSmithStackFixture.HmacSecret);
         await CreateSecretAsync(secrets, "badgesmith/github/test-org/package", "dummy-github-pat");
+        await CreateSecretAsync(secrets, "badgesmith/github/unauthorized-org/package", "dummy-github-pat");
 
         await PutSecretMappingAsync(dynamo, "testdata", "badgesmith/github/test-org/testdata");
         await PutSecretMappingAsync(dynamo, "package", "badgesmith/github/test-org/package");
+        await PutSecretMappingAsync(dynamo, "unauthorized-org", "package", "badgesmith/github/unauthorized-org/package");
     }
 
     private static async Task PutSecretMappingAsync(IAmazonDynamoDB dynamo, string tokenTypeLower, string secretName)
+    {
+        await PutSecretMappingAsync(dynamo, BadgeSmithStackFixture.Org, tokenTypeLower, secretName);
+    }
+
+    private static async Task PutSecretMappingAsync(IAmazonDynamoDB dynamo, string orgLower, string tokenTypeLower, string secretName)
     {
         await dynamo.PutItemAsync(new PutItemRequest
         {
             TableName = "badge-smith-github-org-secrets",
             Item = new Dictionary<string, AttributeValue>(StringComparer.Ordinal)
             {
-                ["PK"] = new($"ORG#{BadgeSmithStackFixture.Org}"),
+                ["PK"] = new($"ORG#{orgLower}"),
                 ["SK"] = new($"CONST#GITHUB#{tokenTypeLower}"),
                 ["SecretName"] = new(secretName),
             },
