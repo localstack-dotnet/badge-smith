@@ -11,6 +11,7 @@ ARG PROJECT=src/BadgeSmith.Api/BadgeSmith.Api.csproj
 ARG CONFIG=Release
 ARG RID=linux-x64
 ARG PUBLISH_DIR=/artifacts/publish
+ARG MSTAT=false
 
 # Tooling needed for NativeAOT link
 RUN apt-get update && apt-get install -y --no-install-recommends clang zlib1g-dev zip \
@@ -28,10 +29,15 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet publish ${PROJECT} -c ${CONFIG} -r ${RID} --self-contained true \
       -p:PublishAot=true -p:StripSymbols=true -p:DebugType=none -p:EnableTelemetry=false -p:EnableLocalStack=false \
+      -p:IlcGenerateMstatFile=${MSTAT} \
       -p:EnableSourceControlManagerQueries=false \
       -p:EmbedUntrackedSources=false \
       -o ${PUBLISH_DIR} \
  && chmod +x ${PUBLISH_DIR}/bootstrap
+
+RUN if [ "$MSTAT" = "true" ]; then \
+      find /src -name '*.mstat' -exec cp {} ${PUBLISH_DIR}/bootstrap.mstat \; ; \
+    fi
 
 ###############################
 # Stage 1: Lambda Container Image
@@ -61,3 +67,9 @@ FROM scratch AS export-zip
 ARG RID=linux-x64
 ARG ZIP_NAME=badge-lambda-${RID}.zip
 COPY --from=lambda-zip /out/${ZIP_NAME} /${ZIP_NAME}
+
+###############################
+# Stage 4: Export mstat (build with --build-arg MSTAT=true)
+###############################
+FROM scratch AS export-mstat
+COPY --from=build /artifacts/publish/bootstrap.mstat /bootstrap.mstat
