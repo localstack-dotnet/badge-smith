@@ -17,6 +17,9 @@ const cacheHitRate = new Rate("cache_hits");
 // Environment configuration
 const BASE_URL = __ENV.K6_API_URL || "https://g4yecfi5hl.execute-api.eu-central-1.amazonaws.com";
 const TARGET_MODE = __ENV.K6_TARGET_MODE || "http"; // http | rie
+if (TARGET_MODE !== "http" && TARGET_MODE !== "rie") {
+  throw new Error(`Invalid K6_TARGET_MODE: "${TARGET_MODE}". Must be "http" or "rie".`);
+}
 const DURATION = __ENV.K6_DURATION || null;
 const VUS = __ENV.K6_VUS ? parseInt(__ENV.K6_VUS, 10) : null;
 
@@ -81,16 +84,35 @@ function invoke(method, path, headers, params) {
     rieParams
   );
 
-  // Extract Lambda status from invocation response body.
-  // k6 host response objects are frozen — use Object.create() to produce a
-  // delegating wrapper that exposes lambdaStatus without mutating the host.
+  // Extract the full Lambda response from the RIE invocation envelope.
+  // The RIE POST response body is the Lambda / API Gateway response:
+  //   { statusCode, headers: {...}, body: "...", isBase64Encoded, ... }
+  // Checks (r.json(), r.headers, r.body) should see the Lambda's response,
+  // not the RIE envelope. Host timing / transport data is preserved via
+  // the prototype chain.
   var lambdaStatus = 0;
+  var lambdaHeaders = {};
+  var lambdaBody = "";
   try {
-    lambdaStatus = JSON.parse(res.body).statusCode;
+    var lambdaResponse = JSON.parse(res.body);
+    lambdaStatus = lambdaResponse.statusCode || 0;
+    lambdaHeaders = lambdaResponse.headers || {};
+    lambdaBody = lambdaResponse.body || "";
   } catch (e) {
-    // keep lambdaStatus = 0
+    // keep defaults for invalid envelope
   }
-  res = Object.assign(Object.create(res), { lambdaStatus: lambdaStatus });
+
+  // Create a delegating wrapper: own properties project the Lambda response;
+  // everything else (status, timings, url, request, etc.) falls through to
+  // the host RIE response via Object.create() prototype chain.
+  res = Object.assign(Object.create(res), {
+    lambdaStatus: lambdaStatus,
+    headers: lambdaHeaders,
+    body: lambdaBody,
+    json: function () {
+      return JSON.parse(lambdaBody);
+    },
+  });
   return res;
 }
 
