@@ -17,7 +17,7 @@ public sealed class ContractFixtureRegistration : ICollectionFixture<BadgeSmithS
 
 public sealed class BadgeSmithStackFixture : IAsyncLifetime
 {
-    private const string Region = "eu-central-1";
+    private const string Region = "us-east-1";
 
     public const string HmacSecret = "contract-test-secret";
     public const string Org = "test-org";
