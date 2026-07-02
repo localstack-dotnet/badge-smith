@@ -96,7 +96,19 @@ function invoke(method, path, headers, params) {
   try {
     var lambdaResponse = JSON.parse(res.body);
     lambdaStatus = lambdaResponse.statusCode || 0;
-    lambdaHeaders = lambdaResponse.headers || {};
+    var rawHeaders = lambdaResponse.headers || {};
+    // Normalize: preserve original keys and add lowercase aliases so
+    // checks like response.headers["cache-control"] work regardless of
+    // the casing returned by the Lambda / API Gateway envelope.
+    for (var h in rawHeaders) {
+      if (Object.prototype.hasOwnProperty.call(rawHeaders, h)) {
+        lambdaHeaders[h] = rawHeaders[h];
+        var lower = h.toLowerCase();
+        if (lower !== h) {
+          lambdaHeaders[lower] = rawHeaders[h];
+        }
+      }
+    }
     lambdaBody = lambdaResponse.body || "";
   } catch (e) {
     // keep defaults for invalid envelope
