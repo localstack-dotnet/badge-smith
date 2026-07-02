@@ -16,7 +16,21 @@ internal static class HttpClientFactory
     private static Uri ResolveBaseUri(string envVar, string fallback)
     {
         var value = Environment.GetEnvironmentVariable(envVar);
-        return Uri.TryCreate(value, UriKind.Absolute, out var uri) ? uri : new Uri(fallback);
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        {
+            return new Uri(fallback);
+        }
+
+        // Base addresses must end with '/' for correct relative URI resolution
+        // (e.g. HttpClient appends "v3-flatcontainer/..." relative to the base path).
+        if (!uri.AbsolutePath.EndsWith('/'))
+        {
+            var builder = new UriBuilder(uri);
+            builder.Path += "/";
+            return builder.Uri;
+        }
+
+        return uri;
     }
 
     private static readonly Lazy<SocketsHttpHandler> NugetSocketsHttpHandlerFactory = new(CreateHandlerInstance());
