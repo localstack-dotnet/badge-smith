@@ -1,0 +1,8 @@
+{
+  "request": { "method": "GET", "urlPath": "/github/orgs/test-org/packages/nuget/contracttest.pkg/versions" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": [ { "id": 1, "name": "2.1.0" }, { "id": 2, "name": "2.2.0-preview.1" }, { "id": 3, "name": "1.9.9" } ]
+  }
+}
