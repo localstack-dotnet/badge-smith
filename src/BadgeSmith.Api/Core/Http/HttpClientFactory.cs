@@ -13,6 +13,12 @@ internal static class HttpClientFactory
     private const string NugetApiUrl = "https://api.nuget.org/";
     private const string GithubApiUrl = "https://api.github.com/";
 
+    private static Uri ResolveBaseUri(string envVar, string fallback)
+    {
+        var value = Environment.GetEnvironmentVariable(envVar);
+        return Uri.TryCreate(value, UriKind.Absolute, out var uri) ? uri : new Uri(fallback);
+    }
+
     private static readonly Lazy<SocketsHttpHandler> NugetSocketsHttpHandlerFactory = new(CreateHandlerInstance());
     private static readonly Lazy<SocketsHttpHandler> GithubSocketsHttpHandlerFactory = new(CreateHandlerInstance());
     private static readonly Lazy<HttpMessageHandler> NugetRetryHandlerFactory = new(() => new ResilienceRetryHandler(NugetSocketsHttpHandlerFactory.Value));
@@ -37,7 +43,7 @@ internal static class HttpClientFactory
     {
         var httpClient = new HttpClient(NugetRetryHandlerFactory.Value, disposeHandler: false)
         {
-            BaseAddress = new Uri(NugetApiUrl),
+            BaseAddress = ResolveBaseUri("HTTP_NUGET_BASE_URL", NugetApiUrl),
             Timeout = TimeSpan.FromSeconds(10),
             DefaultRequestVersion = HttpVersion.Version11,
             DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
@@ -53,7 +59,7 @@ internal static class HttpClientFactory
     {
         var httpClient = new HttpClient(GithubRetryHandlerFactory.Value, disposeHandler: false)
         {
-            BaseAddress = new Uri(GithubApiUrl),
+            BaseAddress = ResolveBaseUri("HTTP_GITHUB_BASE_URL", GithubApiUrl),
             Timeout = TimeSpan.FromSeconds(10),
             DefaultRequestVersion = HttpVersion.Version11,
             DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
