@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -142,3 +144,5 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 }
+
+#pragma warning restore CA1873

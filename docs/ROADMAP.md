@@ -28,6 +28,9 @@ plan under `docs/plans/`) when it becomes active.
 - **Wave 3 — hygiene**: DRY refactors (bootstrap, route-param extraction, package
   services), dead-code removal, script/docs drift, DynamoDB PITR/removal policy.
   Details: findings doc §3, §5.
+- **Logging hygiene — source-generated logging migration** (2026-07-02): Replace
+  temporary `CA1873` pragmas with `LoggerMessageAttribute` source-generated logging,
+  then remove the suppressions and keep the zero-warning build contract.
 
 ## Inbox / Untriaged
 
