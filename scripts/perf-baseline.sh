@@ -4,7 +4,8 @@ set -euo pipefail
 LABEL="baseline"
 UPSTREAM="mock"
 ARCH="amd64"
-VUS="${K6_VUS:-5}"
+# Local Lambda RIE serializes invocations reliably; keep overrideable for non-RIE runs.
+VUS="${K6_VUS:-1}"
 DURATION="${K6_DURATION:-60s}"
 
 require_value() {
