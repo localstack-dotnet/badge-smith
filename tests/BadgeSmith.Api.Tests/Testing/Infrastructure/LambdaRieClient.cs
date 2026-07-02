@@ -4,10 +4,12 @@ using System.Text.Json.Serialization;
 
 namespace BadgeSmith.Api.Tests.Testing.Infrastructure;
 
+#pragma warning disable MA0016
 public sealed record LambdaHttpResponse(
     [property: JsonPropertyName("statusCode")] int StatusCode,
     [property: JsonPropertyName("headers")] Dictionary<string, string>? Headers,
     [property: JsonPropertyName("body")] string? Body);
+#pragma warning restore MA0016
 
 public sealed class LambdaRieClient(Uri invocationBase)
 {

@@ -36,17 +36,28 @@ public static class AwsTestSeeder
 
     private static async Task CreateSecretAsync(IAmazonSecretsManager secrets, string name, string secretString)
     {
+        if (await SecretExistsAsync(secrets, name))
+        {
+            return;
+        }
+
+        await secrets.CreateSecretAsync(new CreateSecretRequest
+        {
+            Name = name,
+            SecretString = secretString,
+        });
+    }
+
+    private static async Task<bool> SecretExistsAsync(IAmazonSecretsManager secrets, string name)
+    {
         try
         {
-            await secrets.CreateSecretAsync(new CreateSecretRequest
-            {
-                Name = name,
-                SecretString = secretString,
-            });
+            await secrets.DescribeSecretAsync(new DescribeSecretRequest { SecretId = name });
+            return true;
         }
-        catch (ResourceExistsException)
+        catch (Amazon.SecretsManager.Model.ResourceNotFoundException)
         {
-            // Tolerated: fixture reuse or partial prior run left the secret in place.
+            return false;
         }
     }
 
@@ -87,13 +98,24 @@ public static class AwsTestSeeder
             ];
         }
 
+        if (await TableExistsAsync(dynamo, name))
+        {
+            return;
+        }
+
+        await dynamo.CreateTableAsync(request);
+    }
+
+    private static async Task<bool> TableExistsAsync(IAmazonDynamoDB dynamo, string name)
+    {
         try
         {
-            await dynamo.CreateTableAsync(request);
+            await dynamo.DescribeTableAsync(name);
+            return true;
         }
-        catch (ResourceInUseException)
+        catch (Amazon.DynamoDBv2.Model.ResourceNotFoundException)
         {
-            // Tolerated: fixture reuse or partial prior run left the table in place.
+            return false;
         }
     }
 }

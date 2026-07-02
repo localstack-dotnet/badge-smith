@@ -5,13 +5,15 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
+using System.Net;
+using System.Text;
 using Testcontainers.LocalStack;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Testing.Infrastructure;
 
 [CollectionDefinition("contract", DisableParallelization = true)]
-public sealed class ContractCollection : ICollectionFixture<BadgeSmithStackFixture>;
+public sealed class ContractFixtureRegistration : ICollectionFixture<BadgeSmithStackFixture>;
 
 public sealed class BadgeSmithStackFixture : IAsyncLifetime
 {
@@ -23,8 +25,27 @@ public sealed class BadgeSmithStackFixture : IAsyncLifetime
     private const string LambdaImageDefault = "badge-smith:local";
     private const string LambdaBuildHint =
         "docker build -f src/BadgeSmith.Api/Dockerfile --target lambda-image -t badge-smith:local .";
-    private const int WarmupAttempts = 40;
-    private static readonly TimeSpan WarmupDelay = TimeSpan.FromSeconds(2);
+    private const string LambdaHealthProbeEventJson =
+        """
+        {
+          "version": "2.0",
+          "routeKey": "$default",
+          "rawPath": "/health",
+          "headers": {},
+          "requestContext": {
+            "http": {
+              "method": "GET",
+              "path": "/health"
+            },
+            "stage": "$default",
+            "requestId": "contract-warmup"
+          },
+          "body": null,
+          "isBase64Encoded": false
+        }
+        """;
+    private static readonly TimeSpan LambdaStartupInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan LambdaStartupTimeout = TimeSpan.FromSeconds(80);
 
     private INetwork? _network;
     private LocalStackContainer? _localstack;
@@ -86,6 +107,14 @@ public sealed class BadgeSmithStackFixture : IAsyncLifetime
             .WithEnvironment("AWS_RESOURCE_ORG_SECRETS_TABLE", "badge-smith-github-org-secrets")
             .WithEnvironment("HTTP_NUGET_BASE_URL", "http://wiremock:8080/nuget/")
             .WithEnvironment("HTTP_GITHUB_BASE_URL", "http://wiremock:8080/github/")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(
+                request => request.ForPort(8080)
+                    .ForPath("/2015-03-31/functions/function/invocations")
+                    .WithMethod(HttpMethod.Post)
+                    .WithContent(() => new StringContent(LambdaHealthProbeEventJson, Encoding.UTF8, "application/json"))
+                    .ForStatusCode(HttpStatusCode.OK)
+                    .ForResponseMessageMatching(IsHealthyLambdaResponseAsync),
+                wait => wait.WithInterval(LambdaStartupInterval).WithTimeout(LambdaStartupTimeout)))
             .Build();
 
         try
@@ -99,36 +128,13 @@ public sealed class BadgeSmithStackFixture : IAsyncLifetime
         }
 
         Lambda = new LambdaRieClient(new Uri($"http://{_lambda.Hostname}:{_lambda.GetMappedPublicPort(8080)}"));
-        await WaitForLambdaReadyAsync();
     }
 
-    private async Task WaitForLambdaReadyAsync()
+    private static async Task<bool> IsHealthyLambdaResponseAsync(HttpResponseMessage response)
     {
-        for (var i = 0; i < WarmupAttempts; i++)
-        {
-            try
-            {
-                var response = await Lambda.InvokeAsync("GET", "/health");
-                if (response.StatusCode == 200)
-                {
-                    return;
-                }
-            }
-            catch (HttpRequestException)
-            {
-                // Lambda Runtime Interface Emulator is still warming up; retry.
-            }
-            catch (InvalidOperationException)
-            {
-                // RIE returned an unparseable response during cold start; retry.
-            }
-
-            await Task.Delay(WarmupDelay);
-        }
-
-        throw new InvalidOperationException(
-            $"Lambda image did not report a healthy /health within {WarmupAttempts * (int)WarmupDelay.TotalSeconds}s. " +
-            $"Rebuild it with: {LambdaBuildHint}");
+        var body = await response.Content.ReadAsStringAsync();
+        return body.Contains("\"statusCode\":200", StringComparison.Ordinal)
+               && body.Contains("Healthy", StringComparison.Ordinal);
     }
 
     public async ValueTask DisposeAsync()
