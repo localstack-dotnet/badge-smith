@@ -14,35 +14,113 @@ const errorRate = new Rate("errors");
 const memoryPressureCounter = new Counter("memory_pressure_responses");
 const cacheHitRate = new Rate("cache_hits");
 
+// Environment configuration
+const BASE_URL = __ENV.K6_API_URL || "https://g4yecfi5hl.execute-api.eu-central-1.amazonaws.com";
+const TARGET_MODE = __ENV.K6_TARGET_MODE || "http"; // http | rie
+const DURATION = __ENV.K6_DURATION || null;
+const VUS = __ENV.K6_VUS ? parseInt(__ENV.K6_VUS, 10) : null;
+
+// Request wrapper routing all calls through HTTP or RIE mode
+function invoke(method, path, headers, params) {
+  const k6Params = Object.assign({}, params || {});
+  if (headers && Object.keys(headers).length > 0) {
+    k6Params.headers = headers;
+  }
+
+  if (TARGET_MODE === "http") {
+    return http.request(method, `${BASE_URL}${path}`, null, k6Params);
+  }
+
+  // RIE mode: wrap into an API Gateway v2 event
+  const qIndex = path.indexOf("?");
+  const rawPath = qIndex >= 0 ? path.substring(0, qIndex) : path;
+  const rawQueryString = qIndex >= 0 ? path.substring(qIndex + 1) : "";
+
+  const queryStringParameters = {};
+  if (rawQueryString) {
+    rawQueryString.split("&").forEach(function (pair) {
+      var idx = pair.indexOf("=");
+      if (idx >= 0) {
+        queryStringParameters[decodeURIComponent(pair.substring(0, idx))] =
+          decodeURIComponent(pair.substring(idx + 1));
+      }
+    });
+  }
+
+  var event = {
+    version: "2.0",
+    routeKey: "$default",
+    rawPath: rawPath,
+    rawQueryString: rawQueryString,
+    headers: headers || {},
+    requestContext: {
+      http: { method: method, path: rawPath },
+      stage: "$default",
+      requestId: "k6-" + __VU + "-" + __ITER,
+    },
+    isBase64Encoded: false,
+  };
+  if (Object.keys(queryStringParameters).length > 0) {
+    event.queryStringParameters = queryStringParameters;
+  }
+
+  var rieParams = Object.assign({}, params || {});
+  rieParams.headers = Object.assign(
+    { "Content-Type": "application/json" },
+    rieParams.headers || {}
+  );
+
+  var res = http.post(
+    BASE_URL + "/2015-03-31/functions/function/invocations",
+    JSON.stringify(event),
+    rieParams
+  );
+
+  try {
+    res.lambdaStatus = JSON.parse(res.body).statusCode;
+  } catch (e) {
+    res.lambdaStatus = 0;
+  }
+  return res;
+}
+
 // Test configuration
-export const options = {
-  stages: [
-    // Warm-up phase - gentle ramp to establish baseline
-    { duration: "30s", target: 5 }, // Warm up the Lambda
+var hasOverrides = DURATION || VUS;
 
-    // Load testing phases
-    { duration: "1m", target: 20 }, // Normal load
-    { duration: "2m", target: 50 }, // High load
-    { duration: "1m", target: 100 }, // Stress test - trigger memory pressure
-    { duration: "30s", target: 200 }, // Spike test - force cold starts
+export const options = Object.assign(
+  {
+    thresholds: {
+      http_req_duration: ["p(95)<500"], // 95% under 500ms
+      http_req_failed: ["rate<0.1"], // Less than 10% errors
+      cold_starts: ["rate<0.05"], // Less than 5% cold starts during steady state
+      errors: ["rate<0.05"], // Less than 5% application errors
+    },
 
-    // Cool down
-    { duration: "30s", target: 0 },
-  ],
-
-  thresholds: {
-    http_req_duration: ["p(95)<500"], // 95% under 500ms
-    http_req_failed: ["rate<0.1"], // Less than 10% errors
-    cold_starts: ["rate<0.05"], // Less than 5% cold starts during steady state
-    errors: ["rate<0.05"], // Less than 5% application errors
+    // Enhanced summary configuration for comprehensive reporting
+    summaryTrendStats: ["avg", "min", "med", "max", "p(90)", "p(95)", "p(99)", "count"],
+    summaryTimeUnit: "ms",
   },
+  hasOverrides
+    ? {
+        duration: DURATION || "30s",
+        vus: VUS || 1,
+      }
+    : {
+        stages: [
+          // Warm-up phase - gentle ramp to establish baseline
+          { duration: "30s", target: 5 }, // Warm up the Lambda
 
-  // Enhanced summary configuration for comprehensive reporting
-  summaryTrendStats: ["avg", "min", "med", "max", "p(90)", "p(95)", "p(99)", "count"],
-  summaryTimeUnit: "ms",
-};
+          // Load testing phases
+          { duration: "1m", target: 20 }, // Normal load
+          { duration: "2m", target: 50 }, // High load
+          { duration: "1m", target: 100 }, // Stress test - trigger memory pressure
+          { duration: "30s", target: 200 }, // Spike test - force cold starts
 
-const BASE_URL = "https://g4yecfi5hl.execute-api.eu-central-1.amazonaws.com";
+          // Cool down
+          { duration: "30s", target: 0 },
+        ],
+      }
+);
 
 // Test data pools - realistic package names and scenarios
 const testScenarios = {
@@ -79,7 +157,7 @@ function detectColdStart(response) {
 function detectMemoryPressure(response) {
   // Look for signs of memory pressure (slower responses, errors)
   const duration = response.timings.duration;
-  if (duration > 1000 || response.status >= 500) {
+  if (duration > 1000 || (response.lambdaStatus || response.status) >= 500) {
     memoryPressureCounter.add(1);
     return true;
   }
@@ -139,15 +217,12 @@ export default function () {
 function testNugetPackageBadges() {
   group("NuGet Package Badges", () => {
     const packageName = randomChoice(testScenarios.nugetPackages);
-    const url = `${BASE_URL}/badges/packages/nuget/${packageName}`;
+    const path = `/badges/packages/nuget/${packageName}`;
 
-    const response = http.get(url, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "k6-perf-test/1.0",
-      },
-      tags: { scenario: "nuget_badge", package: packageName },
-    });
+    const response = invoke("GET", path, {
+      Accept: "application/json",
+      "User-Agent": "k6-perf-test/1.0",
+    }, { tags: { scenario: "nuget_badge", package: packageName } });
 
     // Performance analysis
     const isColdStart = detectColdStart(response);
@@ -156,7 +231,7 @@ function testNugetPackageBadges() {
 
     // Validation checks
     check(response, {
-      "status is 200": (r) => r.status === 200,
+      "status is 200": (r) => (r.lambdaStatus || r.status) === 200,
       "response time < 500ms": (r) => r.timings.duration < 500,
       "has badge data": (r) => r.json() && r.json().schemaVersion,
       "has cache headers": (r) => r.headers["cache-control"] !== undefined,
@@ -169,29 +244,26 @@ function testNugetPackageBadges() {
     }
 
     responseTimeP95.add(response.timings.duration);
-    errorRate.add(response.status >= 400 ? 1 : 0);
+    errorRate.add((response.lambdaStatus || response.status) >= 400 ? 1 : 0);
   });
 }
 
 function testGithubPackageBadges() {
   group("GitHub Package Badges", () => {
     const pkg = randomChoice(testScenarios.githubPackages);
-    const url = `${BASE_URL}/badges/packages/github/${pkg.org}/${pkg.package}?prerelease=true`;
+    const path = `/badges/packages/github/${pkg.org}/${pkg.package}?prerelease=true`;
 
-    const response = http.get(url, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "k6-perf-test/1.0",
-      },
-      tags: { scenario: "github_badge", org: pkg.org, package: pkg.package },
-    });
+    const response = invoke("GET", path, {
+      Accept: "application/json",
+      "User-Agent": "k6-perf-test/1.0",
+    }, { tags: { scenario: "github_badge", org: pkg.org, package: pkg.package } });
 
     detectColdStart(response);
     detectMemoryPressure(response);
     checkCacheHeaders(response);
 
     check(response, {
-      "status is 200": (r) => r.status === 200,
+      "status is 200": (r) => (r.lambdaStatus || r.status) === 200,
       "response time < 1000ms": (r) => r.timings.duration < 1000, // GitHub API might be slower
       "has badge data": (r) => r.json() && r.json().schemaVersion,
     });
@@ -202,16 +274,16 @@ function testGithubPackageBadges() {
     }
 
     responseTimeP95.add(response.timings.duration);
-    errorRate.add(response.status >= 400 ? 1 : 0);
+    errorRate.add((response.lambdaStatus || response.status) >= 400 ? 1 : 0);
   });
 }
 
 function testResultBadges() {
   group("Test Result Badges", () => {
     const test = randomChoice(testScenarios.testResults);
-    const url = `${BASE_URL}/badges/tests/${test.platform}/${test.owner}/${test.repo}/${encodeURIComponent(test.branch)}`;
+    const path = `/badges/tests/${test.platform}/${test.owner}/${test.repo}/${encodeURIComponent(test.branch)}`;
 
-    const response = http.get(url, {
+    const response = invoke("GET", path, null, {
       tags: { scenario: "test_badge", platform: test.platform },
     });
 
@@ -219,39 +291,39 @@ function testResultBadges() {
     detectMemoryPressure(response);
 
     check(response, {
-      "status is 200 or 404": (r) => r.status === 200 || r.status === 404, // 404 expected for non-existent test results
+      "status is 200 or 404": (r) => (r.lambdaStatus || r.status) === 200 || (r.lambdaStatus || r.status) === 404, // 404 expected for non-existent test results
       "response time < 1000ms": (r) => r.timings.duration < 1000,
     });
 
     responseTimeP95.add(response.timings.duration);
-    errorRate.add(response.status >= 500 ? 1 : 0); // Only 5xx are real errors for this endpoint
+    errorRate.add((response.lambdaStatus || response.status) >= 500 ? 1 : 0); // Only 5xx are real errors for this endpoint
   });
 }
 
 function testHealthAndMisc() {
   group("Health and Miscellaneous", () => {
     // Health check
-    const healthResponse = http.get(`${BASE_URL}/health`, {
+    const healthResponse = invoke("GET", "/health", null, {
       tags: { scenario: "health_check" },
     });
 
     check(healthResponse, {
-      "health check is 200": (r) => r.status === 200,
+      "health check is 200": (r) => (r.lambdaStatus || r.status) === 200,
       "health check is fast": (r) => r.timings.duration < 100,
     });
 
     // Test a redirect endpoint
     if (Math.random() < 0.5) {
       const test = randomChoice(testScenarios.testResults);
-      const redirectUrl = `${BASE_URL}/redirect/test-results/${test.platform}/${test.owner}/${test.repo}/${encodeURIComponent(test.branch)}`;
+      const redirectPath = `/redirect/test-results/${test.platform}/${test.owner}/${test.repo}/${encodeURIComponent(test.branch)}`;
 
-      const redirectResponse = http.get(redirectUrl, {
+      const redirectResponse = invoke("GET", redirectPath, null, {
         redirects: 0, // Don't follow redirects
         tags: { scenario: "redirect_test" },
       });
 
       check(redirectResponse, {
-        "redirect status is 3xx": (r) => r.status >= 300 && r.status < 400,
+        "redirect status is 3xx": (r) => (r.lambdaStatus || r.status) >= 300 && (r.lambdaStatus || r.status) < 400,
       });
     }
   });
@@ -264,39 +336,38 @@ function testEdgeCases() {
     if (edgeCase < 0.3) {
       // URL-encoded package names
       const packageName = "Microsoft%2EExtensions%2EHttp";
-      const response = http.get(`${BASE_URL}/badges/packages/nuget/${packageName}`, {
+      const response = invoke("GET", `/badges/packages/nuget/${packageName}`, null, {
         tags: { scenario: "edge_case", type: "url_encoded" },
       });
 
       check(response, {
-        "handles URL encoding": (r) => r.status === 200,
+        "handles URL encoding": (r) => (r.lambdaStatus || r.status) === 200,
       });
     } else if (edgeCase < 0.6) {
       // Rapid successive requests to same endpoint (cache testing)
       const packageName = randomChoice(testScenarios.nugetPackages);
-      const url = `${BASE_URL}/badges/packages/nuget/${packageName}`;
+      const path = `/badges/packages/nuget/${packageName}`;
 
       for (let i = 0; i < 3; i++) {
-        const response = http.get(url, {
-          headers: i > 0 ? { "If-None-Match": "test-etag" } : {},
-          tags: { scenario: "edge_case", type: "cache_burst" },
-        });
+        const response = invoke("GET", path,
+          i > 0 ? { "If-None-Match": "test-etag" } : null,
+          { tags: { scenario: "edge_case", type: "cache_burst" } }
+        );
 
         if (i === 0) {
           check(response, {
-            "first request succeeds": (r) => r.status === 200,
+            "first request succeeds": (r) => (r.lambdaStatus || r.status) === 200,
           });
         }
       }
     } else {
       // Invalid routes (should be handled gracefully)
-      const invalidUrl = `${BASE_URL}/badges/invalid/route/structure`;
-      const response = http.get(invalidUrl, {
+      const response = invoke("GET", "/badges/invalid/route/structure", null, {
         tags: { scenario: "edge_case", type: "invalid_route" },
       });
 
       check(response, {
-        "invalid route returns 404": (r) => r.status === 404,
+        "invalid route returns 404": (r) => (r.lambdaStatus || r.status) === 404,
         "error response is fast": (r) => r.timings.duration < 200,
       });
     }
@@ -313,7 +384,7 @@ export function setup() {
   console.log("   - Custom metrics from your application logs");
 
   // Warm up the Lambda
-  const warmupResponse = http.get(`${BASE_URL}/health`);
+  const warmupResponse = invoke("GET", "/health");
   console.log(`🔥 Warmup response time: ${warmupResponse.timings.duration}ms`);
 
   return { startTime: new Date() };
