@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using BadgeSmith.Api.Core.Routing.Patterns;
 using BadgeSmith.Api.Tests.TestHelpers;
+using BadgeSmith.Api.Tests.Testing;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.Patterns;
 
+[Trait("Category", TestCategories.Unit)]
 public sealed class TemplatePatternTests
 {
     [Fact]

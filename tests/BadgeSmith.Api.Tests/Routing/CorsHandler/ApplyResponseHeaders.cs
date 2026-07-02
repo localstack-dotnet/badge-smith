@@ -1,11 +1,13 @@
 ﻿using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Cors;
+using BadgeSmith.Api.Tests.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.CorsHandler;
 
+[Trait("Category", TestCategories.Unit)]
 public class ApplyResponseHeadersTests : TestBase
 {
     private readonly Mock<IRouteResolver> _mockRouteResolver;
