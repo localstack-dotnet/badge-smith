@@ -41,7 +41,22 @@ var badgeSmithApi = builder
     .WithReference(badgeSmithStack)
     .WaitFor(dynamoDbSeeder);
 
+var httpNuGetBaseUrl = Environment.GetEnvironmentVariable("HTTP_NUGET_BASE_URL");
+if (!string.IsNullOrWhiteSpace(httpNuGetBaseUrl))
+{
+    badgeSmithApi.WithEnvironment("HTTP_NUGET_BASE_URL", httpNuGetBaseUrl);
+}
+
+var httpGitHubBaseUrl = Environment.GetEnvironmentVariable("HTTP_GITHUB_BASE_URL");
+if (!string.IsNullOrWhiteSpace(httpGitHubBaseUrl))
+{
+    badgeSmithApi.WithEnvironment("HTTP_GITHUB_BASE_URL", httpGitHubBaseUrl);
+}
+
 builder.AddAWSAPIGatewayEmulator("APIGatewayEmulator", APIGatewayType.HttpV2)
+    .WithEnvironment("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1")
+    .WithEnvironment("LANG", "C")
+    .WithEnvironment("LC_ALL", "C")
     .WithReference(badgeSmithApi, Method.Any, "/{proxy+}");
 
 builder.UseLocalStack(localstack);

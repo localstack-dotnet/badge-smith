@@ -16,129 +16,34 @@ const cacheHitRate = new Rate("cache_hits");
 
 // Environment configuration
 const BASE_URL = __ENV.K6_API_URL || "https://g4yecfi5hl.execute-api.eu-central-1.amazonaws.com";
-const TARGET_MODE = __ENV.K6_TARGET_MODE || "http"; // http | rie
-if (TARGET_MODE !== "http" && TARGET_MODE !== "rie") {
-  throw new Error(`Invalid K6_TARGET_MODE: "${TARGET_MODE}". Must be "http" or "rie".`);
-}
 const DURATION = __ENV.K6_DURATION || null;
 const VUS = __ENV.K6_VUS ? parseInt(__ENV.K6_VUS, 10) : null;
 
-// Request wrapper routing all calls through HTTP or RIE mode
+// Request wrapper
 function invoke(method, path, headers, params) {
   const k6Params = Object.assign({}, params || {});
   if (headers && Object.keys(headers).length > 0) {
     k6Params.headers = headers;
   }
 
-  if (TARGET_MODE === "http") {
-    return http.request(method, `${BASE_URL}${path}`, null, k6Params);
-  }
-
-  // RIE mode: wrap into an API Gateway v2 event
-  const qIndex = path.indexOf("?");
-  const rawPath = qIndex >= 0 ? path.substring(0, qIndex) : path;
-  const rawQueryString = qIndex >= 0 ? path.substring(qIndex + 1) : "";
-
-  const queryStringParameters = {};
-  if (rawQueryString) {
-    rawQueryString.split("&").forEach(function (pair) {
-      var idx = pair.indexOf("=");
-      if (idx >= 0) {
-        queryStringParameters[decodeURIComponent(pair.substring(0, idx))] =
-          decodeURIComponent(pair.substring(idx + 1));
-      }
-    });
-  }
-
-  // __VU and __ITER are only defined inside VU iteration context, not in
-  // setup()/teardown(). Use safe fallbacks so invoke() works from all phases.
-  const vu = typeof __VU !== 'undefined' ? __VU : 0;
-  const iter = typeof __ITER !== 'undefined' ? __ITER : 0;
-
-  var event = {
-    version: "2.0",
-    routeKey: "$default",
-    rawPath: rawPath,
-    rawQueryString: rawQueryString,
-    headers: headers || {},
-    requestContext: {
-      http: { method: method, path: rawPath },
-      stage: "$default",
-      requestId: "k6-" + vu + "-" + iter,
-    },
-    isBase64Encoded: false,
-  };
-  if (Object.keys(queryStringParameters).length > 0) {
-    event.queryStringParameters = queryStringParameters;
-  }
-
-  var rieParams = Object.assign({}, params || {});
-  rieParams.headers = Object.assign(
-    { "Content-Type": "application/json" },
-    rieParams.headers || {}
-  );
-
-  var res = http.post(
-    BASE_URL + "/2015-03-31/functions/function/invocations",
-    JSON.stringify(event),
-    rieParams
-  );
-
-  // Extract the full Lambda response from the RIE invocation envelope.
-  // The RIE POST response body is the Lambda / API Gateway response:
-  //   { statusCode, headers: {...}, body: "...", isBase64Encoded, ... }
-  // Checks (r.json(), r.headers, r.body) should see the Lambda's response,
-  // not the RIE envelope. Host timing / transport data is preserved via
-  // the prototype chain.
-  var lambdaStatus = 0;
-  var lambdaHeaders = {};
-  var lambdaBody = "";
-  try {
-    var lambdaResponse = JSON.parse(res.body);
-    lambdaStatus = lambdaResponse.statusCode || 0;
-    var rawHeaders = lambdaResponse.headers || {};
-    // Normalize: preserve original keys and add lowercase aliases so
-    // checks like response.headers["cache-control"] work regardless of
-    // the casing returned by the Lambda / API Gateway envelope.
-    for (var h in rawHeaders) {
-      if (Object.prototype.hasOwnProperty.call(rawHeaders, h)) {
-        lambdaHeaders[h] = rawHeaders[h];
-        var lower = h.toLowerCase();
-        if (lower !== h) {
-          lambdaHeaders[lower] = rawHeaders[h];
-        }
-      }
-    }
-    lambdaBody = lambdaResponse.body || "";
-  } catch (e) {
-    // keep defaults for invalid envelope
-  }
-
-  // Create a delegating wrapper: own properties project the Lambda response;
-  // everything else (status, timings, url, request, etc.) falls through to
-  // the host RIE response via Object.create() prototype chain.
-  res = Object.assign(Object.create(res), {
-    lambdaStatus: lambdaStatus,
-    headers: lambdaHeaders,
-    body: lambdaBody,
-    json: function () {
-      return JSON.parse(lambdaBody);
-    },
-  });
-  return res;
+  return http.request(method, `${BASE_URL}${path}`, null, k6Params);
 }
 
 // Test configuration
 var hasOverrides = DURATION || VUS;
+const thresholds = {
+  http_req_duration: ["p(95)<500"], // 95% under 500ms
+  http_req_failed: ["rate<0.1"], // Less than 10% errors
+  errors: ["rate<0.05"], // Less than 5% application errors
+};
+
+if (!hasOverrides) {
+  thresholds.cold_starts = ["rate<0.05"]; // Less than 5% cold starts during steady state
+}
 
 export const options = Object.assign(
   {
-    thresholds: {
-      http_req_duration: ["p(95)<500"], // 95% under 500ms
-      http_req_failed: ["rate<0.1"], // Less than 10% errors
-      cold_starts: ["rate<0.05"], // Less than 5% cold starts during steady state
-      errors: ["rate<0.05"], // Less than 5% application errors
-    },
+    thresholds,
 
     // Enhanced summary configuration for comprehensive reporting
     summaryTrendStats: ["avg", "min", "med", "max", "p(90)", "p(95)", "p(99)", "count"],
@@ -201,16 +106,26 @@ function detectColdStart(response) {
 function detectMemoryPressure(response) {
   // Look for signs of memory pressure (slower responses, errors)
   const duration = response.timings.duration;
-  if (duration > 1000 || (response.lambdaStatus || response.status) >= 500) {
+  if (duration > 1000 || response.status >= 500) {
     memoryPressureCounter.add(1);
     return true;
   }
   return false;
 }
 
+function getHeader(response, name) {
+  const lowerName = name.toLowerCase();
+  for (const key in response.headers) {
+    if (key.toLowerCase() === lowerName) {
+      return response.headers[key];
+    }
+  }
+  return undefined;
+}
+
 function checkCacheHeaders(response) {
-  const etag = response.headers["etag"];
-  const cacheControl = response.headers["cache-control"];
+  const etag = getHeader(response, "etag");
+  const cacheControl = getHeader(response, "cache-control");
   const isFromCache = !!(etag && cacheControl);
   cacheHitRate.add(isFromCache ? 1 : 0);
   return isFromCache;
@@ -275,11 +190,10 @@ function testNugetPackageBadges() {
 
     // Validation checks
     check(response, {
-      "status is 200": (r) => (r.lambdaStatus || r.status) === 200,
+      "status is 200": (r) => r.status === 200,
       "response time < 500ms": (r) => r.timings.duration < 500,
       "has badge data": (r) => r.json() && r.json().schemaVersion,
-      "has cache headers": (r) => r.headers["cache-control"] !== undefined,
-      "not a cold start": (r) => !isColdStart || Math.random() < 0.1, // Allow some cold starts
+      "has cache headers": (r) => getHeader(r, "cache-control") !== undefined,
     });
 
     // Live reporting for slow responses
@@ -288,7 +202,7 @@ function testNugetPackageBadges() {
     }
 
     responseTimeP95.add(response.timings.duration);
-    errorRate.add((response.lambdaStatus || response.status) >= 400 ? 1 : 0);
+    errorRate.add(response.status >= 400 ? 1 : 0);
   });
 }
 
@@ -307,7 +221,7 @@ function testGithubPackageBadges() {
     checkCacheHeaders(response);
 
     check(response, {
-      "status is 200": (r) => (r.lambdaStatus || r.status) === 200,
+      "status is 200": (r) => r.status === 200,
       "response time < 1000ms": (r) => r.timings.duration < 1000, // GitHub API might be slower
       "has badge data": (r) => r.json() && r.json().schemaVersion,
     });
@@ -318,7 +232,7 @@ function testGithubPackageBadges() {
     }
 
     responseTimeP95.add(response.timings.duration);
-    errorRate.add((response.lambdaStatus || response.status) >= 400 ? 1 : 0);
+    errorRate.add(response.status >= 400 ? 1 : 0);
   });
 }
 
@@ -335,12 +249,12 @@ function testResultBadges() {
     detectMemoryPressure(response);
 
     check(response, {
-      "status is 200 or 404": (r) => (r.lambdaStatus || r.status) === 200 || (r.lambdaStatus || r.status) === 404, // 404 expected for non-existent test results
+      "status is 200 or 404": (r) => r.status === 200 || r.status === 404, // 404 expected for non-existent test results
       "response time < 1000ms": (r) => r.timings.duration < 1000,
     });
 
     responseTimeP95.add(response.timings.duration);
-    errorRate.add((response.lambdaStatus || response.status) >= 500 ? 1 : 0); // Only 5xx are real errors for this endpoint
+    errorRate.add(response.status >= 500 ? 1 : 0); // Only 5xx are real errors for this endpoint
   });
 }
 
@@ -352,7 +266,7 @@ function testHealthAndMisc() {
     });
 
     check(healthResponse, {
-      "health check is 200": (r) => (r.lambdaStatus || r.status) === 200,
+      "health check is 200": (r) => r.status === 200,
       "health check is fast": (r) => r.timings.duration < 100,
     });
 
@@ -367,7 +281,7 @@ function testHealthAndMisc() {
       });
 
       check(redirectResponse, {
-        "redirect status is 3xx": (r) => (r.lambdaStatus || r.status) >= 300 && (r.lambdaStatus || r.status) < 400,
+        "redirect status is 3xx or 404": (r) => (r.status >= 300 && r.status < 400) || r.status === 404,
       });
     }
   });
@@ -385,7 +299,7 @@ function testEdgeCases() {
       });
 
       check(response, {
-        "handles URL encoding": (r) => (r.lambdaStatus || r.status) === 200,
+        "handles URL encoding": (r) => r.status === 200,
       });
     } else if (edgeCase < 0.6) {
       // Rapid successive requests to same endpoint (cache testing)
@@ -400,7 +314,7 @@ function testEdgeCases() {
 
         if (i === 0) {
           check(response, {
-            "first request succeeds": (r) => (r.lambdaStatus || r.status) === 200,
+            "first request succeeds": (r) => r.status === 200,
           });
         }
       }
@@ -411,7 +325,7 @@ function testEdgeCases() {
       });
 
       check(response, {
-        "invalid route returns 404": (r) => (r.lambdaStatus || r.status) === 404,
+        "invalid route returns 404": (r) => r.status === 404,
         "error response is fast": (r) => r.timings.duration < 200,
       });
     }

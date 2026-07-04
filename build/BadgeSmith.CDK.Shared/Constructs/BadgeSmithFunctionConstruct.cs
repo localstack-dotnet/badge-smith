@@ -20,34 +20,64 @@ public class BadgeSmithFunctionConstruct : Construct
         ITable nonceTable,
         ITable orgSecretTable,
         IRole lambdaExecutionRole,
-        string id) : base(scope, id)
+        string id)
+        : this(
+            scope,
+            testResultsTable,
+            nonceTable,
+            orgSecretTable,
+            lambdaExecutionRole,
+            id,
+            BadgeSmithFunctionConfiguration.Production)
+    {
+    }
+
+    public BadgeSmithFunctionConstruct(
+        Construct scope,
+        ITable testResultsTable,
+        ITable nonceTable,
+        ITable orgSecretTable,
+        IRole lambdaExecutionRole,
+        string id,
+        BadgeSmithFunctionConfiguration configuration) : base(scope, id)
     {
         ArgumentNullException.ThrowIfNull(scope);
         ArgumentNullException.ThrowIfNull(testResultsTable);
         ArgumentNullException.ThrowIfNull(nonceTable);
         ArgumentNullException.ThrowIfNull(orgSecretTable);
         ArgumentNullException.ThrowIfNull(lambdaExecutionRole);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var environment = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["DOTNET_ENVIRONMENT"] = "Production",
+            ["APP_NAME"] = LambdaName,
+            ["APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS"] = "true",
+            ["AWS_RESOURCE_TEST_RESULTS_TABLE"] = testResultsTable.TableName,
+            ["AWS_RESOURCE_NONCE_TABLE"] = nonceTable.TableName,
+            ["AWS_RESOURCE_ORG_SECRETS_TABLE"] = orgSecretTable.TableName,
+            // ["AWS_LAMBDA_EXEC_WRAPPER"] = "/opt/otel-instrument", // For future OpenTelemetry support
+        };
+
+        if (configuration.ExtraEnvironment is not null)
+        {
+            foreach (var (key, value) in configuration.ExtraEnvironment)
+            {
+                environment[key] = value;
+            }
+        }
 
         BadgeSmithFunction = new Function(this, LambdaId, new FunctionProps
         {
             FunctionName = LambdaName,
             Runtime = Runtime.PROVIDED_AL2023,
-            Code = Code.FromAsset("../artifacts/badge-lambda-linux-arm64.zip"),
+            Code = Code.FromAsset(configuration.AssetPath),
             Handler = "bootstrap",
             Role = lambdaExecutionRole,
             Timeout = Duration.Seconds(LambdaTimeoutInSeconds),
             MemorySize = 512,
-            Architecture = Architecture.ARM_64,
-            Environment = new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["DOTNET_ENVIRONMENT"] = "Production",
-                ["APP_NAME"] = LambdaName,
-                ["APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS"] = "true",
-                ["AWS_RESOURCE_TEST_RESULTS_TABLE"] = testResultsTable.TableName,
-                ["AWS_RESOURCE_NONCE_TABLE"] = nonceTable.TableName,
-                ["AWS_RESOURCE_ORG_SECRETS_TABLE"] = orgSecretTable.TableName,
-                // ["AWS_LAMBDA_EXEC_WRAPPER"] = "/opt/otel-instrument", // For future OpenTelemetry support
-            },
+            Architecture = configuration.Architecture,
+            Environment = environment,
             Description = "BadgeSmith Native AOT Lambda function for badge generation",
         });
 
@@ -59,4 +89,14 @@ public class BadgeSmithFunctionConstruct : Construct
     }
 
     public Function BadgeSmithFunction { get; }
+}
+
+public sealed record BadgeSmithFunctionConfiguration(
+    string AssetPath,
+    Architecture Architecture,
+    IReadOnlyDictionary<string, string>? ExtraEnvironment = null)
+{
+    public static BadgeSmithFunctionConfiguration Production { get; } = new(
+        "../artifacts/badge-lambda-linux-arm64.zip",
+        Architecture.ARM_64);
 }

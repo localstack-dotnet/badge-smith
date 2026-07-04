@@ -443,3 +443,4 @@ opencode.jsonc
 
 # Editor / local harness config (machine-specific; may contain local MCP ports and personal settings)
 .vscode/
+external/

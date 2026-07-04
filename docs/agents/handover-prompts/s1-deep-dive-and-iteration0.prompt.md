@@ -1,10 +1,12 @@
 ---
 name: "S1 Deep-dive audit, perf research, iteration 0 spec+plan"
-description: "Priming prompt for the next agent entering BadgeSmith after the full-repo deep-dive, measured perf research, and the approved iteration 0 contract-tier design+plan landed at 6c6f609 on 2026-07-02. Iteration 0 implementation plan is written and approved but NOT yet executed; execution mode (subagent-driven vs inline) is the open question. Recommended next: execute iteration 0."
+description: "Superseded priming prompt for the 2026-07-02 BadgeSmith handover after the full-repo deep-dive, measured perf research, and original iteration 0 contract-tier design+plan. Retained for historical context only; use docs/ROADMAP.md and the 2026-07-04 RIE-free plan for current routing."
 argument-hint: "Optional focus area, constraints, or reason to override the recommended next step"
 agent: "agent"
 model: "Claude Fable 5"
 ---
+
+> Superseded note (2026-07-04): This pickup prompt records the 2026-07-02 state only. Do not use it to start Iteration 0. Use `docs/plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md` and `docs/ROADMAP.md` for current routing.
 
 You are an engineer entering BadgeSmith right after a research-and-planning wave:
 a full-codebase deep-dive audit, a measured performance investigation, and the
@@ -63,7 +65,7 @@ provisioned concurrency, keep-warm pings, SnapStart (N/A), hand-rolled SIMD (BCL
 already vectorized). Honest scorecard: architecture A, memory A-, cold-start execution
 B-.
 
-### 4. Iteration 0 spec + implementation plan (the active workstream)
+### 4. Iteration 0 spec + implementation plan (superseded workstream)
 
 - Spec (approved): `docs/plans/2026-07-02-iteration0-aot-contract-tier-design.md`
 - Plan (approved, **uncommitted at session end**): `docs/plans/2026-07-02-iteration0-aot-contract-tier-plan.md`
@@ -126,7 +128,9 @@ Docs/planning only — no build or `dotnet test` run. AWS claims verified live v
 - **Undecided AWS cleanup**: two `provided.al2` demo lambdas + couples-threapy stack
   (see §1) — surface when relevant, don't act without a decision.
 
-## Recommended Next Step
+## Historical Recommended Next Step
+
+These were the next steps as of 2026-07-02. They are superseded by the 2026-07-04 RIE-free plan and are retained only for context.
 
 1. **Execute iteration 0** (multi-session arc, the default). Pre-flight: read the spec
    + plan (grounding list below), confirm Docker is up, then ask Deniz the pending
@@ -144,22 +148,33 @@ Talk to Deniz before committing to which one. Default to working on `master`; do
 branch unless there is a concrete reason. No commit without explicit
 "go / apply / proceed / başla / yap" (AGENTS.md approval gate).
 
-## Mandatory Grounding (read in this order)
+## Historical Grounding Only
+
+Do not use this archived prompt as current routing. If you need the historical context,
+read the current sources first, then treat the 2026-07-02 RIE documents as superseded
+background only:
 
 1. `AGENTS.md` — canonical contract: approval gate, AOT/Lambda constraints, capability
    routing (`CLAUDE.md` is relay-only).
-2. `docs/plans/2026-07-02-iteration0-aot-contract-tier-design.md` — the approved spec.
-3. `docs/plans/2026-07-02-iteration0-aot-contract-tier-plan.md` — the task-by-task plan
-   you will execute.
-4. `docs/research/2026-07-02-code-review-findings.md` +
+2. `docs/ROADMAP.md` — current backlog and active workstream routing.
+3. `docs/plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md` — current
+   RIE-free Iteration 0 implementation plan.
+4. `docs/plans/2026-07-02-iteration0-aot-contract-tier-design.md` and
+   `docs/plans/2026-07-02-iteration0-aot-contract-tier-plan.md` — superseded RIE-based
+   historical design and task list.
+5. `docs/research/2026-07-02-code-review-findings.md` +
    `docs/research/2026-07-02-performance-opportunities.md` — findings and perf
-   decisions the plan builds on.
-5. `docs/ROADMAP.md` — Status & Plan Mapping + Backlog waves.
-6. `docs/agents/README.md` (capability mapping — resolve skill names here) +
+   decisions the original plan built on.
+6. `docs/research/baselines/2026-07-04-localstack-smoke.json` — current LocalStack smoke
+   baseline from the RIE-free benchmark harness.
+7. `docs/agents/README.md` (capability mapping — resolve skill names here) +
    `docs/agents/KNOWN_ISSUES.md`.
-7. `ARCHITECTURE.md` / `README.md` as needed for endpoint behavior.
+8. `ARCHITECTURE.md` / `README.md` as needed for endpoint behavior.
 
-## Locked Policy Recap
+## Historical Policy Recap
+
+This section records the 2026-07-02 session state. Current policy comes from
+`AGENTS.md` and the active RIE-free plan.
 
 - No commit without explicit "go / apply / proceed / başla / yap". Conventional
   Commits; **no AI attribution trailers**.
@@ -176,13 +191,10 @@ branch unless there is a concrete reason. No commit without explicit
   capabilities" section).
 - Tests are xUnit v3 on VSTest — plain `dotnet test` / `--filter`.
 
-## Final Steering Note
+## Historical Steering Note
 
 This session converted an inbox scare (a deprecation email that turned out not to be
 ours) into the project's first complete map: verified bugs, measured performance
 truth, and an approved plan for the safety net that must exist before anyone touches
-`TrimMode`. The next session's rhythm should be boringly mechanical: pick the
-execution mode with Deniz, then walk plan tasks 1→10 with the discipline already
-encoded in them — spike, red, green, slopwatch, commit. Resist the temptation to fix
-the bugs you'll be pinning; their turn is Wave 1, and the suite you're about to build
-is what makes those fixes safe.
+`TrimMode`. This steering note is superseded by the 2026-07-04 RIE-free plan and is
+retained only to explain the earlier handoff state.

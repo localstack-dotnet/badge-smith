@@ -7,31 +7,40 @@ namespace BadgeSmith.Api.Tests.Testing.Infrastructure;
 
 public static class AwsTestSeeder
 {
+    public const string HmacSecret = "contract-test-secret";
+    public const string Org = "test-org";
+
+    private const string TestResultsTableName = "badge-smith-test-result";
+    private const string NonceTableName = "badge-smith-hmac-nonce";
+    private const string OrgSecretsTableName = "badge-smith-github-org-secrets";
+
     public static async Task CreateTablesAndSecretsAsync(IAmazonDynamoDB dynamo, IAmazonSecretsManager secrets)
     {
-        await CreatePkSkTableAsync(dynamo, "badge-smith-hmac-nonce", withGsi: false);
-        await CreatePkSkTableAsync(dynamo, "badge-smith-github-org-secrets", withGsi: false);
-        await CreatePkSkTableAsync(dynamo, "badge-smith-test-result", withGsi: true);
+        await CreatePkSkTableAsync(dynamo, NonceTableName, withGsi: false);
+        await CreatePkSkTableAsync(dynamo, OrgSecretsTableName, withGsi: false);
+        await CreatePkSkTableAsync(dynamo, TestResultsTableName, withGsi: true);
 
-        await CreateSecretAsync(secrets, "badgesmith/github/test-org/testdata", BadgeSmithStackFixture.HmacSecret);
+        await CreateSecretAsync(secrets, "badgesmith/github/test-org/testdata", HmacSecret);
         await CreateSecretAsync(secrets, "badgesmith/github/test-org/package", "dummy-github-pat");
         await CreateSecretAsync(secrets, "badgesmith/github/unauthorized-org/package", "dummy-github-pat");
+        await CreateSecretAsync(secrets, "badgesmith/github/forbidden-org/package", "dummy-github-pat");
 
         await PutSecretMappingAsync(dynamo, "testdata", "badgesmith/github/test-org/testdata");
         await PutSecretMappingAsync(dynamo, "package", "badgesmith/github/test-org/package");
         await PutSecretMappingAsync(dynamo, "unauthorized-org", "package", "badgesmith/github/unauthorized-org/package");
+        await PutSecretMappingAsync(dynamo, "forbidden-org", "package", "badgesmith/github/forbidden-org/package");
     }
 
     private static async Task PutSecretMappingAsync(IAmazonDynamoDB dynamo, string tokenTypeLower, string secretName)
     {
-        await PutSecretMappingAsync(dynamo, BadgeSmithStackFixture.Org, tokenTypeLower, secretName);
+        await PutSecretMappingAsync(dynamo, Org, tokenTypeLower, secretName);
     }
 
     private static async Task PutSecretMappingAsync(IAmazonDynamoDB dynamo, string orgLower, string tokenTypeLower, string secretName)
     {
         await dynamo.PutItemAsync(new PutItemRequest
         {
-            TableName = "badge-smith-github-org-secrets",
+            TableName = OrgSecretsTableName,
             Item = new Dictionary<string, AttributeValue>(StringComparer.Ordinal)
             {
                 ["PK"] = new($"ORG#{orgLower}"),

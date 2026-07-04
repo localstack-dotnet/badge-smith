@@ -1,0 +1,4 @@
+{
+  "request": { "method": "GET", "urlPath": "/github/orgs/test-org/packages/nuget/missing.pkg/versions" },
+  "response": { "status": 404, "jsonBody": { "message": "Not Found" } }
+}

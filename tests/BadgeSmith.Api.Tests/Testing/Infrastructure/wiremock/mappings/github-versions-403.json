@@ -1,0 +1,4 @@
+{
+  "request": { "method": "GET", "urlPath": "/github/orgs/forbidden-org/packages/nuget/any.pkg/versions" },
+  "response": { "status": 403, "jsonBody": { "message": "Forbidden" } }
+}

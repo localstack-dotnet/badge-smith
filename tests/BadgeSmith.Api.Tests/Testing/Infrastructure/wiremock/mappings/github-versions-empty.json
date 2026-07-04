@@ -1,0 +1,8 @@
+{
+  "request": { "method": "GET", "urlPath": "/github/orgs/test-org/packages/nuget/empty.pkg/versions" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": []
+  }
+}

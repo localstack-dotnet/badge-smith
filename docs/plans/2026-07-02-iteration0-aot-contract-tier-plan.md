@@ -1,5 +1,7 @@
 # Iteration 0 — AOT Contract Tier, Baseline Harness, Multi-Arch Build: Implementation Plan
 
+> Superseded note (2026-07-04): Do not continue this RIE-based task list. Use `2026-07-04-rie-free-aspire-localstack-implementation-plan.md` for implementation.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A contract-test tier that exercises the real published Native AOT artifact in the real Lambda base image, a repeatable perf/memory baseline harness, and a QEMU-free multi-arch Docker build — per the approved spec `docs/plans/2026-07-02-iteration0-aot-contract-tier-design.md`.

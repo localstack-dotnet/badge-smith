@@ -4,11 +4,10 @@ using Xunit;
 
 namespace BadgeSmith.Api.Tests.Functional;
 
-[Collection("contract")]
+[Collection("aspire-contract")]
 [Trait("Category", TestCategories.Integration)]
 [Trait("Category", TestCategories.Functional)]
-[Trait("Category", TestCategories.AotContract)]
-public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
+public sealed class TestResultsContractTests(AspireContractFixture stack)
 {
     private const string Owner = "test-org";
     private const string Platform = "linux";
@@ -35,7 +34,7 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
 
     private static Dictionary<string, string> AuthHeaders(string body)
     {
-        var (sig, ts, nonce) = HmacTestSigner.Sign(body, BadgeSmithStackFixture.HmacSecret);
+        var (sig, ts, nonce) = HmacTestSigner.Sign(body, AwsTestSeeder.HmacSecret);
         return new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["x-signature"] = sig,
@@ -50,17 +49,18 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
     {
         var testCase = CreateCase("roundtrip", 1);
         var body = testCase.CreatePayload();
-        var post = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath, AuthHeaders(body), body, TestContext.Current.CancellationToken);
+        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, AuthHeaders(body), body, TestContext.Current.CancellationToken);
         Assert.Equal(201, post.StatusCode);
 
-        var badge = await stack.Lambda.InvokeAsync("GET", testCase.BadgePath, ct: TestContext.Current.CancellationToken);
+        var badge = await stack.Api.InvokeAsync("GET", testCase.BadgePath, ct: TestContext.Current.CancellationToken);
         Assert.Equal(200, badge.StatusCode);
         Assert.Contains("\"schemaVersion\":1", badge.Body, StringComparison.Ordinal);
         Assert.Contains("passed", badge.Body, StringComparison.Ordinal);
         Assert.NotNull(badge.Headers);
         Assert.StartsWith("\"", badge.Headers["ETag"], StringComparison.Ordinal);
+        Assert.True(badge.Headers.ContainsKey("Last-Modified"));
 
-        var cached = await stack.Lambda.InvokeAsync("GET", testCase.BadgePath,
+        var cached = await stack.Api.InvokeAsync("GET", testCase.BadgePath,
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["if-none-match"] = badge.Headers["ETag"]
@@ -76,7 +76,7 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
         var body = testCase.CreatePayload();
         var headers = AuthHeaders(body);
         headers["x-signature"] = "sha256=" + new string('0', 64);
-        var post = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
+        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
         Assert.Equal(401, post.StatusCode);
     }
 
@@ -85,7 +85,7 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
     {
         var testCase = CreateCase("stale-timestamp", 3);
         var body = testCase.CreatePayload();
-        var (sig, ts, nonce) = HmacTestSigner.Sign(body, BadgeSmithStackFixture.HmacSecret,
+        var (sig, ts, nonce) = HmacTestSigner.Sign(body, AwsTestSeeder.HmacSecret,
             timestamp: DateTimeOffset.UtcNow.AddMinutes(-10));
         var headers = new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -93,7 +93,24 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
             ["x-timestamp"] = ts,
             ["x-nonce"] = nonce,
         };
-        var post = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
+        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
+        Assert.Equal(400, post.StatusCode);
+    }
+
+    [Fact]
+    public async Task Ingestion_Should_Reject_FutureTimestamp_With400()
+    {
+        var testCase = CreateCase("future-timestamp", 9);
+        var body = testCase.CreatePayload();
+        var (sig, ts, nonce) = HmacTestSigner.Sign(body, AwsTestSeeder.HmacSecret,
+            timestamp: DateTimeOffset.UtcNow.AddMinutes(10));
+        var headers = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["x-signature"] = sig,
+            ["x-timestamp"] = ts,
+            ["x-nonce"] = nonce,
+        };
+        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
         Assert.Equal(400, post.StatusCode);
     }
 
@@ -103,8 +120,8 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
         var testCase = CreateCase("nonce-replay", 4);
         var nonce = Guid.NewGuid().ToString("N");
         var body1 = testCase.CreatePayload();
-        var (sig1, ts1, _) = HmacTestSigner.Sign(body1, BadgeSmithStackFixture.HmacSecret, nonce: nonce);
-        var first = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath,
+        var (sig1, ts1, _) = HmacTestSigner.Sign(body1, AwsTestSeeder.HmacSecret, nonce: nonce);
+        var first = await stack.Api.InvokeAsync("POST", testCase.IngestPath,
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["x-signature"] = sig1,
@@ -115,8 +132,8 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
         Assert.Equal(201, first.StatusCode);
 
         var body2 = testCase.CreatePayload();
-        var (sig2, ts2, _) = HmacTestSigner.Sign(body2, BadgeSmithStackFixture.HmacSecret, nonce: nonce);
-        var replay = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath,
+        var (sig2, ts2, _) = HmacTestSigner.Sign(body2, AwsTestSeeder.HmacSecret, nonce: nonce);
+        var replay = await stack.Api.InvokeAsync("POST", testCase.IngestPath,
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["x-signature"] = sig2,
@@ -136,7 +153,7 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
         var body = testCase.CreatePayload();
         var headers = AuthHeaders(body);
         headers["x-signature"] = "sha256=zzzz";
-        var post = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
+        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
         Assert.Equal(500, post.StatusCode);
     }
 
@@ -145,14 +162,14 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
     {
         var testCase = CreateCase("missing-auth", 7);
         var body = testCase.CreatePayload();
-        var post = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath, body: body, ct: TestContext.Current.CancellationToken);
+        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, body: body, ct: TestContext.Current.CancellationToken);
         Assert.Equal(400, post.StatusCode);
     }
 
     [Fact]
     public async Task Badge_UnknownRepo_Should_Return404()
     {
-        var badge = await stack.Lambda.InvokeAsync("GET", "/badges/tests/linux/test-org/no-such-repo/main", ct: TestContext.Current.CancellationToken);
+        var badge = await stack.Api.InvokeAsync("GET", "/badges/tests/linux/test-org/no-such-repo/main", ct: TestContext.Current.CancellationToken);
         Assert.Equal(404, badge.StatusCode);
     }
 
@@ -161,13 +178,15 @@ public sealed class TestResultsContractTests(BadgeSmithStackFixture stack)
     {
         var testCase = CreateCase("redirect", 8);
         var body = testCase.CreatePayload();
-        var post = await stack.Lambda.InvokeAsync("POST", testCase.IngestPath, AuthHeaders(body), body, TestContext.Current.CancellationToken);
+        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, AuthHeaders(body), body, TestContext.Current.CancellationToken);
         Assert.Equal(201, post.StatusCode);
 
-        var redirect = await stack.Lambda.InvokeAsync("GET", testCase.RedirectPath, ct: TestContext.Current.CancellationToken);
+        var redirect = await stack.Api.InvokeAsync("GET", testCase.RedirectPath, ct: TestContext.Current.CancellationToken);
         Assert.Equal(302, redirect.StatusCode);
         Assert.NotNull(redirect.Headers);
         Assert.Equal(testCase.UrlHtml, redirect.Headers["Location"]);
+        Assert.True(redirect.Headers.ContainsKey("Cache-Control"));
+        Assert.Contains("public", redirect.Headers["Cache-Control"], StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed record TestResultCase(

@@ -4,16 +4,15 @@ using Xunit;
 
 namespace BadgeSmith.Api.Tests.Functional;
 
-[Collection("contract")]
+[Collection("aspire-contract")]
 [Trait("Category", TestCategories.Integration)]
 [Trait("Category", TestCategories.Functional)]
-[Trait("Category", TestCategories.AotContract)]
-public sealed class HealthContractTests(BadgeSmithStackFixture stack)
+public sealed class HealthContractTests(AspireContractFixture stack)
 {
     [Fact]
     public async Task Health_Should_Return200_WithNoCacheHeaders()
     {
-        var response = await stack.Lambda.InvokeAsync("GET", "/health", ct: TestContext.Current.CancellationToken);
+        var response = await stack.Api.InvokeAsync("GET", "/health", ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(200, response.StatusCode);
         Assert.Contains("Healthy", response.Body ?? string.Empty, StringComparison.Ordinal);

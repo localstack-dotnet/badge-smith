@@ -1,8 +1,10 @@
 using BadgeSmith.Api.Core.Http;
+using BadgeSmith.Api.Tests.Testing;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Http;
 
+[Trait("Category", TestCategories.Unit)]
 public sealed class HttpClientFactoryTests : IDisposable
 {
     public void Dispose()
