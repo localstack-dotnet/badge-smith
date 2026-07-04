@@ -1,0 +1,85 @@
+{
+  "date": "2026-07-04",
+  "label": "live-gateway-smoke",
+  "gitSha": "2827531",
+  "target": {
+    "kind": "api-gateway-http-v2-direct",
+    "url": "https://g4yecfi5hl.execute-api.eu-central-1.amazonaws.com",
+    "cloudFrontBypassed": true,
+    "awsProfile": "personal",
+    "region": "eu-central-1"
+  },
+  "lambda": {
+    "functionName": "badge-smith-function",
+    "runtime": "provided.al2023",
+    "architecture": "arm64",
+    "configuredMemoryMb": 512,
+    "timeoutSeconds": 20,
+    "lastModified": "2025-12-20T19:34:30.000+0000"
+  },
+  "run": {
+    "startUtc": "2026-07-04T22:05:05.8359435Z",
+    "endUtc": "2026-07-04T22:06:08.5895387Z",
+    "duration": "60s",
+    "vus": 1,
+    "summaryExport": "artifacts/k6-live-gateway-summary.json"
+  },
+  "k6": {
+    "httpRequests": 64,
+    "iterations": 57,
+    "rps": 1.0351188676082952,
+    "checks": {
+      "passes": 172,
+      "fails": 0,
+      "rate": 1.0
+    },
+    "http": {
+      "avgMs": 134.751090625,
+      "p50Ms": 67.67195000000001,
+      "p95Ms": 309.1397699999999,
+      "p99Ms": 398.27357599999993,
+      "maxMs": 412.1555,
+      "failedRate": 0.265625
+    },
+    "applicationErrorsRate": 0.0,
+    "cacheHitRate": 1.0,
+    "clientColdStartHeuristicRate": 0.06976744186046512,
+    "notes": [
+      "k6 http_req_failed includes expected 404 responses from test-result and edge-case scenarios; all explicit checks passed.",
+      "clientColdStartHeuristicRate is derived from response time heuristics, not Lambda REPORT Init Duration."
+    ]
+  },
+  "cloudWatchLogs": {
+    "logGroup": "/aws/lambda/badge-smith-function",
+    "reportWindowStartEpoch": 1783202700,
+    "reportWindowEndEpoch": 1783202785,
+    "durationAndMemoryQueryId": "9e164597-e0b0-48d5-9574-decd78c23691",
+    "initDurationQueryId": "cb71d1fb-2fb7-4034-8570-758b9fe64dbc",
+    "errorSearchQueryId": "d3e37c58-50d5-45b0-b730-5a8aa675c93e",
+    "reportCount": 64,
+    "duration": {
+      "minMs": 0.94,
+      "avgMs": 69.4367,
+      "p50Ms": 5.04,
+      "p95Ms": 229.96,
+      "p99Ms": 300.36,
+      "maxMs": 300.36
+    },
+    "memory": {
+      "minUsedMb": 34,
+      "avgUsedMb": 47.4688,
+      "maxUsedMb": 49,
+      "configuredMb": 512
+    },
+    "coldStarts": {
+      "reportCount": 64,
+      "initReportCount": 1,
+      "initRate": 0.015625,
+      "minInitDurationMs": 134.12,
+      "avgInitDurationMs": 134.12,
+      "p95InitDurationMs": 134.12,
+      "maxInitDurationMs": 134.12
+    },
+    "matchingErrorMessages": 0
+  }
+}
