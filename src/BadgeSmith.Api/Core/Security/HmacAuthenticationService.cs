@@ -41,7 +41,7 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
             return timestampError;
         }
 
-        var repoIdentifier = $"{authContext.Owner}/{authContext.Repo}/{authContext.Repo}/{authContext.Branch}";
+        var repoIdentifier = $"{authContext.Owner}/{authContext.Repo}/{authContext.Platform}/{authContext.Branch}";
         var nonceResult = await _nonceService.ValidateAndMarkNonceAsync(authContext.Nonce, repoIdentifier, requestTimestamp, ct).ConfigureAwait(false);
 
         if (!nonceResult.IsSuccess)
