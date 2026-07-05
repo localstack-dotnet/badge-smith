@@ -168,6 +168,11 @@ these constraints on every code change:
   `xunit.runner.visualstudio`). Plain `dotnet test --project
   tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj` and standard `--filter` are
   correct. This is NOT TUnit — ignore any `--treenode-filter` guidance.
+- Test and benchmark method names use `Subject_Should_Expected_Behavior_When_Condition`.
+  Keep real code identifiers such as method, property, type, header, and route names
+  intact; separate all other human-readable words with underscores. `Should` belongs
+  immediately after the subject, and scenario/input conditions belong at the end with a
+  `When...` suffix.
 - Native AOT publishing goes through `scripts/build-lambda.{sh,ps1}` (multi-arch ZIP /
   container targets); it is not part of the ordinary `dotnet build` loop.
 - Strict analyzers and warnings-as-errors are enabled through shared project

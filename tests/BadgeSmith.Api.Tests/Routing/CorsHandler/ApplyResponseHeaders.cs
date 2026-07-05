@@ -20,7 +20,7 @@ public class ApplyResponseHeadersTests : TestBase
     }
 
     [Fact]
-    public void ApplyResponseHeaders_Should_AddWildcardForPublicAPI()
+    public void ApplyResponseHeaders_Should_Add_Wildcard_When_Api_Is_Public()
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
@@ -33,7 +33,7 @@ public class ApplyResponseHeadersTests : TestBase
     }
 
     [Fact]
-    public void ApplyResponseHeaders_Should_EchoOriginWhenUseWildcardIsFalse()
+    public void ApplyResponseHeaders_Should_Echo_Origin_When_UseWildcard_Is_False()
     {
         var options = new CorsOptions
         {
@@ -49,7 +49,7 @@ public class ApplyResponseHeadersTests : TestBase
     }
 
     [Fact]
-    public void ApplyResponseHeaders_Should_HandleCredentialsWithTrustedOrigin()
+    public void ApplyResponseHeaders_Should_Handle_Credentials_When_Origin_Is_Trusted()
     {
         var allowedOrigins = new HashSet<string>
             (StringComparer.OrdinalIgnoreCase)
@@ -72,7 +72,7 @@ public class ApplyResponseHeadersTests : TestBase
     }
 
     [Fact]
-    public void ApplyResponseHeaders_Should_RejectUntrustedOriginWithCredentials()
+    public void ApplyResponseHeaders_Should_Reject_Untrusted_Origin_When_Credentials_Are_Enabled()
     {
         var allowedOrigins = new HashSet<string>
             (StringComparer.OrdinalIgnoreCase)
@@ -94,7 +94,7 @@ public class ApplyResponseHeadersTests : TestBase
     }
 
     [Fact]
-    public void ApplyResponseHeaders_Should_AddExposeHeaders()
+    public void ApplyResponseHeaders_Should_Add_Expose_Headers()
     {
         var exposeHeaders = new HashSet<string>
             (StringComparer.OrdinalIgnoreCase)
@@ -118,7 +118,7 @@ public class ApplyResponseHeadersTests : TestBase
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void ApplyResponseHeaders_Should_HandleMissingOrigin(string? origin)
+    public void ApplyResponseHeaders_Should_Handle_Missing_Origin(string? origin)
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);

@@ -9,7 +9,7 @@ namespace BadgeSmith.Api.Tests.Routing;
 public sealed class RouteValuesTests
 {
     [Fact]
-    public void Constructor_Should_InitializeCorrectly()
+    public void Constructor_Should_Initialize_Correctly()
     {
         const string path = "/test/path";
         var buffer = new (string, int, int)[8];
@@ -21,7 +21,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void Set_Should_StoreParameterCorrectly()
+    public void Set_Should_Store_Parameter_Correctly()
     {
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -33,7 +33,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void Set_Should_StoreMultipleParametersCorrectly()
+    public void Set_Should_Store_Multiple_Parameters_Correctly()
     {
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -48,7 +48,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void Set_Should_ThrowWhenBufferIsFull()
+    public void Set_Should_Throw_When_Buffer_Is_Full()
     {
         const string path = "/test/path";
 
@@ -73,7 +73,7 @@ public sealed class RouteValuesTests
     [InlineData("PACKAGE", true, "Newtonsoft.Json")] // Case insensitive
     [InlineData("nonexistent", false, null)]
     [InlineData("", false, null)]
-    public void TryGetString_Should_HandleCaseInsensitiveLookup(string paramName, bool expectedFound, string? expectedValue)
+    public void TryGetString_Should_Handle_Case_Insensitive_Lookup(string paramName, bool expectedFound, string? expectedValue)
     {
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
@@ -92,7 +92,7 @@ public sealed class RouteValuesTests
     [InlineData("package", true)]
     [InlineData("nonexistent", false)]
     [InlineData("", false)]
-    public void TryGetSpan_Should_HandleCaseInsensitiveLookup(string paramName, bool expectedFound)
+    public void TryGetSpan_Should_Handle_Case_Insensitive_Lookup(string paramName, bool expectedFound)
     {
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
@@ -114,7 +114,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void TryGetSpan_Should_ReturnCorrectSpanData()
+    public void TryGetSpan_Should_Return_Correct_Span_Data()
     {
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
@@ -131,7 +131,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void ToImmutableDictionary_Should_ReturnEmptyForNoParameters()
+    public void ToImmutableDictionary_Should_Return_Empty_When_There_Are_No_Parameters()
     {
         const string path = "/health";
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -142,7 +142,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void ToImmutableDictionary_Should_ReturnAllParameters()
+    public void ToImmutableDictionary_Should_Return_All_Parameters()
     {
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
@@ -157,7 +157,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void ToImmutableDictionary_Should_UseCaseInsensitiveKeys()
+    public void ToImmutableDictionary_Should_Use_Case_Insensitive_Keys()
     {
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
         var values = RouteTestBuilder.CreateRouteValuesWithParameters(path,
@@ -174,7 +174,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void ToImmutableDictionary_Should_OverwriteDuplicateKeys()
+    public void ToImmutableDictionary_Should_Overwrite_Duplicate_Keys()
     {
         const string path = "/test/value1/value2";
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -194,7 +194,7 @@ public sealed class RouteValuesTests
     [InlineData("/badges/packages/nuget/Package_With_Underscores", "package", "Package_With_Underscores")]
     [InlineData("/badges/tests/linux/owner/repo/feature%2Fawesome", "branch", "feature/awesome")]
     [InlineData("/badges/tests/linux/owner/repo/release%2F8.0", "branch", "release/8.0")]
-    public void Parameters_Should_HandleSpecialCharacters(string path, string paramName, string expectedValue)
+    public void Parameters_Should_Handle_Special_Characters(string path, string paramName, string expectedValue)
     {
         const string provider = "nuget";
         var package = expectedValue;
@@ -228,7 +228,7 @@ public sealed class RouteValuesTests
     }
 
     [Fact]
-    public void Parameters_Should_HandleEmptyValues()
+    public void Parameters_Should_Handle_Empty_Values()
     {
         const string path = "/badges/packages//package"; // Empty provider
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -246,7 +246,7 @@ public sealed class RouteValuesTests
 
     [Theory]
     [MemberData(nameof(GetRealWorldTemplateScenarios))]
-    public void Parameters_Should_HandleRealWorldScenarios(string template, string path, IDictionary<string, string> expectedValues)
+    public void Parameters_Should_Handle_Real_World_Scenarios(string template, string path, IDictionary<string, string> expectedValues)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern(template);
         var values = RouteTestBuilder.CreateRouteValues(path);

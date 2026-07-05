@@ -46,7 +46,7 @@ public class RoutingBenchmarks
     [Arguments("/badges/packages/github/localstack-dotnet/localstack.client")]
     [Arguments("/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main")]
     [Arguments("/redirect/test-results/linux/localstack-dotnet/dotnet-aspire-for-localstack/main")]
-    public bool RouteResolver_TryResolve(string path)
+    public bool RouteResolver_TryResolve_Should_Measure_Route_Resolution(string path)
     {
         return _resolver.TryResolve("GET", path, out _);
     }
@@ -56,7 +56,7 @@ public class RoutingBenchmarks
     [Arguments("/badges/packages/nuget/Microsoft.Extensions.Http")]
     [Arguments("/badges/packages/nuget/AutoMapper")]
     [Arguments("/badges/packages/nuget/FluentValidation")]
-    public bool TemplatePattern_NuGetPackage_TryMatch(string path)
+    public bool TemplatePattern_TryMatch_Should_Measure_NuGet_Package_Route(string path)
     {
         var values = RouteTestBuilder.CreateRouteValues(path);
         return _nugetPattern.TryMatch(path.AsSpan(), ref values);
@@ -67,7 +67,7 @@ public class RoutingBenchmarks
     [Arguments("/badges/packages/github/microsoft/vscode")]
     [Arguments("/badges/packages/github/facebook/react")]
     [Arguments("/badges/packages/github/AutoMapper/AutoMapper")]
-    public bool TemplatePattern_GitHubPackage_TryMatch(string path)
+    public bool TemplatePattern_TryMatch_Should_Measure_GitHub_Package_Route(string path)
     {
         var values = RouteTestBuilder.CreateRouteValues(path);
         return _githubPattern.TryMatch(path.AsSpan(), ref values);
@@ -78,7 +78,7 @@ public class RoutingBenchmarks
     [Arguments("/badges/tests/windows/microsoft/vscode/main")]
     [Arguments("/badges/tests/macos/facebook/react/main")]
     [Arguments("/badges/tests/linux/localstack-dotnet/localstack.client/feature%2Fawesome-badge")]
-    public bool TemplatePattern_TestBadge_TryMatch(string path)
+    public bool TemplatePattern_TryMatch_Should_Measure_Test_Badge_Route(string path)
     {
         var values = RouteTestBuilder.CreateRouteValues(path);
         return _testPattern.TryMatch(path.AsSpan(), ref values);
@@ -87,14 +87,14 @@ public class RoutingBenchmarks
     [Benchmark]
     [Arguments("/health")]
     [Arguments("/tests/results")]
-    public bool ExactPattern_TryMatch(string path)
+    public bool ExactPattern_TryMatch_Should_Measure_Exact_Route(string path)
     {
         var values = RouteTestBuilder.CreateRouteValues(path);
         return _healthPattern.TryMatch(path.AsSpan(), ref values);
     }
 
     [Benchmark]
-    public void RouteValues_ParameterExtraction()
+    public void RouteValues_Should_Measure_Parameter_Extraction()
     {
         const string path = "/badges/packages/github/localstack-dotnet/localstack.client";
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -111,7 +111,7 @@ public class RoutingBenchmarks
     }
 
     [Benchmark]
-    public void RouteValues_SpanExtraction()
+    public void RouteValues_Should_Measure_Span_Extraction()
     {
         const string path = "/badges/packages/github/localstack-dotnet/localstack.client";
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -132,13 +132,13 @@ public class RoutingBenchmarks
     [Arguments("/badges/packages/nuget/Newtonsoft.Json")]
     [Arguments("/badges/tests/linux/owner/repo/main")]
     [Arguments("/nonexistent/path")]
-    public IReadOnlyCollection<string> RouteResolver_GetAllowedMethods(string path)
+    public IReadOnlyCollection<string> RouteResolver_GetAllowedMethods_Should_Measure_Allowed_Method_Discovery(string path)
     {
         return [.. _resolver.GetAllowedMethods(path)];
     }
 
     [Benchmark]
-    public void TemplatePattern_ComplexParameterExtraction()
+    public void TemplatePattern_Should_Measure_Complex_Parameter_Extraction()
     {
         const string path = "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/feature%2Fawesome-badge";
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -156,7 +156,7 @@ public class RoutingBenchmarks
     }
 
     [Benchmark]
-    public void RouteResolver_FullPipeline_Success()
+    public void RouteResolver_Should_Measure_Full_Pipeline_When_Route_Matches()
     {
         const string method = "GET";
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
@@ -179,7 +179,7 @@ public class RoutingBenchmarks
     }
 
     [Benchmark]
-    public void RouteResolver_FullPipeline_NotFound()
+    public void RouteResolver_Should_Measure_Full_Pipeline_When_Route_Is_Not_Found()
     {
         const string method = "GET";
         const string path = "/nonexistent/path/that/wont/match";
