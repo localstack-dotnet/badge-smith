@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
+using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing.Contracts;
 using Microsoft.Extensions.Logging;
@@ -67,3 +69,5 @@ internal class ApiRouter : IApiRouter
         }
     }
 }
+
+#pragma warning restore CA1873

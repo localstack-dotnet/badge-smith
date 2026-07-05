@@ -221,6 +221,14 @@ its trigger applies, and do not invent an ID.
 | Performance work / benchmarks | Benchmark and performance-diagnostics capabilities; require measured data |
 | Package version changes (`Directory.Packages.props`) | Package-management capability (CPM) |
 
+## Aspire Source Compatibility
+
+For read-only explanation questions, inspect this repository's docs/code first. Invoke `aspire-source-navigation` only when the answer depends on upstream internals, version-specific API shape, or a compatibility conclusion.
+
+## Aspire MCP Server
+
+Utilize Aspire MCP server for runtime resource state/logs/traces of CLI-launched AppHosts and LocalStack. And context7 for Aspire related documentation.
+
 ## Semantic Code Navigation
 
 When Rider MCP tools are available, prefer semantic tools for C# symbol questions:

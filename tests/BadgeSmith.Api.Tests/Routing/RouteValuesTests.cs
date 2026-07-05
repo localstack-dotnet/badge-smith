@@ -1,9 +1,11 @@
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Tests.TestHelpers;
+using BadgeSmith.Api.Tests.Testing;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing;
 
+[Trait("Category", TestCategories.Unit)]
 public sealed class RouteValuesTests
 {
     [Fact]

@@ -1,0 +1,8 @@
+{
+  "request": { "method": "GET", "urlPath": "/nuget/v3-flatcontainer/contracttest.pkg/index.json" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json", "ETag": "\"contract-etag-1\"" },
+    "bodyFileName": "nuget-contracttest-index.json"
+  }
+}

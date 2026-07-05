@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Helpers;
@@ -211,3 +213,5 @@ internal sealed class CorsHandler : ICorsHandler
         return headers.TryGetValue(headerName, out var value) ? value.Trim() : null;
     }
 }
+
+#pragma warning restore CA1873

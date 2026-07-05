@@ -65,6 +65,8 @@ Tier meanings:
 - **Out of scope** — do not use unless this repo adds that technology or Deniz
   explicitly asks.
 
+This repo ships exactly one project skill: `aspire-source-navigation`. Its canonical body lives in `docs/agents/skills/aspire-source-navigation.md`, with thin native relays under `.claude/skills/`, `.opencode/skills/`, and `.github/skills/`.
+
 Claude Code uses plugin-qualified names. Copilot CLI exposes the installed skill IDs
 directly through the running harness's `skill` list. OpenCode exposes skill
 *frontmatter* names, which depend on the local install; the names below reflect the
@@ -94,6 +96,7 @@ manually.
 
 | Capability | Claude Code | Copilot CLI | OpenCode |
 | --- | --- | --- | --- |
+| Aspire source compatibility for upstream Aspire/AWS/LocalStack.Client internals | `aspire-source-navigation` | `aspire-source-navigation` | `aspire-source-navigation` |
 | System.Text.Json AOT source-generation / serialization contracts | `dotnet-skills:serialization` | `serialization` | `serialization` |
 | Modern C# coding standards | `dotnet-skills:csharp-coding-standards` | `modern-csharp-coding-standards` | `modern-csharp-coding-standards` |
 | Type design and performance (seal, readonly struct, static pure) | `dotnet-skills:csharp-type-design-performance` | `type-design-performance` | `type-design-performance` |
@@ -162,6 +165,22 @@ BadgeSmith still uses VSTest with `dotnet test`.
 | Maintain the `AGENTS.md` / this file's capability index | `dotnet-skills:skills-index-snippets` | `skills-index-snippets` | `skills-index-snippets` |
 | Working-diff code review (findings-first, severity-ordered) | `code-review` (harness built-in) | `code-review` via `task` | `codex-review` via `task` when present |
 | Security review of pending changes (HMAC, nonce, secrets, replay protection) | `security-review` (harness built-in) | `security-review` via `task` | N/A |
+
+### Tier 2 — Official Aspire skills and Aspire MCP server
+
+Official Microsoft Aspire skills and MCP server are local harness setup, not committed project infrastructure. They require Aspire CLI 13.3+ (`aspire agent mcp`).
+
+| Capability | Claude Code | Copilot CLI | OpenCode |
+| --- | --- | --- | --- |
+| AppHost lifecycle routing + safety guardrails (`aspire start`, never `dotnet run` on AppHosts) | `aspire:aspire` | `aspire` | `aspire` |
+| Start/stop/restart/wait/inspect playground AppHost resources | `aspire:aspire-orchestration` | `aspire-orchestration` | `aspire-orchestration` |
+| Resource logs, traces, metrics, dashboard telemetry | `aspire:aspire-monitoring` | `aspire-monitoring` | `aspire-monitoring` |
+| Runtime resource state/logs/traces/commands over MCP | `aspire` MCP server (`aspire agent mcp`, stdio; tools surface as `mcp__aspire__*`) | `aspire` MCP server (`aspire agent mcp`, stdio; user `~/.copilot/mcp-config.json`) | `aspire` MCP server (`aspire agent mcp`, stdio; local `opencode.jsonc`) |
+
+- The MCP server only discovers AppHosts launched with `aspire start` from the workspace directory. In-process `DistributedApplicationTestingBuilder` AppHosts used by integration tests are invisible to it — test debugging stays log/debugger-based.
+- These skills/tools are for *consuming* Aspire (running and debugging playground AppHosts). They do not replace `aspire-source-navigation` for upstream source-compatibility work; on conflict, verified package source wins.
+- The bundle also ships `aspire-init` and `aspireify` (not for this repo — AppHosts already exist) and `aspire-deployment` (approval-gated and real-AWS targeted; LocalStack playgrounds do not deploy).
+- Set up each harness locally and update only that harness's cells after verifying the native skill IDs and MCP status.
 
 ### Tier 3 — Local-only
 

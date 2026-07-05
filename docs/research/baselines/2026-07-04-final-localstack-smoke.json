@@ -1,0 +1,28 @@
+{
+  "date": "2026-07-04",
+  "label": "final-localstack-smoke",
+  "gitSha": "f178fab",
+  "arch": "amd64",
+  "upstream": "mock",
+  "image": {
+    "binaryBytes": 13913736,
+    "zipBytes": 6275435,
+    "mstat": "artifacts/mstat/bootstrap.mstat"
+  },
+  "boot": {
+    "startToReadyMs": 1193
+  },
+  "k6": {
+    "p50Ms": 22.4538,
+    "p95Ms": 235.4588099999998,
+    "p99Ms": 364.68760200000014,
+    "rps": 1.095273796817547,
+    "errorRate": 0
+  },
+  "memory": {
+    "rssIdleMb": 16.3,
+    "rssPeakMb": 20.279,
+    "source": "docker-stats-localstack-lambda-worker",
+    "containerId": "46ce58998a9a"
+  }
+}

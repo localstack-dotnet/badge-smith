@@ -1,0 +1,4 @@
+{
+  "request": { "method": "GET", "urlPath": "/github/orgs/unauthorized-org/packages/nuget/any.pkg/versions" },
+  "response": { "status": 401, "jsonBody": { "message": "Bad credentials" } }
+}

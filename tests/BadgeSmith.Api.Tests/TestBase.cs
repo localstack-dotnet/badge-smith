@@ -1,4 +1,4 @@
-﻿#pragma warning disable S2325
+﻿#pragma warning disable S2325, CA1873 // Logger mocks use expression trees that trigger logging analyzer.
 
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -62,3 +62,5 @@ public class TestBase
         return logger;
     }
 }
+
+#pragma warning restore S2325, CA1873

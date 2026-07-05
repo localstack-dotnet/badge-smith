@@ -44,6 +44,8 @@ internal static class Constants
 
     public const string LambdaOutputFunctionArn = "BadgeSmithLambdaFunctionArn";
 
+    public const string LambdaOutputFunctionUrl = "BadgeSmithLambdaFunctionUrl";
+
     public const string HttpLambdaIntegrationId = "BadgeSmithLambdaIntegration";
 
     public const string ApiGatewayRoleId = "BadgeSmithApi";
@@ -69,6 +71,8 @@ internal static class Constants
     public const string ApiLocalStackARecordId = "ApiLocalStackARecord";
 
     public const string ProductionStackId = "BadgeSmithStack";
+
+    public const string LocalPerformanceStackId = "BadgeSmithPerformanceStack";
 
     public const string SharedInfrastructureConstructId = "BadgeSmithSharedInfrastructureConstruct";
 

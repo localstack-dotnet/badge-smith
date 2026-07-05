@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/__ping"
+  },
+  "response": {
+    "status": 200
+  }
+}

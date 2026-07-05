@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "createdAt": "2026-07-02T07:29:05.6447827+00:00",
+  "updatedAt": "2026-07-02T07:29:05.6474458+00:00",
+  "description": "Initial baseline created by 'slopwatch init' on 2026-07-02 07:29:05 UTC",
+  "entries": [
+    {
+      "hash": "d4ab977cc248de3a",
+      "ruleId": "SW002",
+      "filePath": "build/BadgeSmith.CDK.Shared/ProductionStack.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA1711, MA0051",
+      "message": "#pragma warning disable for warnings CA1711, MA0051 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6473057+00:00"
+    },
+    {
+      "hash": "530a245df19ab780",
+      "ruleId": "SW002",
+      "filePath": "build/BadgeSmith.CDK.Shared/Constructs/DynamoDbTablesConstruct.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA1711, MA0051",
+      "message": "#pragma warning disable for warnings CA1711, MA0051 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6473925+00:00"
+    },
+    {
+      "hash": "35c40419d0396281",
+      "ruleId": "SW002",
+      "filePath": "build/BadgeSmith.CDK.Shared/Constructs/SharedInfrastructureConstruct.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA1711, MA0051, MA0056",
+      "message": "#pragma warning disable for warnings CA1711, MA0051, MA0056 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6473966+00:00"
+    },
+    {
+      "hash": "2575f34a7cb0e2d1",
+      "ruleId": "SW002",
+      "filePath": "src/BadgeSmith.Api/Program.cs",
+      "lineNumber": 2,
+      "codeSnippet": "#pragma warning disable CA1502",
+      "message": "#pragma warning disable for warnings CA1502 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6473998+00:00"
+    },
+    {
+      "hash": "32d28b382896d224",
+      "ruleId": "SW002",
+      "filePath": "src/BadgeSmith.Api/Program.Telemetry.cs",
+      "lineNumber": 2,
+      "codeSnippet": "#pragma warning disable CA1502",
+      "message": "#pragma warning disable for warnings CA1502 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474042+00:00"
+    },
+    {
+      "hash": "843c52e2514ea5b6",
+      "ruleId": "SW002",
+      "filePath": "src/BadgeSmith.Api/Core/Http/HttpClientFactory.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable S1075",
+      "message": "#pragma warning disable for warnings S1075 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474065+00:00"
+    },
+    {
+      "hash": "8e76f6c9847c0e34",
+      "ruleId": "SW003",
+      "filePath": "src/BadgeSmith.Api/Core/Http/ResilienceRetryHandler.cs",
+      "lineNumber": 33,
+      "codeSnippet": "catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && attempt < _maxRetries)\r\n            {\r\n                // timeout: retry\r\n            }",
+      "message": "Empty catch block swallows exceptions without handling",
+      "baselinedAt": "2026-07-02T07:29:05.6474133+00:00"
+    },
+    {
+      "hash": "1dbe6b723437a0c6",
+      "ruleId": "SW003",
+      "filePath": "src/BadgeSmith.Api/Core/Http/ResilienceRetryHandler.cs",
+      "lineNumber": 37,
+      "codeSnippet": "catch (HttpRequestException) when (attempt < _maxRetries)\r\n            {\r\n                // transient network error: retry\r\n            }",
+      "message": "Empty catch block swallows exceptions without handling",
+      "baselinedAt": "2026-07-02T07:29:05.6474167+00:00"
+    },
+    {
+      "hash": "4047bfeade7908e2",
+      "ruleId": "SW002",
+      "filePath": "src/BadgeSmith.Api/Core/Security/HmacAuthenticationService.cs",
+      "lineNumber": 76,
+      "codeSnippet": "SuppressMessage(\"Usage\", \"MA0015:Specify the parameter name in ArgumentException\")",
+      "message": "SuppressMessage attribute suppressing Usage:MA0015:Specify the parameter name in ArgumentException",
+      "baselinedAt": "2026-07-02T07:29:05.6474191+00:00"
+    },
+    {
+      "hash": "7a0abdc1638e9dc7",
+      "ruleId": "SW005",
+      "filePath": "src/BadgeSmith.Host/BadgeSmith.Host.csproj",
+      "lineNumber": 9,
+      "codeSnippet": "<NoWarn>$(NoWarn);CS8002</NoWarn>",
+      "message": "Adding warnings to NoWarn: CS8002",
+      "baselinedAt": "2026-07-02T07:29:05.6474211+00:00"
+    },
+    {
+      "hash": "a4896e31db66e85f",
+      "ruleId": "SW002",
+      "filePath": "src/BadgeSmith.Host/BadgeSmithInfrastructureStack.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA1711",
+      "message": "#pragma warning disable for warnings CA1711 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474234+00:00"
+    },
+    {
+      "hash": "3c33d74a70342611",
+      "ruleId": "SW002",
+      "filePath": "src/BadgeSmith.Host/BadgeSmithInfrastructureStack.cs",
+      "lineNumber": 17,
+      "codeSnippet": "#pragma warning disable CA1812",
+      "message": "#pragma warning disable for warnings CA1812 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.647425+00:00"
+    },
+    {
+      "hash": "2c3e661aea7945e1",
+      "ruleId": "SW002",
+      "filePath": "src/BadgeSmith.Host/Program.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA2252 // Using 'AddAWSLambdaFunction' requires opting into preview features.",
+      "message": "#pragma warning disable for warnings CA2252 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474274+00:00"
+    },
+    {
+      "hash": "e64110d1b2254dc1",
+      "ruleId": "SW005",
+      "filePath": "tests/BadgeSmith.Api.Performance.Tests/BadgeSmith.Api.Performance.Tests.csproj",
+      "lineNumber": 6,
+      "codeSnippet": "<NoWarn>$(NoWarn);CA1707;CA1303</NoWarn>",
+      "message": "Adding warnings to NoWarn: CA1707;CA1303",
+      "baselinedAt": "2026-07-02T07:29:05.6474294+00:00"
+    },
+    {
+      "hash": "02899ada962d04da",
+      "ruleId": "SW002",
+      "filePath": "tests/BadgeSmith.Api.Performance.Tests/BufferAllocationBenchmarks.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA1812,CA1852,CA1515",
+      "message": "#pragma warning disable for warnings CA1812, CA1852, CA1515 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474313+00:00"
+    },
+    {
+      "hash": "992583dc2c83097e",
+      "ruleId": "SW002",
+      "filePath": "tests/BadgeSmith.Api.Performance.Tests/RoutingBenchmarks.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA1812,CA1852,CA1515",
+      "message": "#pragma warning disable for warnings CA1812, CA1852, CA1515 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474332+00:00"
+    },
+    {
+      "hash": "db67a1c661dc246d",
+      "ruleId": "SW005",
+      "filePath": "tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj",
+      "lineNumber": 6,
+      "codeSnippet": "<NoWarn>$(NoWarn);CA1515;CA1034;CA1707;MA0110;MA0009;CA1062;CA1024</NoWarn>",
+      "message": "Adding warnings to NoWarn: CA1515;CA1034;CA1707;MA0110;MA0009;CA1062;CA1024",
+      "baselinedAt": "2026-07-02T07:29:05.6474351+00:00"
+    },
+    {
+      "hash": "1afac4078b2b2d04",
+      "ruleId": "SW002",
+      "filePath": "tests/BadgeSmith.Api.Tests/TestBase.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable S2325",
+      "message": "#pragma warning disable for warnings S2325 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474374+00:00"
+    },
+    {
+      "hash": "9e9efc33ac987127",
+      "ruleId": "SW002",
+      "filePath": "tests/BadgeSmith.Api.Tests/Routing/RouteResolverTests.cs",
+      "lineNumber": 328,
+      "codeSnippet": "SuppressMessage(\"Design\", \"MA0051:Method is too long\")",
+      "message": "SuppressMessage attribute suppressing Design:MA0051:Method is too long",
+      "baselinedAt": "2026-07-02T07:29:05.6474395+00:00"
+    },
+    {
+      "hash": "f9453961584da507",
+      "ruleId": "SW002",
+      "filePath": "tests/BadgeSmith.Api.Tests/Routing/Patterns/RegexPatternTests.cs",
+      "lineNumber": 274,
+      "codeSnippet": "SuppressMessage(\"Design\", \"CA1024:Use properties where appropriate\")",
+      "message": "SuppressMessage attribute suppressing Design:CA1024:Use properties where appropriate",
+      "baselinedAt": "2026-07-02T07:29:05.6474414+00:00"
+    },
+    {
+      "hash": "f808292cb200c5cc",
+      "ruleId": "SW002",
+      "filePath": "tests/BadgeSmith.Api.Tests/Routing/Patterns/TemplatePatternTests.cs",
+      "lineNumber": 249,
+      "codeSnippet": "SuppressMessage(\"Design\", \"MA0051:Method is too long\")",
+      "message": "SuppressMessage attribute suppressing Design:MA0051:Method is too long",
+      "baselinedAt": "2026-07-02T07:29:05.6474434+00:00"
+    },
+    {
+      "hash": "a683cafea2a944cf",
+      "ruleId": "SW002",
+      "filePath": "tests/seeders/BadgeSmith.DynamoDb.Seeders/OrgSecretSeeder.cs",
+      "lineNumber": 1,
+      "codeSnippet": "#pragma warning disable CA1812, MA0134, VSTHRD110, CA2000",
+      "message": "#pragma warning disable for warnings CA1812, MA0134, VSTHRD110, CA2000 without matching restore in same scope",
+      "baselinedAt": "2026-07-02T07:29:05.6474457+00:00"
+    }
+  ]
+}

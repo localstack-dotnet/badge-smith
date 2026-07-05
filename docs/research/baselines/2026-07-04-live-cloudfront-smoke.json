@@ -1,0 +1,100 @@
+{
+  "date": "2026-07-04",
+  "label": "live-cloudfront-smoke",
+  "gitSha": "9ff91ac",
+  "target": {
+    "kind": "cloudfront-distribution",
+    "url": "https://api.localstackfor.net",
+    "distributionId": "E2I09H2SLUEGLF",
+    "domainName": "d1abn2jrw3q4e6.cloudfront.net",
+    "alias": "api.localstackfor.net",
+    "origin": "g4yecfi5hl.execute-api.eu-central-1.amazonaws.com",
+    "awsProfile": "personal",
+    "region": "eu-central-1"
+  },
+  "lambda": {
+    "functionName": "badge-smith-function",
+    "runtime": "provided.al2023",
+    "architecture": "arm64",
+    "configuredMemoryMb": 512,
+    "timeoutSeconds": 20,
+    "lastModified": "2025-12-20T19:34:30.000+0000"
+  },
+  "run": {
+    "startUtc": "2026-07-04T22:36:42.6900000Z",
+    "endUtcApproximate": "2026-07-04T22:37:44.4320000Z",
+    "duration": "60s",
+    "vus": 1,
+    "summaryExport": "artifacts/k6-live-cloudfront-summary.json",
+    "endTimeNote": "Approximate end time is derived from k6 summary rates; CloudWatch query windows include buffer time."
+  },
+  "k6": {
+    "httpRequests": 53,
+    "iterations": 49,
+    "rps": 0.8584004679701341,
+    "checks": {
+      "passes": 161,
+      "fails": 0,
+      "rate": 1.0
+    },
+    "http": {
+      "avgMs": 83.72795660377359,
+      "p50Ms": 45.1296,
+      "p95Ms": 253.06403999999998,
+      "p99Ms": 392.0573919999998,
+      "maxMs": 417.5571,
+      "failedRate": 0.11320754716981132
+    },
+    "applicationErrorsRate": 0.0,
+    "cacheHitRate": 1.0,
+    "clientColdStartHeuristicRate": 0.025,
+    "notes": [
+      "k6 http_req_failed includes expected 404 responses from test-result and edge-case scenarios; all explicit checks passed.",
+      "clientColdStartHeuristicRate is derived from response time heuristics, not Lambda REPORT Init Duration.",
+      "Use this as a CloudFront comparison only. Direct API Gateway remains the Lambda/API baseline because CloudFront can serve requests without invoking Lambda."
+    ]
+  },
+  "cloudWatchLogs": {
+    "logGroup": "/aws/lambda/badge-smith-function",
+    "reportWindowStartEpoch": 1783204596,
+    "reportWindowEndEpoch": 1783204675,
+    "durationAndMemoryQueryId": "21c9f32a-6531-4de1-b9f0-be522b9b3b6f",
+    "initDurationQueryId": "2fe7417e-0eba-4eac-8670-3dc975fa8b5e",
+    "errorSearchQueryId": "ddab7e87-382b-47fa-9166-b829d08774d9",
+    "reportCount": 25,
+    "duration": {
+      "minMs": 1.15,
+      "avgMs": 46.9236,
+      "p50Ms": 5.28,
+      "p95Ms": 194.07,
+      "p99Ms": 280.45,
+      "maxMs": 280.45
+    },
+    "memory": {
+      "minUsedMb": 34,
+      "avgUsedMb": 47.76,
+      "maxUsedMb": 51,
+      "configuredMb": 512
+    },
+    "coldStarts": {
+      "reportCount": 25,
+      "initReportCount": 1,
+      "initRate": 0.04,
+      "minInitDurationMs": 127.42,
+      "avgInitDurationMs": 127.42,
+      "p95InitDurationMs": 127.42,
+      "maxInitDurationMs": 127.42
+    },
+    "matchingErrorMessages": 0
+  },
+  "comparison": {
+    "directGatewayBaseline": "docs/research/baselines/2026-07-04-live-gateway-smoke.json",
+    "directGatewayClientRequests": 64,
+    "directGatewayLambdaReportCount": 64,
+    "cloudFrontClientRequests": 53,
+    "cloudFrontLambdaReportCount": 25,
+    "cloudFrontLambdaForwardingRatio": 0.4716981132075472,
+    "cloudFrontEstimatedEdgeAbsorptionRatio": 0.5283018867924528,
+    "interpretation": "CloudFront lowered observed client latency and Lambda REPORT count in this smoke run. Do not use CloudFront numbers as the Lambda/API service baseline."
+  }
+}

@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1812, MA0134, VSTHRD110, CA2000
+﻿#pragma warning disable CA1812, MA0134, VSTHRD110, CA2000, CA1873 // Replace CA1873 with LoggerMessage source-generated logging.
 
 using System.Text.Json;
 using Amazon.DynamoDBv2;
@@ -198,3 +198,5 @@ internal sealed class OrgSecretSeeder : IHostedService
         }, cancellationToken).ConfigureAwait(false);
     }
 }
+
+#pragma warning restore CA1812, MA0134, VSTHRD110, CA2000, CA1873

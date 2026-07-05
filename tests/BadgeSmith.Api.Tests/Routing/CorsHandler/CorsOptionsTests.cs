@@ -1,8 +1,10 @@
 using BadgeSmith.Api.Core.Routing.Cors;
+using BadgeSmith.Api.Tests.Testing;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.CorsHandler;
 
+[Trait("Category", TestCategories.Unit)]
 public class CorsOptionsTests
 {
     [Fact]

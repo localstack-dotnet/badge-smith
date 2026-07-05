@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Globalization;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
@@ -244,3 +246,5 @@ internal sealed class TestResultsService : ITestResultsService
         );
     }
 }
+
+#pragma warning restore CA1873

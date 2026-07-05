@@ -197,7 +197,8 @@ Package badge endpoints are **unauthenticated** but include:
 
 - **`build-lambda.sh/.ps1`**: Multi-platform Docker builds for Lambda deployment
 - **`test-ingestion.sh/.ps1`**: HMAC authentication testing with real API calls
-- **`k6-perf-test.js`**: Load testing with realistic traffic patterns
+- **`k6-perf-test.js`**: HTTP load testing with realistic traffic patterns
+- **`perf-baseline.sh`**: LocalStack-backed ZIP Lambda benchmark harness. It deploys the local CDK performance stack and uses Lambda Function URL fallback when LocalStack Community cannot create API Gateway v2 through CloudFormation.
 - **`sample-test-payload.json`**: Example test result payload
 
 ## 🏗️ **Code Organization**
@@ -251,6 +252,9 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 
 - **LocalStack integration**: AWS service emulation
 - **Lambda emulation**: Local function execution
+- **Contract tests**: Aspire Testing starts `src/BadgeSmith.Host` and calls `APIGatewayEmulator` over HTTP; the test suite does not use Lambda RIE.
+
+**Local benchmark execution** uses Docker, LocalStack, CDK, and k6. Production keeps API Gateway HTTP v2, but the local performance stack exposes a Lambda Function URL fallback because LocalStack Community 4.6 does not deploy API Gateway v2 CloudFormation resources in this workflow.
 
 ## 🚀 **Deployment Strategy**
 

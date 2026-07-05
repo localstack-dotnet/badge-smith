@@ -1,5 +1,5 @@
 ﻿#if ENABLE_TELEMETRY
-#pragma warning disable CA1502
+#pragma warning disable CA1502, CA1873 // Replace CA1873 with LoggerMessage source-generated logging.
 
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
@@ -103,4 +103,6 @@ static void SetHttpTags(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext 
         activity?.AddTag("server.port", string.Equals(stage, "$default", StringComparison.OrdinalIgnoreCase) ? null : stage);
     }
 }
+
+#pragma warning restore CA1502, CA1873
 #endif
