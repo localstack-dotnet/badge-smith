@@ -45,7 +45,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_Then_Badge_RoundTrip()
+    public async Task Ingestion_Should_Round_Trip_Badge_When_Accepted()
     {
         var testCase = CreateCase("roundtrip", 1);
         var body = testCase.CreatePayload();
@@ -70,7 +70,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_Should_Reject_BadSignature_With401()
+    public async Task Ingestion_Should_Return_401_When_Signature_Is_Invalid()
     {
         var testCase = CreateCase("bad-signature", 2);
         var body = testCase.CreatePayload();
@@ -81,7 +81,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_Should_Reject_StaleTimestamp_With400()
+    public async Task Ingestion_Should_Return_400_When_Timestamp_Is_Stale()
     {
         var testCase = CreateCase("stale-timestamp", 3);
         var body = testCase.CreatePayload();
@@ -98,7 +98,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_Should_Reject_FutureTimestamp_With400()
+    public async Task Ingestion_Should_Return_400_When_Timestamp_Is_Future()
     {
         var testCase = CreateCase("future-timestamp", 9);
         var body = testCase.CreatePayload();
@@ -115,7 +115,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_Should_Reject_NonceReplay_With400()
+    public async Task Ingestion_Should_Return_400_When_Nonce_Is_Replayed()
     {
         var testCase = CreateCase("nonce-replay", 4);
         var nonce = Guid.NewGuid().ToString("N");
@@ -145,7 +145,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_MalformedHexSignature_PinsCurrentBehavior_500()
+    public async Task Ingestion_Should_Return_500_When_Signature_Hex_Is_Malformed()
     {
         // Known bug (findings doc §2): malformed hex throws FormatException → 500.
         // Wave 1 will change this to 401 and update this assertion.
@@ -158,7 +158,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_MissingAuthHeaders_Should_Return400()
+    public async Task Ingestion_Should_Return_400_When_Auth_Headers_Are_Missing()
     {
         var testCase = CreateCase("missing-auth", 7);
         var body = testCase.CreatePayload();
@@ -167,14 +167,14 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Badge_UnknownRepo_Should_Return404()
+    public async Task Badge_Should_Return_404_When_Repo_Is_Unknown()
     {
         var badge = await stack.Api.InvokeAsync("GET", "/badges/tests/linux/test-org/no-such-repo/main", ct: TestContext.Current.CancellationToken);
         Assert.Equal(404, badge.StatusCode);
     }
 
     [Fact]
-    public async Task Redirect_Should_Return302_WithLocation()
+    public async Task Redirect_Should_Return_302_With_Location()
     {
         var testCase = CreateCase("redirect", 8);
         var body = testCase.CreatePayload();

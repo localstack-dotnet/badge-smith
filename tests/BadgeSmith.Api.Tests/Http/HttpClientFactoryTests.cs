@@ -14,14 +14,14 @@ public sealed class HttpClientFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateNuGetClient_Should_UseDefaultBaseAddress_WhenEnvNotSet()
+    public void CreateNuGetClient_Should_Use_Default_BaseAddress_When_Environment_Variable_Is_Not_Set()
     {
         using var client = HttpClientFactory.CreateNuGetClient();
         Assert.Equal(new Uri("https://api.nuget.org/"), client.BaseAddress);
     }
 
     [Fact]
-    public void CreateNuGetClient_Should_UseEnvOverride_WhenSet()
+    public void CreateNuGetClient_Should_Use_Environment_Override_When_Set()
     {
         Environment.SetEnvironmentVariable("HTTP_NUGET_BASE_URL", "http://wiremock:8080/nuget/");
         using var client = HttpClientFactory.CreateNuGetClient();
@@ -29,7 +29,7 @@ public sealed class HttpClientFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateGithubClient_Should_UseEnvOverride_WhenSet()
+    public void CreateGithubClient_Should_Use_Environment_Override_When_Set()
     {
         Environment.SetEnvironmentVariable("HTTP_GITHUB_BASE_URL", "http://wiremock:8080/github/");
         using var client = HttpClientFactory.CreateGithubClient();
@@ -37,7 +37,7 @@ public sealed class HttpClientFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateNuGetClient_Should_FallBackToDefault_WhenEnvInvalid()
+    public void CreateNuGetClient_Should_Fall_Back_To_Default_When_Environment_Variable_Is_Invalid()
     {
         Environment.SetEnvironmentVariable("HTTP_NUGET_BASE_URL", "not-a-uri");
         using var client = HttpClientFactory.CreateNuGetClient();
@@ -45,7 +45,7 @@ public sealed class HttpClientFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateNuGetClient_Should_NormalizeTrailingSlash_WhenEnvOverrideMissingTrailingSlash()
+    public void CreateNuGetClient_Should_Normalize_Trailing_Slash_When_Environment_Override_Is_Missing_Trailing_Slash()
     {
         Environment.SetEnvironmentVariable("HTTP_NUGET_BASE_URL", "http://wiremock:8080/nuget");
         using var client = HttpClientFactory.CreateNuGetClient();
@@ -53,7 +53,7 @@ public sealed class HttpClientFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateGithubClient_Should_NormalizeTrailingSlash_WhenEnvOverrideMissingTrailingSlash()
+    public void CreateGithubClient_Should_Normalize_Trailing_Slash_When_Environment_Override_Is_Missing_Trailing_Slash()
     {
         Environment.SetEnvironmentVariable("HTTP_GITHUB_BASE_URL", "http://wiremock:8080/github");
         using var client = HttpClientFactory.CreateGithubClient();
@@ -61,14 +61,14 @@ public sealed class HttpClientFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateGithubClient_Should_UseDefaultBaseAddress_WhenEnvNotSet()
+    public void CreateGithubClient_Should_Use_Default_BaseAddress_When_Environment_Variable_Is_Not_Set()
     {
         using var client = HttpClientFactory.CreateGithubClient();
         Assert.Equal(new Uri("https://api.github.com/"), client.BaseAddress);
     }
 
     [Fact]
-    public void CreateGithubClient_Should_FallBackToDefault_WhenEnvInvalid()
+    public void CreateGithubClient_Should_Fall_Back_To_Default_When_Environment_Variable_Is_Invalid()
     {
         Environment.SetEnvironmentVariable("HTTP_GITHUB_BASE_URL", "not-a-uri");
         using var client = HttpClientFactory.CreateGithubClient();

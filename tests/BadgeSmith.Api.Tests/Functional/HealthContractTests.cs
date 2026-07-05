@@ -10,7 +10,7 @@ namespace BadgeSmith.Api.Tests.Functional;
 public sealed class HealthContractTests(AspireContractFixture stack)
 {
     [Fact]
-    public async Task Health_Should_Return200_WithNoCacheHeaders()
+    public async Task Health_Should_Return_200_With_No_Cache_Headers()
     {
         var response = await stack.Api.InvokeAsync("GET", "/health", ct: TestContext.Current.CancellationToken);
 

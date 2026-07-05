@@ -10,7 +10,7 @@ namespace BadgeSmith.Api.Tests.Routing.Patterns;
 public sealed class TemplatePatternTests
 {
     [Fact]
-    public void Constructor_Should_ParseTemplateCorrectly()
+    public void Constructor_Should_Parse_Template_Correctly()
     {
         var pattern = new TemplatePattern("/badges/packages/{provider}/{package}");
 
@@ -25,7 +25,7 @@ public sealed class TemplatePatternTests
     [InlineData("/badges/packages/{provider}/{package}", "/badges/packages/nuget", false)]
     [InlineData("/badges/packages/{provider}/{package}", "/badges/packages/nuget/package/extra", false)]
     [InlineData("/badges/packages/{provider}/{package}", "/different/path/nuget/package", false)]
-    public void TryMatch_Should_HandleBasicTemplateMatching(string template, string path, bool expectedMatch)
+    public void TryMatch_Should_Handle_Basic_Template_Matching(string template, string path, bool expectedMatch)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern(template);
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -40,7 +40,7 @@ public sealed class TemplatePatternTests
     [InlineData("/badges/packages/nuget/Newtonsoft.Json", "package", "Newtonsoft.Json")]
     [InlineData("/badges/packages/github/localstack-dotnet", "provider", "github")]
     [InlineData("/badges/packages/github/localstack-dotnet", "package", "localstack-dotnet")]
-    public void TryMatch_Should_ExtractParametersCorrectly(string path, string parameterName, string expectedValue)
+    public void TryMatch_Should_Extract_Parameters_Correctly(string path, string parameterName, string expectedValue)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}");
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -52,7 +52,7 @@ public sealed class TemplatePatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_ExtractAllParametersFromNuGetUrl()
+    public void TryMatch_Should_Extract_All_Parameters_When_Url_Is_NuGet()
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}");
         const string path = "/badges/packages/nuget/Newtonsoft.Json";
@@ -69,7 +69,7 @@ public sealed class TemplatePatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_ExtractAllParametersFromGitHubUrl()
+    public void TryMatch_Should_Extract_All_Parameters_When_Url_Is_GitHub()
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{org}/{package}");
         const string path = "/badges/packages/github/localstack-dotnet/localstack.client";
@@ -87,7 +87,7 @@ public sealed class TemplatePatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_ExtractAllParametersFromTestUrl()
+    public void TryMatch_Should_Extract_All_Parameters_When_Url_Is_Test()
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/tests/{platform}/{owner}/{repo}/{branch}");
         const string path = "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main";
@@ -112,7 +112,7 @@ public sealed class TemplatePatternTests
     [InlineData("/badges/tests/linux/org/repo/feature%2Fbug%2Dfix", "feature/bug-fix")]
     [InlineData("/badges/tests/windows/org/repo/branch%20with%20spaces", "branch with spaces")]
     [InlineData("/badges/tests/macos/org/repo/release%2F2024%2D01%2D15", "release/2024-01-15")]
-    public void TryMatch_Should_HandleUrlEncodedBranches(string path, string expectedBranch)
+    public void TryMatch_Should_Handle_Url_Encoded_Branches(string path, string expectedBranch)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/tests/{platform}/{owner}/{repo}/{branch}");
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -134,7 +134,7 @@ public sealed class TemplatePatternTests
     [InlineData("/badges/packages/nuget/Package%3FWith%3FQuestion", "Package?With?Question")]
     [InlineData("/badges/packages/nuget/Package%23With%23Hash", "Package#With#Hash")]
     [InlineData("/badges/packages/nuget/Microsoft%2EExtensions%2EHttp", "Microsoft.Extensions.Http")]
-    public void TryMatch_Should_HandleUrlEncodedPackageNames(string path, string expectedPackage)
+    public void TryMatch_Should_Handle_Url_Encoded_Package_Names(string path, string expectedPackage)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}");
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -149,7 +149,7 @@ public sealed class TemplatePatternTests
     [Theory]
     [InlineData("/badges/packages/{provider}/{package}", "/badges/packages/NUGET/PACKAGE", "NUGET", "PACKAGE")]
     [InlineData("/badges/tests/{platform}/{owner}/{repo}/{branch}", "/badges/tests/LINUX/OWNER/REPO/BRANCH", "LINUX", "OWNER")]
-    public void TryMatch_Should_PreserveCaseInParameterValues(string template, string path, string expectedParam1, string expectedParam2)
+    public void TryMatch_Should_Preserve_Case_When_Reading_Parameter_Values(string template, string path, string expectedParam1, string expectedParam2)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern(template);
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -171,7 +171,7 @@ public sealed class TemplatePatternTests
     [InlineData("/badges/packages/{provider}/{package}", "/badges/packages/nuget/Package-With-Dashes")]
     [InlineData("/badges/packages/{provider}/{package}", "/badges/packages/nuget/Package_With_Underscores")]
     [InlineData("/badges/tests/{platform}/{owner}/{repo}/{branch}", "/badges/tests/linux/owner-with-dashes/repo.with.dots/branch_with_underscores")]
-    public void TryMatch_Should_HandleEmptySegmentsAndSpecialCharacters(string template, string path)
+    public void TryMatch_Should_Handle_Empty_Segments_And_Special_Characters(string template, string path)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern(template);
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -191,7 +191,7 @@ public sealed class TemplatePatternTests
     [InlineData("/badges/packages/provider/package/extra/segments")]
     [InlineData("/different/structure/entirely")]
     [InlineData("")]
-    public void TryMatch_Should_ReturnFalseForNonMatchingPaths(string path)
+    public void TryMatch_Should_Return_False_When_Path_Does_Not_Match(string path)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}");
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -202,7 +202,7 @@ public sealed class TemplatePatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_HandleLeadingSlashCorrectly()
+    public void TryMatch_Should_Handle_Leading_Slash_Correctly()
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}");
         const string pathWithSlash = "/badges/packages/nuget/Newtonsoft.Json";
@@ -226,7 +226,7 @@ public sealed class TemplatePatternTests
 
     [Theory]
     [MemberData(nameof(GetRealWorldTestData))]
-    public void TryMatch_Should_HandleRealWorldUrls(string template, string url, bool shouldMatch, IDictionary<string, string> expectedParameters)
+    public void TryMatch_Should_Handle_Real_World_Urls(string template, string url, bool shouldMatch, IDictionary<string, string> expectedParameters)
     {
         var pattern = RouteTestBuilder.CreateTemplatePattern(template);
         var values = RouteTestBuilder.CreateRouteValues(url);

@@ -13,7 +13,7 @@ public sealed class ExactPatternTests
     [InlineData("/tests/results")]
     [InlineData("/status")]
     [InlineData("/api/v1/endpoint")]
-    public void Constructor_Should_StoreLiteralCorrectly(string literal)
+    public void Constructor_Should_Store_Literal_Correctly(string literal)
     {
         var pattern = new ExactPattern(literal);
 
@@ -32,7 +32,7 @@ public sealed class ExactPatternTests
     [InlineData("/health", "", false)]
     [InlineData("/tests/results", "/tests", false)]
     [InlineData("/tests/results", "/results", false)]
-    public void TryMatch_Should_HandleCaseInsensitiveMatching(string literal, string path, bool expectedMatch)
+    public void TryMatch_Should_Handle_Case_Insensitive_Matching(string literal, string path, bool expectedMatch)
     {
         var pattern = RouteTestBuilder.CreateExactPattern(literal);
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -43,7 +43,7 @@ public sealed class ExactPatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_ReturnTrueForExactHealthMatch()
+    public void TryMatch_Should_Return_True_When_Health_Matches_Exactly()
     {
         var pattern = RouteTestBuilder.CreateExactPattern("/health");
         const string path = "/health";
@@ -55,7 +55,7 @@ public sealed class ExactPatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_ReturnTrueForTestResultsMatch()
+    public void TryMatch_Should_Return_True_When_Test_Results_Matches_Exactly()
     {
         var pattern = RouteTestBuilder.CreateExactPattern("/tests/results");
         const string path = "/tests/results";
@@ -73,7 +73,7 @@ public sealed class ExactPatternTests
     [InlineData("/tests/results", "/tests/results/")]
     [InlineData("/tests/results", "/tests/result")]
     [InlineData("/tests/results", "/test/results")]
-    public void TryMatch_Should_ReturnFalseForNonExactMatches(string literal, string path)
+    public void TryMatch_Should_Return_False_When_Match_Is_Not_Exact(string literal, string path)
     {
         var pattern = RouteTestBuilder.CreateExactPattern(literal);
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -84,7 +84,7 @@ public sealed class ExactPatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_NotModifyRouteValues()
+    public void TryMatch_Should_Not_Modify_RouteValues()
     {
         var pattern = RouteTestBuilder.CreateExactPattern("/health");
         const string path = "/health";
@@ -104,7 +104,7 @@ public sealed class ExactPatternTests
     [InlineData("/tests/results")]
     [InlineData("/api/v1/status")]
     [InlineData("/badges/clear-cache")]
-    public void TryMatch_Should_WorkWithVariousExactPaths(string exactPath)
+    public void TryMatch_Should_Work_When_Path_Is_Various_Exact_Path(string exactPath)
     {
         var pattern = RouteTestBuilder.CreateExactPattern(exactPath);
         var values = RouteTestBuilder.CreateRouteValues(exactPath);
@@ -129,7 +129,7 @@ public sealed class ExactPatternTests
     [InlineData(" ")] // Space
     [InlineData("\t")] // Tab
     [InlineData("\n")] // Newline
-    public void TryMatch_Should_NotMatchSimilarOrMalformedPaths(string path)
+    public void TryMatch_Should_Not_Match_When_Path_Is_Similar_Or_Malformed(string path)
     {
         var pattern = RouteTestBuilder.CreateExactPattern("/health");
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -141,7 +141,7 @@ public sealed class ExactPatternTests
 
     [Theory]
     [MemberData(nameof(GetRealWorldExactPatterns))]
-    public void TryMatch_Should_HandleRealWorldExactPatterns(string literal, string testPath, bool shouldMatch)
+    public void TryMatch_Should_Handle_Real_World_ExactPattern(string literal, string testPath, bool shouldMatch)
     {
         var pattern = RouteTestBuilder.CreateExactPattern(literal);
         var values = RouteTestBuilder.CreateRouteValues(testPath);

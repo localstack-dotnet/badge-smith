@@ -10,7 +10,7 @@ namespace BadgeSmith.Api.Tests.Routing;
 public sealed class RouteResolverTests
 {
     [Fact]
-    public void Constructor_Should_StoreRoutesCorrectly()
+    public void Constructor_Should_Store_Routes_Correctly()
     {
         var routes = CreateTestRoutes();
 
@@ -29,7 +29,7 @@ public sealed class RouteResolverTests
     [InlineData("GET", "/badges/packages/github/localstack-dotnet/localstack.client", true, "GithubPackagesBadge")]
     [InlineData("GET", "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main", true, "TestsBadge")]
     [InlineData("GET", "/redirect/test-results/linux/localstack-dotnet/dotnet-aspire-for-localstack/main", true, "BadgeRedirect")]
-    public void TryResolve_Should_MatchValidRoutes(string method, string path, bool expectedMatch, string expectedRouteName)
+    public void TryResolve_Should_Match_Valid_Routes(string method, string path, bool expectedMatch, string expectedRouteName)
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -58,7 +58,7 @@ public sealed class RouteResolverTests
     [InlineData("GET", "/badges/tests/linux/owner")] // Incomplete path
     [InlineData("GET", "/badges/tests/linux/owner/repo")] // Incomplete path
     [InlineData("GET", "")] // Empty path
-    public void TryResolve_Should_ReturnFalseForInvalidRoutes(string method, string path)
+    public void TryResolve_Should_Return_False_When_Routes_Are_Invalid(string method, string path)
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -70,7 +70,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void TryResolve_Should_ExtractParametersForNuGetPackage()
+    public void TryResolve_Should_Extract_Parameters_When_Route_Is_NuGet_Package()
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -87,7 +87,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void TryResolve_Should_ExtractParametersForGitHubPackage()
+    public void TryResolve_Should_Extract_Parameters_When_Route_Is_GitHub_Package()
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -105,7 +105,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void TryResolve_Should_ExtractParametersForTestBadge()
+    public void TryResolve_Should_Extract_Parameters_When_Route_Is_Test_Badge()
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -124,7 +124,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void TryResolve_Should_HandleUrlEncodedBranches()
+    public void TryResolve_Should_Handle_Url_Encoded_Branches()
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -148,7 +148,7 @@ public sealed class RouteResolverTests
     [InlineData("DELETE", "DELETE")]
     [InlineData("PATCH", "PATCH")]
     [InlineData("OPTIONS", "OPTIONS")]
-    public void TryResolve_Should_NormalizeHeadToGet(string inputMethod, string expectedNormalizedMethod)
+    public void TryResolve_Should_Normalize_Head_To_Get(string inputMethod, string expectedNormalizedMethod)
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -176,7 +176,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void TryResolve_Should_PrioritizeExactPatternsOverTemplates()
+    public void TryResolve_Should_Prioritize_ExactPattern_Over_TemplatePattern()
     {
         var routes = new[]
         {
@@ -197,7 +197,7 @@ public sealed class RouteResolverTests
     [InlineData("/badges/packages/nuget/Newtonsoft.Json", new[] { "GET", "HEAD", "OPTIONS" })]
     [InlineData("/badges/tests/linux/owner/repo/main", new[] { "GET", "HEAD", "OPTIONS" })]
     [InlineData("/nonexistent/path", new[] { "OPTIONS" })] // Non-matching paths still get OPTIONS
-    public void GetAllowedMethods_Should_ReturnCorrectMethods(string path, string[] expectedMethods)
+    public void GetAllowedMethods_Should_Return_Correct_Methods(string path, string[] expectedMethods)
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -212,7 +212,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void GetAllowedMethods_Should_AddHeadForGetRoutes()
+    public void GetAllowedMethods_Should_Add_Head_When_Route_Is_Get()
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -225,7 +225,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void GetAllowedMethods_Should_AlwaysIncludeOptions()
+    public void GetAllowedMethods_Should_Always_Include_Options()
     {
         var routes = CreateTestRoutes();
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -236,7 +236,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void GetAllowedMethods_Should_NotDuplicateHeadIfAlreadyPresent()
+    public void GetAllowedMethods_Should_Not_Duplicate_Head_When_Already_Present()
     {
         var routes = new[]
         {
@@ -256,7 +256,7 @@ public sealed class RouteResolverTests
     [InlineData("PUT", "/api/data/123")]
     [InlineData("DELETE", "/api/data/123")]
     [InlineData("PATCH", "/api/data/123")]
-    public void GetAllowedMethods_Should_NotIncludeHeadForNonGetMethods(string method, string path)
+    public void GetAllowedMethods_Should_Not_Include_Head_When_Method_Is_Not_Get(string method, string path)
     {
         var routes = new[]
         {
@@ -275,7 +275,7 @@ public sealed class RouteResolverTests
     }
 
     [Fact]
-    public void GetAllowedMethods_Should_OnlyAddHeadForGetRoutes()
+    public void GetAllowedMethods_Should_Only_Add_Head_When_Route_Is_Get()
     {
         var routes = new[]
         {
@@ -299,7 +299,7 @@ public sealed class RouteResolverTests
 
     [Theory]
     [MemberData(nameof(GetRealWorldRoutingScenarios))]
-    public void TryResolve_Should_HandleRealWorldScenarios(string method, string path, bool expectedMatch, string? expectedRouteName,
+    public void TryResolve_Should_Handle_Real_World_Scenarios(string method, string path, bool expectedMatch, string? expectedRouteName,
         IDictionary<string, string>? expectedParameters)
     {
         var routes = CreateTestRoutes();

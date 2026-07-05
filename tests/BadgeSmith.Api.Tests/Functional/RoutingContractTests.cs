@@ -10,21 +10,21 @@ namespace BadgeSmith.Api.Tests.Functional;
 public sealed class RoutingContractTests(AspireContractFixture stack)
 {
     [Fact]
-    public async Task UnknownRoute_Should_Return404()
+    public async Task Unknown_Route_Should_Return_404()
     {
         var r = await stack.Api.InvokeAsync("GET", "/nope/nothing/here", ct: TestContext.Current.CancellationToken);
         Assert.Equal(404, r.StatusCode);
     }
 
     [Fact]
-    public async Task Head_Should_BeRoutedLikeGet()
+    public async Task Head_Should_Be_Routed_Like_Get()
     {
         var r = await stack.Api.InvokeAsync("HEAD", "/health", ct: TestContext.Current.CancellationToken);
         Assert.Equal(200, r.StatusCode);
     }
 
     [Fact]
-    public async Task OptionsPreflight_Should_ReturnCorsHeaders()
+    public async Task Options_Preflight_Should_Return_Cors_Headers()
     {
         var r = await stack.Api.InvokeAsync("OPTIONS", "/badges/packages/nuget/contracttest.pkg",
             new Dictionary<string, string>(StringComparer.Ordinal)
@@ -40,7 +40,7 @@ public sealed class RoutingContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Responses_Should_CarryCorsHeader()
+    public async Task Responses_Should_Carry_Cors_Header()
     {
         var r = await stack.Api.InvokeAsync("GET", "/health", ct: TestContext.Current.CancellationToken);
         Assert.NotNull(r.Headers);
