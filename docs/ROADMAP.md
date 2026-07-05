@@ -1,6 +1,6 @@
 # BadgeSmith Roadmap
 
-Date: 2026-07-04
+Date: 2026-07-05
 
 Backlog and progress source of truth for BadgeSmith. Keep this current: the Status &
 Plan Mapping table is the permanent index, detailed plans live in `docs/plans/`, and
@@ -11,7 +11,12 @@ new ideas land in Inbox / Untriaged until they are scoped.
 | Workstream | Status | Plan | Notes |
 | --- | --- | --- | --- |
 | Agent contract adoption | done | — (landed as a single `docs:` commit) | Re-authored `AGENTS.md`, harness relays, and `docs/agents/` for BadgeSmith after they were copied from another repo |
-| Iteration 0 — RIE-free contract coverage and local benchmark harness | implementation in progress | [plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md](plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md) | Redirected on 2026-07-04 from a RIE-backed AOT contract tier to a RIE-free design: Aspire Testing for contract/integration coverage and LocalStack for local benchmark execution. LocalStack Community 4.6 blocks API Gateway v2 CloudFormation resources, so the verified local benchmark currently uses a CDK-created Lambda Function URL fallback; old RIE plan kept only as historical context: [plans/2026-07-02-iteration0-aot-contract-tier-plan.md](plans/2026-07-02-iteration0-aot-contract-tier-plan.md). |
+| Iteration 0 — RIE-free contract coverage and local benchmark harness | done | [plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md](plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md) | Completed on 2026-07-05 on `feature/iteration0-aot-contract-tier`: RIE was removed from active contract and benchmark paths; Aspire Testing + `APIGatewayEmulator` covers HTTP contracts; LocalStack ZIP Lambda benchmark execution uses a CDK-created Lambda Function URL fallback because LocalStack Community 4.6 blocks API Gateway v2 CloudFormation resources. Baselines: [final local smoke](research/baselines/2026-07-04-final-localstack-smoke.json), [live direct Gateway smoke](research/baselines/2026-07-04-live-gateway-smoke.json), and [live CloudFront comparison smoke](research/baselines/2026-07-04-live-cloudfront-smoke.json). Old RIE plan kept only as historical context: [plans/2026-07-02-iteration0-aot-contract-tier-plan.md](plans/2026-07-02-iteration0-aot-contract-tier-plan.md). |
+
+## Process Notes
+
+- For live Lambda/API performance, use the direct API Gateway baseline; CloudFront runs are comparison data because edge caching can reduce Lambda invocations and hide API behavior.
+- For Lambda duration, memory, and cold starts, use CloudWatch Lambda `REPORT` lines as the source of truth. k6 client-side cold-start heuristics are only smoke-test hints.
 
 ## Backlog
 
