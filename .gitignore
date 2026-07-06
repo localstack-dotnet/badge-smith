@@ -438,9 +438,17 @@ cdk.out
 .mcp.json
 opencode.jsonc
 
+.opencode/.gitignore
 .opencode/agents/
+.opencode/bun.lock
+.opencode/node_modules/
+.opencode/package-lock.json
+.opencode/package.json
+.opencode/skill/
 .opencode/skills/subagent-model-routing/
 
 # Editor / local harness config (machine-specific; may contain local MCP ports and personal settings)
 .vscode/
 external/
+
+.playwright-mcp
