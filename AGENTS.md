@@ -183,7 +183,9 @@ these constraints on every code change:
 - Documentation-only changes do not require build/test unless they add or change
   commands that should be validated.
 - If Slopwatch is available after LLM-authored code, project, or test changes, run
-  `slopwatch analyze --fail-on warning --exclude "artifacts/**,**/bin/**,**/obj/**"`.
+  `slopwatch analyze --fail-on warning --exclude "artifacts/**,external/**,**/bin/**,**/obj/**"`.
+  The existing baseline lives under `.slopwatch/`; `external/**` is excluded because it
+  contains ignored upstream source checkouts for source navigation, not BadgeSmith-owned code.
 
 ## Capability Routing
 
