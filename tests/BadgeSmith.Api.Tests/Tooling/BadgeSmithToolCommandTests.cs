@@ -26,6 +26,27 @@ public sealed class BadgeSmithToolCommandTests
         Assert.Contains("unknown-command", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task LambdaBuild_Should_Print_Help_When_Invoked_With_Help()
+    {
+        var result = await RunToolAsync("lambda", "build", "--help");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("linux-arm64", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("--target", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("--rid", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task LambdaBuild_Should_Reject_Invalid_Rid_When_Rid_Is_Not_Supported()
+    {
+        var result = await RunToolAsync("lambda", "build", "--rid", "windows-x64");
+
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("linux-arm64", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("linux-x64", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static async Task<ToolRunResult> RunToolAsync(params string[] arguments)
     {
         var root = FindRepositoryRoot();

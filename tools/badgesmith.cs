@@ -9,6 +9,7 @@
 #:include Commands/**/*.cs
 #:include Infrastructure/**/*.cs
 
+using BadgeSmith.Tools.Commands;
 using BadgeSmith.Tools.Infrastructure;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -20,6 +21,13 @@ app.Configure(config =>
     config.Settings.ShowOptionDefaultValues = true;
     config.Settings.CaseSensitivity = CaseSensitivity.None;
     config.Settings.CancellationExitCode = ToolExitCodes.Canceled;
+    config.AddBranch("lambda", lambda =>
+    {
+        lambda.SetDescription("Lambda build and artifact commands.");
+        lambda.AddCommand<LambdaBuildCommand>("build")
+            .WithDescription("Build the BadgeSmith Lambda ZIP or container image.")
+            .WithExample("lambda", "build", "--target", "zip", "--rid", "linux-arm64", "--clean");
+    });
     config.SetExceptionHandler((exception, _) =>
     {
         if (exception is OperationCanceledException)
