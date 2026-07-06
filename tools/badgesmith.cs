@@ -28,6 +28,13 @@ app.Configure(config =>
             .WithDescription("Build the BadgeSmith Lambda ZIP or container image.")
             .WithExample("lambda", "build", "--target", "zip", "--rid", "linux-arm64", "--clean");
     });
+    config.AddBranch("tests", tests =>
+    {
+        tests.SetDescription("Test execution and ingestion commands.");
+        tests.AddCommand<TestRunCommand>("run")
+            .WithDescription("Run a .NET test project once per target framework.")
+            .WithExample("tests", "run", "--project-path", "tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj", "--results-dir", "test-results");
+    });
     config.SetExceptionHandler((exception, _) =>
     {
         if (exception is OperationCanceledException)

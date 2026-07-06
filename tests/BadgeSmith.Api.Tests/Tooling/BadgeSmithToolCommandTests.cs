@@ -47,6 +47,25 @@ public sealed class BadgeSmithToolCommandTests
         Assert.Contains("linux-x64", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task TestsRun_Should_Print_Help_When_Invoked_With_Help()
+    {
+        var result = await RunToolAsync("tests", "run", "--help");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("--project-path", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("--results-dir", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task TestsRun_Should_Reject_Missing_Project_File_When_Project_Path_Does_Not_Exist()
+    {
+        var result = await RunToolAsync("tests", "run", "--project-path", "missing.csproj", "--results-dir", "artifacts/test-results");
+
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("Project file not found", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static async Task<ToolRunResult> RunToolAsync(params string[] arguments)
     {
         var root = FindRepositoryRoot();
