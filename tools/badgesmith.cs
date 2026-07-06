@@ -34,6 +34,16 @@ app.Configure(config =>
         tests.AddCommand<TestRunCommand>("run")
             .WithDescription("Run a .NET test project once per target framework.")
             .WithExample("tests", "run", "--project-path", "tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj", "--results-dir", "test-results");
+        tests.AddCommand<TestIngestCommand>("ingest")
+            .WithDescription("Post a test result payload to BadgeSmith.")
+            .WithExample("tests", "ingest", "--base-url", "https://api.example.com", "--owner", "localstack-dotnet", "--repo", "badge-smith", "--platform", "linux", "--branch", "main", "--secret", "secret", "--payload-file", "payload.json", "--dry-run");
+    });
+    config.AddBranch("badge", badge =>
+    {
+        badge.SetDescription("BadgeSmith badge update commands.");
+        badge.AddCommand<BadgeUpdateCommand>("update")
+            .WithDescription("Post GitHub Actions test results to BadgeSmith.")
+            .WithExample("badge", "update", "--platform", "Linux", "--test-passed", "1", "--test-failed", "0", "--test-skipped", "0", "--repository", "localstack-dotnet/badge-smith", "--hmac-secret", "secret", "--dry-run");
     });
     config.SetExceptionHandler((exception, _) =>
     {

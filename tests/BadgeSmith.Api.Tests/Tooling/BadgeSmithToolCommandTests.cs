@@ -66,6 +66,53 @@ public sealed class BadgeSmithToolCommandTests
         Assert.Contains("Project file not found", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task TestsIngest_Should_Dry_Run_Without_Posting_When_Dry_Run_Is_Set()
+    {
+        const string payload = "{\"platform\":\"Linux\",\"passed\":1,\"failed\":0,\"skipped\":0,\"total\":1,\"url_html\":\"https://example.com/run\",\"timestamp\":\"2026-01-01T00:00:00Z\",\"commit\":\"abc123\",\"run_id\":\"1\",\"workflow_run_url\":\"https://example.com/workflow\"}";
+        var result = await RunToolAsync("tests", "ingest", "--base-url", "https://example.com", "--owner", "LocalStack-DotNet", "--repo", "BadgeSmith", "--platform", "Linux", "--branch", "Main", "--secret", "test-secret", "--payload", payload, "--dry-run");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("DRY RUN", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://example.com/tests/results/linux/localstack-dotnet/badgesmith/Main", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("test-secret", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TestsIngest_Should_Return_Non_Zero_When_Payload_And_Payload_File_Missing()
+    {
+        var result = await RunToolAsync("tests", "ingest", "--base-url", "https://example.com", "--owner", "LocalStack-DotNet", "--repo", "BadgeSmith", "--platform", "Linux", "--branch", "Main", "--secret", "test-secret", "--dry-run");
+
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("payload", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task BadgeUpdate_Should_Dry_Run_Without_Posting_When_Dry_Run_Is_Set()
+    {
+        var result = await RunToolAsync(
+            "badge", "update",
+            "--platform", "Linux",
+            "--test-passed", "2",
+            "--test-failed", "0",
+            "--test-skipped", "1",
+            "--test-url-html", "https://example.com/tests",
+            "--commit-sha", "abc123",
+            "--run-id", "42",
+            "--repository", "localstack-dotnet/badge-smith",
+            "--server-url", "https://github.com",
+            "--api-domain", "api.example.com",
+            "--hmac-secret", "test-secret",
+            "--branch", "feature/tools",
+            "--dry-run");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("DRY RUN", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://api.example.com/tests/results/linux/localstack-dotnet/badge-smith/feature/tools", result.Output, StringComparison.Ordinal);
+        Assert.Contains("badges/tests/linux/localstack-dotnet/badge-smith/feature/tools", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("test-secret", result.Output, StringComparison.Ordinal);
+    }
+
     private static async Task<ToolRunResult> RunToolAsync(params string[] arguments)
     {
         var root = FindRepositoryRoot();
