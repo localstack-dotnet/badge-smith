@@ -1,4 +1,5 @@
 using BadgeSmith.Tools.Infrastructure;
+using BadgeSmith.Tools.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
@@ -8,6 +9,16 @@ namespace BadgeSmith.Tools.Commands;
 
 internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
 {
+    private readonly IAnsiConsole _console;
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public TestIngestCommand(IHttpClientFactory httpClientFactory, IAnsiConsole console, IToolLogger logger)
+    {
+        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        _console = console ?? throw new ArgumentNullException(nameof(console));
+        ArgumentNullException.ThrowIfNull(logger);
+    }
+
     protected override async Task<int> ExecuteAsync(CommandContext context, TestIngestSettings settings, CancellationToken cancellationToken)
     {
         var payloadJson = settings.PayloadFile is { Length: > 0 }
@@ -25,15 +36,15 @@ internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
 
         if (settings.DryRun)
         {
-            AnsiConsole.MarkupLine("[yellow]DRY RUN: request was not sent.[/]");
-            await Console.Out.WriteLineAsync(url).ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"X-Timestamp: {timestamp}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"X-Nonce: {nonce}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"X-Signature: {signature}").ConfigureAwait(false);
+            _console.MarkupLine("[yellow]DRY RUN: request was not sent.[/]");
+            await _console.Profile.Out.Writer.WriteLineAsync(url).ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"X-Timestamp: {timestamp}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"X-Nonce: {nonce}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"X-Signature: {signature}").ConfigureAwait(false);
             return ToolExitCodes.Success;
         }
 
-        using var client = new HttpClient();
+        var client = _httpClientFactory.CreateClient("badgesmith-api");
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url))
         {
             Content = new StringContent(payloadJson, System.Text.Encoding.UTF8, "application/json"),
@@ -46,19 +57,19 @@ internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
 
         if (response.IsSuccessStatusCode)
         {
-            AnsiConsole.MarkupLine($"[green]Successfully posted to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
+            _console.MarkupLine($"[green]Successfully posted to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
             if (settings.Verbose)
             {
                 var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                AnsiConsole.WriteLine(responseBody);
+                await _console.Profile.Out.Writer.WriteLineAsync(responseBody).ConfigureAwait(false);
             }
 
             return ToolExitCodes.Success;
         }
 
         var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        AnsiConsole.MarkupLine($"[red]Failed to post to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
-        AnsiConsole.WriteLine(errorBody);
+        _console.MarkupLine($"[red]Failed to post to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
+        await _console.Profile.Out.Writer.WriteLineAsync(errorBody).ConfigureAwait(false);
         return ToolExitCodes.NetworkFailure;
     }
 }

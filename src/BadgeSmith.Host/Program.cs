@@ -1,4 +1,5 @@
 #pragma warning disable CA2252 // Using 'AddAWSLambdaFunction' requires opting into preview features.
+#pragma warning disable ASPIRECSHARPAPPS001 // AddCSharpApp is experimental in Aspire 13.
 
 using Amazon;
 using Aspire.Hosting.AWS.Lambda;
@@ -26,20 +27,13 @@ badgeSmithStack.AddOutput(TestResultsOutputTableName, stack => stack.TestResults
 badgeSmithStack.AddOutput(NonceTableOutputTableName, stack => stack.NonceTable.TableName);
 badgeSmithStack.AddOutput(OrgSecretsOutputTableName, stack => stack.OrgSecretsTable.TableName);
 
-var dynamoDbSeeder = builder.AddProject<Projects.BadgeSmith_DynamoDb_Seeders>(name: "BadgeSmithDynamoDbSeeders")
-    .WithReference(badgeSmithStack)
-    .WithEnvironment("AWS_RESOURCE_ORG_SECRETS_TABLE", badgeSmithStack.GetOutput(OrgSecretsOutputTableName))
-    .WithEnvironment("WORKER_TIMEOUT_IN_SECONDS", "300")
-    .ExcludeFromManifest();
-
 var badgeSmithApi = builder
     .AddAWSLambdaFunction<Projects.BadgeSmith_Api>(name: "BadgeSmithApi", lambdaHandler: "bootstrap")
     .WithEnvironment("DOTNET_ENVIRONMENT", builder.Environment.EnvironmentName)
     .WithEnvironment("AWS_RESOURCE_TEST_RESULTS_TABLE", badgeSmithStack.GetOutput(TestResultsOutputTableName))
     .WithEnvironment("AWS_RESOURCE_NONCE_TABLE", badgeSmithStack.GetOutput(NonceTableOutputTableName))
     .WithEnvironment("AWS_RESOURCE_ORG_SECRETS_TABLE", badgeSmithStack.GetOutput(OrgSecretsOutputTableName))
-    .WithReference(badgeSmithStack)
-    .WaitFor(dynamoDbSeeder);
+    .WithReference(badgeSmithStack);
 
 var httpNuGetBaseUrl = Environment.GetEnvironmentVariable("HTTP_NUGET_BASE_URL");
 if (!string.IsNullOrWhiteSpace(httpNuGetBaseUrl))
@@ -53,6 +47,19 @@ if (!string.IsNullOrWhiteSpace(httpGitHubBaseUrl))
     badgeSmithApi.WithEnvironment("HTTP_GITHUB_BASE_URL", httpGitHubBaseUrl);
 }
 
+var secretMappingConfigPath = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "..", "..", "tools", "organization-pat-mapping.json"));
+if (File.Exists(secretMappingConfigPath))
+{
+    var dynamoDbSeeder = builder.AddCSharpApp("BadgeSmithDynamoDbSeeders", "../../tools/badgesmith.cs")
+        .WithArgs("secrets", "seed", "--config", secretMappingConfigPath, "--timeout-seconds", "300")
+        .WithReference(awsConfig)
+        .WithReference(badgeSmithStack)
+        .WithEnvironment("AWS_RESOURCE_ORG_SECRETS_TABLE", badgeSmithStack.GetOutput(OrgSecretsOutputTableName))
+        .ExcludeFromManifest();
+
+    badgeSmithApi.WaitFor(dynamoDbSeeder);
+}
+
 builder.AddAWSAPIGatewayEmulator("APIGatewayEmulator", APIGatewayType.HttpV2)
     .WithEnvironment("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1")
     .WithEnvironment("LANG", "C")
@@ -62,3 +69,4 @@ builder.AddAWSAPIGatewayEmulator("APIGatewayEmulator", APIGatewayType.HttpV2)
 builder.UseLocalStack(localstack);
 
 await builder.Build().RunAsync().ConfigureAwait(false);
+#pragma warning restore ASPIRECSHARPAPPS001

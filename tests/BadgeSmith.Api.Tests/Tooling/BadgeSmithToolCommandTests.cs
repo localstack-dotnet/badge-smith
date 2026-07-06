@@ -113,6 +113,62 @@ public sealed class BadgeSmithToolCommandTests
         Assert.DoesNotContain("test-secret", result.Output, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SecretsSeed_Should_Print_Help_When_Invoked_With_Help()
+    {
+        var result = await RunToolAsync("secrets", "seed", "--help");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("--config", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("--table-name", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("--dry-run", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SecretsSeed_Should_Validate_Config_Without_Aws_Mutation_When_Dry_Run_Is_Set()
+    {
+        var configPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        await File.WriteAllTextAsync(configPath, """
+            {
+              "secrets": [
+                {
+                  "org_name": "LocalStack-DotNet",
+                  "name": "package",
+                  "secret": "ghp_testtoken",
+                  "type": "Package",
+                  "description": "Package token"
+                }
+              ]
+            }
+            """, TestContext.Current.CancellationToken);
+
+        try
+        {
+            var result = await RunToolAsync("secrets", "seed", "--config", configPath, "--table-name", "badge-smith-github-org-secrets", "--dry-run");
+
+            Assert.Equal(0, result.ExitCode);
+            Assert.Contains("DRY RUN", result.Output, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("localstack-dotnet", result.Output, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CONST#GITHUB#package", result.Output, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("ghp_testtoken", result.Output, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(configPath);
+        }
+    }
+
+    [Fact]
+    public async Task SecretsSeed_Should_Return_Validation_When_Config_File_Is_Missing()
+    {
+        var missingConfigPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+        var result = await RunToolAsync("secrets", "seed", "--config", missingConfigPath, "--table-name", "badge-smith-github-org-secrets", "--dry-run");
+
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("organization-pat-mapping.json.dist", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static async Task<ToolRunResult> RunToolAsync(params string[] arguments)
     {
         var root = FindRepositoryRoot();

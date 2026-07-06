@@ -11,7 +11,8 @@ new ideas land in Inbox / Untriaged until they are scoped.
 | Workstream | Status | Plan | Notes |
 | --- | --- | --- | --- |
 | Agent contract adoption | done | — (landed as a single `docs:` commit) | Re-authored `AGENTS.md`, harness relays, and `docs/agents/` for BadgeSmith after they were copied from another repo |
-| Iteration 0 — RIE-free contract coverage and local benchmark harness | done | [plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md](plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md) | Completed on 2026-07-05 on `feature/iteration0-aot-contract-tier`: RIE was removed from active contract and benchmark paths; Aspire Testing + `APIGatewayEmulator` covers HTTP contracts; LocalStack ZIP Lambda benchmark execution uses a CDK-created Lambda Function URL fallback because LocalStack Community 4.6 blocks API Gateway v2 CloudFormation resources. Baselines: [final local smoke](research/baselines/2026-07-04-final-localstack-smoke.json), [live direct Gateway smoke](research/baselines/2026-07-04-live-gateway-smoke.json), and [live CloudFront comparison smoke](research/baselines/2026-07-04-live-cloudfront-smoke.json). Old RIE plan kept only as historical context: [plans/2026-07-02-iteration0-aot-contract-tier-plan.md](plans/2026-07-02-iteration0-aot-contract-tier-plan.md). |
+| Iteration 0 — RIE-free contract coverage and local benchmark harness | done | [plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md](plans/2026-07-04-rie-free-aspire-localstack-implementation-plan.md) | Completed on 2026-07-05 on `feature/iteration0-aot-contract-tier` and squashed into `991769e`: RIE was removed from active contract and benchmark paths; Aspire Testing + `APIGatewayEmulator` covers HTTP contracts; LocalStack ZIP Lambda benchmark execution uses a CDK-created Lambda Function URL fallback because LocalStack Community 4.6 blocks API Gateway v2 CloudFormation resources. Baselines: [final local smoke](research/baselines/2026-07-04-final-localstack-smoke.json), [live direct Gateway smoke](research/baselines/2026-07-04-live-gateway-smoke.json), and [live CloudFront comparison smoke](research/baselines/2026-07-04-live-cloudfront-smoke.json). Old RIE plan kept only as historical context: [plans/2026-07-02-iteration0-aot-contract-tier-plan.md](plans/2026-07-02-iteration0-aot-contract-tier-plan.md). |
+| Wave 1 — correctness and hygiene fixes | in progress | — | Started on `feature/iteration0-aot-contract-tier` after Iteration 0. Landed so far: HMAC `repoIdentifier` correction in `845440f`, and test/benchmark naming convention cleanup in `5cbf87b`. Remaining correctness backlog is listed below. |
 
 ## Process Notes
 
@@ -23,9 +24,10 @@ new ideas land in Inbox / Untriaged until they are scoped.
 Scoped work waiting to start. Promote an item into Status & Plan Mapping (and write a
 plan under `docs/plans/`) when it becomes active.
 
-- **Wave 1 — correctness fixes** from the 2026-07-02 deep-dive: HMAC `repoIdentifier`
-  bug, GSI1PK case bug, build-script RID default vs CDK arm64, seeder `.dist` JSON fix,
-  nonce-ordering + error-message hygiene, PAT rotation. Details:
+- **Wave 1 — remaining correctness fixes** from the 2026-07-02 deep-dive: GSI1PK case
+  bug, build-script RID default vs CDK arm64, seeder `.dist` JSON fix, nonce-ordering +
+  error-message hygiene, PAT rotation. HMAC `repoIdentifier` is fixed in `845440f`.
+  Details:
   [research/2026-07-02-code-review-findings.md](research/2026-07-02-code-review-findings.md) §1–2.
 - **Wave 2 — test safety net**: HMAC / ResponseHelper / real RouteTable /
   NuGetVersionService tests; align resolver tests with production routes. Details:

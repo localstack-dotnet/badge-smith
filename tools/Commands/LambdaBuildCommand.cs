@@ -1,4 +1,5 @@
 using BadgeSmith.Tools.Infrastructure;
+using BadgeSmith.Tools.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
@@ -7,10 +8,21 @@ namespace BadgeSmith.Tools.Commands;
 
 internal sealed class LambdaBuildCommand : AsyncCommand<LambdaBuildSettings>
 {
+    private readonly IAnsiConsole _console;
+    private readonly IProcessRunner _runner;
+    private readonly RepositoryPaths _paths;
+
+    public LambdaBuildCommand(IProcessRunner runner, RepositoryPaths paths, IAnsiConsole console, IToolLogger logger)
+    {
+        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
+        _paths = paths ?? throw new ArgumentNullException(nameof(paths));
+        _console = console ?? throw new ArgumentNullException(nameof(console));
+        ArgumentNullException.ThrowIfNull(logger);
+    }
+
     protected override async Task<int> ExecuteAsync(CommandContext context, LambdaBuildSettings settings, CancellationToken cancellationToken)
     {
-        var paths = new RepositoryPaths();
-        var outputDirectory = paths.ResolveFromRoot(settings.OutDir);
+        var outputDirectory = _paths.ResolveFromRoot(settings.OutDir);
 
         if (settings.Clean && Directory.Exists(outputDirectory))
         {
@@ -20,11 +32,9 @@ internal sealed class LambdaBuildCommand : AsyncCommand<LambdaBuildSettings>
         Directory.CreateDirectory(outputDirectory);
 
         var platform = settings.Rid == "linux-arm64" ? "linux/arm64" : "linux/amd64";
-        var runner = new ProcessRunner(AnsiConsole.Console, settings.Verbose);
-
         if (settings.Target is "zip" or "both")
         {
-            await runner.RunStreamingAsync("docker", [
+            await _runner.RunStreamingAsync("docker", [
                 "buildx", "build",
                 "-f", settings.Dockerfile,
                 "--target", "export-zip",
@@ -32,12 +42,12 @@ internal sealed class LambdaBuildCommand : AsyncCommand<LambdaBuildSettings>
                 "--platform", platform,
                 "--output", $"type=local,dest={settings.OutDir}",
                 settings.Context
-            ], paths.RepositoryRoot, cancellationToken: cancellationToken).ConfigureAwait(false);
+            ], _paths.RepositoryRoot, verbose: settings.Verbose, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var expectedZip = paths.ResolveFromRoot(settings.OutDir, $"badge-lambda-{settings.Rid}.zip");
+            var expectedZip = _paths.ResolveFromRoot(settings.OutDir, $"badge-lambda-{settings.Rid}.zip");
             if (!File.Exists(expectedZip))
             {
-                AnsiConsole.MarkupLine($"[red]ZIP not found: {Markup.Escape(expectedZip)}[/]");
+                _console.MarkupLine($"[red]ZIP not found: {Markup.Escape(expectedZip)}[/]");
                 return ToolExitCodes.ExternalProcessFailure;
             }
         }
@@ -60,10 +70,10 @@ internal sealed class LambdaBuildCommand : AsyncCommand<LambdaBuildSettings>
             }
 
             imageArgs.Add(settings.Context);
-            await runner.RunStreamingAsync("docker", imageArgs, paths.RepositoryRoot, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await _runner.RunStreamingAsync("docker", imageArgs, _paths.RepositoryRoot, verbose: settings.Verbose, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        AnsiConsole.MarkupLine($"[green]Done. Artifacts in '{Markup.Escape(settings.OutDir)}'.[/]");
+        _console.MarkupLine($"[green]Done. Artifacts in '{Markup.Escape(settings.OutDir)}'.[/]");
         return ToolExitCodes.Success;
     }
 }

@@ -4,16 +4,24 @@
     <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    <NoWarn>$(NoWarn);CA1515;CA1034;CA1707;MA0110;MA0009;CA1062;CA1024</NoWarn>
+    <!-- slopwatch-ignore: SW005 pre-existing test-project NoWarn entries; CA1812 needed for linked Spectre.Console.Cli command types -->
+    <NoWarn>$(NoWarn);CA1515;CA1034;CA1707;MA0110;MA0009;CA1062;CA1024;CA1812</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.Core" />
     <PackageReference Include="Aspire.Hosting.Testing" />
     <PackageReference Include="AWSSDK.DynamoDBv2" />
     <PackageReference Include="AWSSDK.SecretsManager" />
+    <PackageReference Include="CliWrap" />
+    <PackageReference Include="LocalStack.Client" />
+    <PackageReference Include="LocalStack.Client.Extensions" />
     <PackageReference Include="MessagePack" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="Spectre.Console.Cli.Extensions.DependencyInjection" />
+    <PackageReference Include="Spectre.Console.Cli.Testing" />
     <PackageReference Include="Testcontainers" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
@@ -22,6 +30,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\BadgeSmith.Api\BadgeSmith.Api.csproj" />
     <ProjectReference Include="..\..\src\BadgeSmith.Host\BadgeSmith.Host.csproj" />
+  </ItemGroup>
+  <!-- Linked tool source compiled in-process for boundary tests. -->
+  <!-- CA1812 (linked source): command and settings types are instantiated via Spectre.Console.Cli reflection;
+       suppressed project-wide above alongside existing test-project NoWarn entries. -->
+  <ItemGroup>
+    <Compile Include="..\..\tools\Commands\**\*.cs" Link="Tooling\Linked\Commands\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\tools\Configuration\**\*.cs" Link="Tooling\Linked\Configuration\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\tools\Infrastructure\**\*.cs" Link="Tooling\Linked\Infrastructure\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\tools\Services\**\*.cs" Link="Tooling\Linked\Services\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Testing\Infrastructure\wiremock\**" CopyToOutputDirectory="PreserveNewest" />

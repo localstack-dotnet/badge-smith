@@ -1,4 +1,5 @@
 using BadgeSmith.Tools.Infrastructure;
+using BadgeSmith.Tools.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
@@ -9,12 +10,22 @@ namespace BadgeSmith.Tools.Commands;
 
 internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
 {
+    private readonly IAnsiConsole _console;
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public BadgeUpdateCommand(IHttpClientFactory httpClientFactory, IAnsiConsole console, IToolLogger logger)
+    {
+        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        _console = console ?? throw new ArgumentNullException(nameof(console));
+        ArgumentNullException.ThrowIfNull(logger);
+    }
+
     protected override async Task<int> ExecuteAsync(CommandContext context, BadgeUpdateSettings settings, CancellationToken cancellationToken)
     {
         var repositoryParts = settings.Repository.Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (repositoryParts.Length != 2)
         {
-            AnsiConsole.MarkupLine("[red]Repository must be in owner/repo format.[/]");
+            _console.MarkupLine("[red]Repository must be in owner/repo format.[/]");
             return ToolExitCodes.ValidationFailure;
         }
 
@@ -46,18 +57,18 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
 
         if (settings.DryRun)
         {
-            AnsiConsole.MarkupLine("[yellow]DRY RUN: request was not sent.[/]");
-            await Console.Out.WriteLineAsync($"URL: {url}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"Badge URL: {badgeUrl}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"Redirect URL: {redirectUrl}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"Payload: {payloadJson}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"X-Timestamp: {timestamp}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"X-Nonce: {nonce}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"X-Signature: {signature}").ConfigureAwait(false);
+            _console.MarkupLine("[yellow]DRY RUN: request was not sent.[/]");
+            await _console.Profile.Out.Writer.WriteLineAsync($"URL: {url}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"Badge URL: {badgeUrl}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"Redirect URL: {redirectUrl}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"Payload: {payloadJson}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"X-Timestamp: {timestamp}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"X-Nonce: {nonce}").ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"X-Signature: {signature}").ConfigureAwait(false);
             return ToolExitCodes.Success;
         }
 
-        using var client = new HttpClient();
+        var client = _httpClientFactory.CreateClient("badgesmith-api");
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url))
         {
             Content = new StringContent(payloadJson, System.Text.Encoding.UTF8, "application/json"),
@@ -70,21 +81,21 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
 
         if (response.IsSuccessStatusCode)
         {
-            AnsiConsole.MarkupLine($"[green]Successfully posted to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
+            _console.MarkupLine($"[green]Successfully posted to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
             await WriteStepSummaryAsync(badgeUrl, redirectUrl, settings.Platform, cancellationToken).ConfigureAwait(false);
             return ToolExitCodes.Success;
         }
 
         var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        AnsiConsole.MarkupLine($"[yellow]Failed to post to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
-        AnsiConsole.WriteLine(errorBody);
+        _console.MarkupLine($"[yellow]Failed to post to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
+        await _console.Profile.Out.Writer.WriteLineAsync(errorBody).ConfigureAwait(false);
 
         if (settings.FailOnError)
         {
             return ToolExitCodes.NetworkFailure;
         }
 
-        AnsiConsole.MarkupLine("[yellow]Badge update failure does not fail CI by default. Use --fail-on-error to opt into non-zero exit.[/]");
+        _console.MarkupLine("[yellow]Badge update failure does not fail CI by default. Use --fail-on-error to opt into non-zero exit.[/]");
         await WriteStepSummaryAsync(badgeUrl, redirectUrl, settings.Platform, cancellationToken).ConfigureAwait(false);
         return ToolExitCodes.Success;
     }

@@ -1,4 +1,5 @@
 using BadgeSmith.Tools.Infrastructure;
+using BadgeSmith.Tools.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
@@ -7,18 +8,34 @@ namespace BadgeSmith.Tools.Commands;
 
 internal sealed class TestRunCommand : AsyncCommand<TestRunSettings>
 {
+    private readonly IAnsiConsole _console;
+    private readonly IProcessRunner _runner;
+    private readonly RepositoryPaths _paths;
+
+    public TestRunCommand(IProcessRunner runner, RepositoryPaths paths, IAnsiConsole console, IToolLogger logger)
+    {
+        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
+        _paths = paths ?? throw new ArgumentNullException(nameof(paths));
+        _console = console ?? throw new ArgumentNullException(nameof(console));
+        ArgumentNullException.ThrowIfNull(logger);
+    }
+
     protected override async Task<int> ExecuteAsync(CommandContext context, TestRunSettings settings, CancellationToken cancellationToken)
     {
-        var paths = new RepositoryPaths();
-        var projectPath = Path.GetFullPath(Path.Combine(paths.RepositoryRoot, settings.ProjectPath));
-        var resultsDir = Path.GetFullPath(Path.Combine(paths.RepositoryRoot, settings.ResultsDir));
+        var projectPath = Path.GetFullPath(Path.Combine(_paths.RepositoryRoot, settings.ProjectPath));
+        if (!File.Exists(projectPath))
+        {
+            _console.MarkupLine($"[red]Project file not found: {Markup.Escape(settings.ProjectPath)}[/]");
+            return ToolExitCodes.ValidationFailure;
+        }
+
+        var resultsDir = Path.GetFullPath(Path.Combine(_paths.RepositoryRoot, settings.ResultsDir));
         Directory.CreateDirectory(resultsDir);
 
-        var runner = new ProcessRunner(AnsiConsole.Console, settings.Verbose);
-        var tfmRaw = await GetMsBuildPropertyAsync(runner, projectPath, "TargetFrameworks", paths.RepositoryRoot, cancellationToken).ConfigureAwait(false);
+        var tfmRaw = await GetMsBuildPropertyAsync(_runner, projectPath, "TargetFrameworks", _paths.RepositoryRoot, settings.Verbose, cancellationToken).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(tfmRaw))
         {
-            tfmRaw = await GetMsBuildPropertyAsync(runner, projectPath, "TargetFramework", paths.RepositoryRoot, cancellationToken).ConfigureAwait(false);
+            tfmRaw = await GetMsBuildPropertyAsync(_runner, projectPath, "TargetFramework", _paths.RepositoryRoot, settings.Verbose, cancellationToken).ConfigureAwait(false);
         }
 
         var frameworks = tfmRaw
@@ -30,23 +47,23 @@ internal sealed class TestRunCommand : AsyncCommand<TestRunSettings>
 
         if (frameworks.Length == 0)
         {
-            AnsiConsole.MarkupLine($"[red]Unable to determine target frameworks for {Markup.Escape(projectPath)}[/]");
+            _console.MarkupLine($"[red]Unable to determine target frameworks for {Markup.Escape(projectPath)}[/]");
             return ToolExitCodes.ValidationFailure;
         }
 
-        AnsiConsole.MarkupLine($"[cyan]Target frameworks: {Markup.Escape(string.Join(", ", frameworks))}[/]");
+        _console.MarkupLine($"[cyan]Target frameworks: {Markup.Escape(string.Join(", ", frameworks))}[/]");
 
         foreach (var framework in frameworks)
         {
-            AnsiConsole.MarkupLine($"[cyan]Testing {Markup.Escape(framework)}...[/]");
-            var exitCode = await runner.RunStreamingAsync("dotnet", [
+            _console.MarkupLine($"[cyan]Testing {Markup.Escape(framework)}...[/]");
+            var exitCode = await _runner.RunStreamingAsync("dotnet", [
                 "test", projectPath,
                 "-c", settings.Configuration,
                 "-f", framework,
                 "--no-build",
                 "--logger", $"trx;LogFileName=testResults-{framework}.trx",
                 "--results-directory", resultsDir
-            ], paths.RepositoryRoot, allowNonZeroExit: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            ], _paths.RepositoryRoot, allowNonZeroExit: true, verbose: settings.Verbose, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (exitCode != 0)
             {
@@ -57,14 +74,14 @@ internal sealed class TestRunCommand : AsyncCommand<TestRunSettings>
         return ToolExitCodes.Success;
     }
 
-    private static async Task<string> GetMsBuildPropertyAsync(ProcessRunner runner, string projectPath, string propertyName, string repositoryRoot, CancellationToken cancellationToken)
+    private static async Task<string> GetMsBuildPropertyAsync(IProcessRunner runner, string projectPath, string propertyName, string repositoryRoot, bool verbose, CancellationToken cancellationToken)
     {
         var result = await runner.RunBufferedAsync("dotnet", [
             "msbuild", projectPath,
             $"-getProperty:{propertyName}",
             "-nologo",
             "-v:q"
-        ], repositoryRoot, cancellationToken: cancellationToken).ConfigureAwait(false);
+        ], repositoryRoot, verbose: verbose, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return result.StandardOutput.Trim();
     }
@@ -88,24 +105,5 @@ internal sealed class TestRunSettings : CommandSettings
     [Description("Print external commands before running them.")]
     public bool Verbose { get; init; }
 
-    public override ValidationResult Validate()
-    {
-        RepositoryPaths paths;
-        try
-        {
-            paths = new RepositoryPaths();
-        }
-        catch (DirectoryNotFoundException ex)
-        {
-            return ValidationResult.Error(ex.Message);
-        }
-
-        var projectPath = Path.GetFullPath(Path.Combine(paths.RepositoryRoot, ProjectPath));
-        if (!File.Exists(projectPath))
-        {
-            return ValidationResult.Error($"Project file not found: {ProjectPath}");
-        }
-
-        return ValidationResult.Success();
-    }
+    public override ValidationResult Validate() => ValidationResult.Success();
 }

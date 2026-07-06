@@ -1,3 +1,4 @@
+using BadgeSmith.Tools.Services;
 using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.EventStream;
@@ -5,15 +6,36 @@ using Spectre.Console;
 
 namespace BadgeSmith.Tools.Infrastructure;
 
-internal sealed class ProcessRunner
+internal interface IProcessRunner
+{
+    public Task<BufferedProcessResult> RunBufferedAsync(
+        string executable,
+        IReadOnlyList<string> arguments,
+        string? workingDirectory = null,
+        IReadOnlyDictionary<string, string?>? environment = null,
+        bool allowNonZeroExit = false,
+        bool verbose = false,
+        CancellationToken cancellationToken = default);
+
+    public Task<int> RunStreamingAsync(
+        string executable,
+        IReadOnlyList<string> arguments,
+        string? workingDirectory = null,
+        IReadOnlyDictionary<string, string?>? environment = null,
+        bool allowNonZeroExit = false,
+        bool verbose = false,
+        CancellationToken cancellationToken = default);
+}
+
+internal sealed class ProcessRunner : IProcessRunner
 {
     private readonly IAnsiConsole _console;
-    private readonly bool _verbose;
+    private readonly IToolLogger _logger;
 
-    public ProcessRunner(IAnsiConsole console, bool verbose)
+    public ProcessRunner(IAnsiConsole console, IToolLogger logger)
     {
         _console = console ?? throw new ArgumentNullException(nameof(console));
-        _verbose = verbose;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<BufferedProcessResult> RunBufferedAsync(
@@ -22,20 +44,21 @@ internal sealed class ProcessRunner
         string? workingDirectory = null,
         IReadOnlyDictionary<string, string?>? environment = null,
         bool allowNonZeroExit = false,
+        bool verbose = false,
         CancellationToken cancellationToken = default)
     {
         var command = CreateCommand(executable, arguments, workingDirectory, environment, allowNonZeroExit);
-        WriteCommand(executable, arguments, workingDirectory);
+        WriteCommand(executable, arguments, workingDirectory, verbose);
 
         var result = await command.ExecuteBufferedAsync(cancellationToken).ConfigureAwait(false);
-        if (_verbose && !string.IsNullOrWhiteSpace(result.StandardOutput))
+        if (verbose && !string.IsNullOrWhiteSpace(result.StandardOutput))
         {
-            _console.WriteLine(result.StandardOutput.TrimEnd());
+            _logger.Info(result.StandardOutput.TrimEnd());
         }
 
-        if (_verbose && !string.IsNullOrWhiteSpace(result.StandardError))
+        if (verbose && !string.IsNullOrWhiteSpace(result.StandardError))
         {
-            _console.MarkupLine($"[yellow]{Markup.Escape(result.StandardError.TrimEnd())}[/]");
+            _logger.Warning(result.StandardError.TrimEnd());
         }
 
         return new BufferedProcessResult(result.ExitCode, result.StandardOutput, result.StandardError);
@@ -47,10 +70,11 @@ internal sealed class ProcessRunner
         string? workingDirectory = null,
         IReadOnlyDictionary<string, string?>? environment = null,
         bool allowNonZeroExit = false,
+        bool verbose = false,
         CancellationToken cancellationToken = default)
     {
         var command = CreateCommand(executable, arguments, workingDirectory, environment, allowNonZeroExit);
-        WriteCommand(executable, arguments, workingDirectory);
+        WriteCommand(executable, arguments, workingDirectory, verbose);
 
         await foreach (var commandEvent in command.ListenAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -98,15 +122,15 @@ internal sealed class ProcessRunner
         return command;
     }
 
-    private void WriteCommand(string executable, IReadOnlyList<string> arguments, string? workingDirectory)
+    private void WriteCommand(string executable, IReadOnlyList<string> arguments, string? workingDirectory, bool verbose)
     {
-        if (!_verbose)
+        if (!verbose)
         {
             return;
         }
 
         var directory = string.IsNullOrWhiteSpace(workingDirectory) ? Directory.GetCurrentDirectory() : workingDirectory;
-        _console.MarkupLine($"[grey]> ({Markup.Escape(directory)}) {Markup.Escape(executable)} {Markup.Escape(string.Join(' ', arguments))}[/]");
+        _logger.Debug($"> ({directory}) {executable} {string.Join(' ', arguments)}");
     }
 }
 
