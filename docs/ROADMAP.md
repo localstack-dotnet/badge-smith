@@ -53,3 +53,9 @@ Raw capture spot for ideas and requests before they are scoped into the backlog.
   `TrimMode=full` + ILC knobs, result caching in package services. Rejected:
   provisioned concurrency, keep-warm pings, SnapStart (N/A on provided.al2023).
   Folds in GitHub issue #1 (RouteValues buffer guard).
+- **Deferred from W1.7:** `perf baseline` C# command — the previous
+  `scripts/perf-baseline.{sh,ps1}` + `perf-baseline-seed.sh` (~16KB of orchestration)
+  was retired in the W1.7 closeout rather than half-ported. Keep the k6 scenario at
+  `scripts/k6-perf-test.js`; re-home the LocalStack seed + k6 invocation orchestration
+  under `tools/Commands/PerfBaselineCommand.cs` (registered as `perf baseline` in
+  `BadgeSmithTool.CreateCommandApp`) after Wave 2 or as part of the performance pass.
