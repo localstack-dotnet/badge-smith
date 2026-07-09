@@ -1,71 +1,71 @@
 <Project>
   <ItemGroup>
     <!-- third-party analyzers -->
-    <PackageVersion Include="Amazon.JSII.Analyzers" Version="1.121.0" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.264" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.101" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
+    <PackageVersion Include="Amazon.JSII.Analyzers" Version="1.138.0" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.122" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.301" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.23" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0" />
     <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.15.0" />
     <PackageVersion Include="SecurityCodeScan.VS2019" Version="5.6.7" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.17.0.131074" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.28.0.143324" />
     <PackageVersion Include="Spectre.Console.Cli.Extensions.DependencyInjection" Version="0.26.0" />
     <PackageVersion Include="Spectre.Console.Cli.Testing" Version="0.55.0" />
-    <PackageVersion Include="xunit.analyzers" Version="1.26.0" />
+    <PackageVersion Include="xunit.analyzers" Version="1.27.0" />
     <!-- aspire packages -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.4.6" />
     <PackageVersion Include="Aspire.Hosting.AWS" Version="13.3.1" />
     <PackageVersion Include="LocalStack.Aspire.Hosting" Version="13.4.0" />
     <!-- aws packages -->
-    <PackageVersion Include="AWSSDK.Core" Version="4.0.100.1" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.10.4" />
-    <PackageVersion Include="AWSSDK.SecretsManager" Version="4.0.4.1" />
-    <PackageVersion Include="Amazon.CDK.Lib" Version="2.233.0" />
-    <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.3" />
-    <PackageVersion Include="Amazon.Lambda.Core" Version="2.8.0" />
-    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.14.1" />
-    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4" />
-    <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="3.0.1" />
-    <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.17" />
+    <PackageVersion Include="AWSSDK.Core" Version="4.0.100.3" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.101.1" />
+    <PackageVersion Include="AWSSDK.SecretsManager" Version="4.0.100.3" />
+    <PackageVersion Include="Amazon.CDK.Lib" Version="2.261.0" />
+    <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.Core" Version="3.1.1" />
+    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="2.1.2" />
+    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="4.1.0" />
+    <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.100.3" />
     <!-- localstack packages -->
     <PackageVersion Include="LocalStack.Client" Version="2.0.0" />
     <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.0" />
     <!-- microsoft packages -->
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
     <!-- system packages -->
-    <PackageVersion Include="System.Text.Json" Version="10.0.1" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.9" />
     <!-- opentelemetry packages -->
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AWS" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.16.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.16.0" />
     <!-- third-party packages -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="CliWrap" Version="3.6.0" />
-    <PackageVersion Include="Constructs" Version="10.4.4" />
-    <PackageVersion Include="NuGet.Versioning" Version="7.0.1" />
+    <PackageVersion Include="CliWrap" Version="3.10.2" />
+    <PackageVersion Include="Constructs" Version="10.6.0" />
+    <PackageVersion Include="NuGet.Versioning" Version="7.6.0" />
     <PackageVersion Include="OneOf" Version="3.0.271" />
     <PackageVersion Include="OneOf.SourceGenerator" Version="3.0.271" />
     <PackageVersion Include="Spectre.Console.Cli" Version="0.55.0" />
-    <PackageVersion Include="ZLinq" Version="1.5.4" />
+    <PackageVersion Include="ZLinq" Version="1.5.6" />
     <!-- test packages -->
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.6" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
-    <PackageVersion Include="Testcontainers" Version="4.12.0" />
-    <PackageVersion Include="Testcontainers.LocalStack" Version="4.12.0" />
-    <PackageVersion Include="xunit.v3" Version="3.2.1" />
-    <PackageVersion Include="xunit.v3.runner.console" Version="3.2.1" />
+    <PackageVersion Include="Testcontainers" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.LocalStack" Version="4.13.0" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.v3.runner.console" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
 </Project>

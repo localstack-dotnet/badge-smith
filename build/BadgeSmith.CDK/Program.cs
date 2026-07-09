@@ -53,7 +53,9 @@ static LocalPerformanceStackSettings CreateLocalPerformanceSettings(App app)
     var lambdaArchitecture = GetLambdaArchitecture(GetContextValue(app, "lambdaArchitecture", "x86_64"));
     var httpNuGetBaseUrl = GetContextValue(app, "httpNuGetBaseUrl", "https://api.nuget.org/");
     var httpGitHubBaseUrl = GetContextValue(app, "httpGitHubBaseUrl", "https://api.github.com/");
+#pragma warning disable S5332 // LocalStack container endpoint is HTTP-only inside the Docker network.
     var localStackEndpoint = GetContextValue(app, "localStackEndpoint", "http://localstack:4566");
+#pragma warning restore S5332
 
     return new LocalPerformanceStackSettings(
         lambdaAssetPath,
