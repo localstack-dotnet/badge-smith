@@ -42,16 +42,6 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         }
 
         var repoIdentifier = $"{authContext.Owner}/{authContext.Repo}/{authContext.Platform}/{authContext.Branch}";
-        var nonceResult = await _nonceService.ValidateAndMarkNonceAsync(authContext.Nonce, repoIdentifier, requestTimestamp, ct).ConfigureAwait(false);
-
-        if (!nonceResult.IsSuccess)
-        {
-            return nonceResult.Failure.Match<HmacAuthenticationResult>
-            (
-                alreadyUsed => alreadyUsed,
-                error => error
-            );
-        }
 
         var secretResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(authContext.Owner, TokenType, ct).ConfigureAwait(false);
         if (secretResult is { IsSuccess: false, GithubSecret: null })
@@ -69,6 +59,17 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         {
             _logger.LogWarning("Invalid HMAC signature for repository {RepoIdentifier}", repoIdentifier);
             return new InvalidSignature("HMAC signature verification failed");
+        }
+
+        var nonceResult = await _nonceService.ValidateAndMarkNonceAsync(authContext.Nonce, repoIdentifier, requestTimestamp, ct).ConfigureAwait(false);
+
+        if (!nonceResult.IsSuccess)
+        {
+            return nonceResult.Failure.Match<HmacAuthenticationResult>
+            (
+                alreadyUsed => alreadyUsed,
+                error => error
+            );
         }
 
         _logger.LogInformation("Successfully authenticated request for repository {RepoIdentifier}", repoIdentifier);
