@@ -197,14 +197,14 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
             payload = JsonSerializer.Deserialize(requestBody, LambdaFunctionJsonSerializerContext.Default.TestResultPayload)!;
             return true;
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            errorResponse = ResponseHelper.BadRequest($"Invalid JSON payload: {ex.Message}");
+            errorResponse = ResponseHelper.BadRequest("Invalid JSON payload");
             return false;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            errorResponse = ResponseHelper.InternalServerError($"Failed to parse payload: {ex.Message}");
+            errorResponse = ResponseHelper.InternalServerError("Failed to parse payload");
             return false;
         }
     }

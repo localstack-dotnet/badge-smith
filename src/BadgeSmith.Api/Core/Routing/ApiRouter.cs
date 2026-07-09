@@ -65,7 +65,7 @@ internal class ApiRouter : IApiRouter
             activity?.SetStatus(ActivityStatusCode.Error);
             activity?.AddException(ex);
             _logger.LogError(ex, "An error occurred while handling API route");
-            return Helpers.ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
+            return Helpers.ResponseHelper.InternalServerError("An error occurred processing the request");
         }
     }
 }

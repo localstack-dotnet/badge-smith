@@ -72,7 +72,7 @@ internal sealed class TestResultsService : ITestResultsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to store test result {RunId} for {Owner}/{Repo}", entity.RunId, entity.Owner, entity.Repo);
-            return new Error($"Failed to store test result: {ex.Message}");
+            return new Error("Failed to store test result");
         }
     }
 

@@ -87,7 +87,7 @@ internal sealed class NonceService : INonceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to validate nonce {Nonce} for repository {RepoIdentifier}", nonce, repoIdentifier);
-            return new Error($"Failed to validate nonce: {ex.Message}");
+            return new Error("Failed to validate nonce");
         }
     }
 }
