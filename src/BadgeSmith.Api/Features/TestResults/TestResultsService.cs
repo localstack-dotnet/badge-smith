@@ -92,7 +92,7 @@ internal sealed class TestResultsService : ITestResultsService
 
         _logger.LogDebug("Querying latest test result for {Owner}/{Repo} on {Platform}/{Branch}", ownerNormalized, repoNormalized, platformNormalized, branchNormalized);
 
-        var gsi1Pk = $"LATEST#{owner}#{repo}#{platform}#{branch}";
+        var gsi1Pk = $"LATEST#{ownerNormalized}#{repoNormalized}#{platformNormalized}#{branchNormalized}";
 
         var queryRequest = new QueryRequest
         {

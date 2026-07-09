@@ -54,6 +54,9 @@ Generated\ Files/
 tests/**/[Tt]est[Rr]esults/
 **/bin/**/[Tt]est[Rr]esults/
 **/obj/**/[Tt]est[Rr]esults/
+# Exception: source code for the TestResults feature tests is not test output
+!tests/BadgeSmith.Api.Tests/Features/TestResults/
+!tests/BadgeSmith.Api.Tests/Features/TestResults/**
 [Bb]uild[Ll]og.*
 *.trx
 
