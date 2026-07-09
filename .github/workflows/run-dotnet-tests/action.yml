@@ -17,16 +17,16 @@ runs:
     - if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        & "${{ github.action_path }}\run-win.ps1" `
-            -ProjectPath "${{ inputs.project-path }}" `
-            -ResultsDir  "${{ inputs.results-dir }}" `
-            -Configuration "${{ inputs.configuration }}"
+        dotnet run --file "${{ github.workspace }}/tools/badgesmith.cs" -- tests run `
+          --project-path "${{ inputs.project-path }}" `
+          --results-dir "${{ inputs.results-dir }}" `
+          --configuration "${{ inputs.configuration }}"
 
     # Linux/macOS step -------------------------------------------------------
     - if: runner.os != 'Windows'
       shell: bash
       run: |
-        "${{ github.action_path }}/run-unix.sh" \
-            "${{ inputs.project-path }}" \
-            "${{ inputs.results-dir }}" \
-            "${{ inputs.configuration }}"
+        "${{ github.workspace }}/tools/badgesmith.cs" tests run \
+          --project-path "${{ inputs.project-path }}" \
+          --results-dir "${{ inputs.results-dir }}" \
+          --configuration "${{ inputs.configuration }}"
