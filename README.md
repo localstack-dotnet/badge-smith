@@ -134,6 +134,20 @@ dotnet run --project BadgeSmith.CDK
 dotnet run --project src/BadgeSmith.Host
 ```
 
+### **Tooling**
+
+The `badgesmith` file-based CLI (`tools/badgesmith.cs`) owns Lambda builds,
+test runs, test-result ingestion, badge updates, and secret seeding. See
+[`tools/README.md`](tools/README.md) for the full command reference.
+
+```bash
+# Unix
+./tools/badgesmith.cs lambda build --target zip --rid linux-arm64 --clean
+
+# Windows
+dotnet run --file tools/badgesmith.cs -- lambda build --target zip --rid linux-arm64 --clean
+```
+
 ## 🔄 **CI/CD Integration**
 
 ### **GitHub Actions**

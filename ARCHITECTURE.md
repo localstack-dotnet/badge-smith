@@ -66,7 +66,7 @@ BadgeSmith prioritizes **cold start performance** and **deployment efficiency**:
 - Reduce final binary size
 - Improve cold start performance
 
-Controlled via build arguments in `Dockerfile` and `build-lambda.sh` scripts.
+Controlled via build arguments in `Dockerfile` and the `tools/badgesmith.cs lambda build` command.
 
 ## 📊 **Data Architecture**
 
@@ -105,12 +105,15 @@ BadgeSmith uses **three DynamoDB tables** with optimized access patterns:
 
 ### **Database Seeding**
 
-The **`BadgeSmith.DynamoDb.Seeders`** project provides:
+The **`badgesmith secrets seed`** command (in `tools/badgesmith.cs`) provides:
 
 - **Local development setup**: Seeds test data for LocalStack
 - **Production deployment**: Can seed real AWS resources (with appropriate credentials)
 - **Configuration-driven**: JSON-based organization and secret management
 - **Idempotent operations**: Safe to run multiple times
+
+See `tools/README.md` for secret mapping format and the org-scoped secret name
+`badgesmith/github/{org}/{key}`.
 
 ## 🚦 **Routing Infrastructure**
 
@@ -191,15 +194,25 @@ Package badge endpoints are **unauthenticated** but include:
 
 ## 🛠️ **Development Tooling**
 
-### **Scripts Directory**
+### **`badgesmith` CLI**
 
-**`scripts/`** contains development and testing tooling:
+**`tools/badgesmith.cs`** is the file-based .NET CLI that owns BadgeSmith-specific
+build, test, ingestion, badge-update, and secret-seed workflows:
 
-- **`build-lambda.sh/.ps1`**: Multi-platform Docker builds for Lambda deployment
-- **`test-ingestion.sh/.ps1`**: HMAC authentication testing with real API calls
+- **`lambda build`**: Multi-arch Docker builds for Lambda deployment (ZIP and container)
+- **`tests run`**: Per-target-framework `dotnet test` execution with TRX output
+- **`tests ingest`**: HMAC-authenticated test result ingestion against a running API
+- **`badge update`**: GitHub Actions test result posting used by the `update-test-badge` workflow
+- **`secrets seed`**: Seeds GitHub org secret mappings into DynamoDB and Secrets Manager
+
+See `tools/README.md` for full option reference and secret mapping setup.
+
+### **`scripts/`**
+
+**`scripts/`** holds the remaining load-testing fixtures:
+
 - **`k6-perf-test.js`**: HTTP load testing with realistic traffic patterns
-- **`perf-baseline.sh`**: LocalStack-backed ZIP Lambda benchmark harness. It deploys the local CDK performance stack and uses Lambda Function URL fallback when LocalStack Community cannot create API Gateway v2 through CloudFormation.
-- **`sample-test-payload.json`**: Example test result payload
+- **`sample-test-payload.json`**: Example test result payload for `tests ingest`
 
 ## 🏗️ **Code Organization**
 
@@ -266,9 +279,9 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 2. **Lambda image**: Minimal runtime for container deployment
 3. **Zip export**: Artifact generation for .zip deployment
 
-### **Build Scripts**
+### **Build Tooling**
 
-**`build-lambda.sh/.ps1`** provide **cross-platform build automation**:
+**`tools/badgesmith.cs lambda build`** provides **cross-platform build automation**:
 
 - **Multi-architecture**: x64 and ARM64 support
 - **Build targets**: ZIP artifacts and container images

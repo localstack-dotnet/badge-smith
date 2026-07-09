@@ -36,13 +36,14 @@ adapters, not policy sources.
 - Fix production-code bugs unless Deniz has explicitly asked you to fix, apply,
   proceed, or equivalent.
 - Modify build system behavior (`Directory.Build.props`, `Directory.Packages.props`,
-  MSBuild, `Dockerfile`, `scripts/build-lambda.*`).
+  MSBuild, `Dockerfile`, `tools/badgesmith.cs`).
 - Change CI/CD pipelines (`.github/workflows/**`).
 - Change agent policy, approval gates, capability routing, skill triggers, or harness
   adapter behavior.
 - Weaken, skip, delete, or substantially rewrite tests to change what behavior is
   verified.
-- Run CDK deploy, Lambda publish, `scripts/build-lambda` release, or any AWS mutation.
+- Run CDK deploy, Lambda publish, `tools/badgesmith.cs lambda build` release, or any
+  AWS mutation.
 - Commit, amend, push, or create a PR.
 
 Approval phrases include `go`, `apply`, `proceed`, `başla`, and `yap`.
@@ -112,8 +113,9 @@ Repository layout:
 - `build/`: AWS CDK infrastructure (shared constructs + production stack)
 - `tests/BadgeSmith.Api.Tests`: xUnit v3 unit tests
 - `tests/BadgeSmith.Api.Performance.Tests`: BenchmarkDotNet benchmarks
-- `tests/seeders`: DynamoDB seeding utility
-- `scripts/`: build, ingestion, and load-testing tooling
+- `tools/`: file-based `badgesmith` CLI (Lambda build, test run/ingest, badge update,
+  secrets seed); see `tools/README.md`
+- `scripts/`: remaining k6 load-test scenario and sample ingestion payload
 - `docs/`: project documentation
 - `docs/agents/`: harness adapter guide, capability mapping, and known agent notes
 
@@ -173,7 +175,7 @@ these constraints on every code change:
   intact; separate all other human-readable words with underscores. `Should` belongs
   immediately after the subject, and scenario/input conditions belong at the end with a
   `When...` suffix.
-- Native AOT publishing goes through `scripts/build-lambda.{sh,ps1}` (multi-arch ZIP /
+- Native AOT publishing goes through `tools/badgesmith.cs lambda build` (multi-arch ZIP /
   container targets); it is not part of the ordinary `dotnet build` loop.
 - Strict analyzers and warnings-as-errors are enabled through shared project
   configuration; keep the zero-warning bar.

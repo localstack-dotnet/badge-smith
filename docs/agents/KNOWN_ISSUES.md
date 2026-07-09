@@ -6,7 +6,7 @@ These notes are hints for agents during triage and review. They are not permissi
 refactor unrelated code.
 
 - **AOT/trim warnings are blocking.** Trim or AOT warnings emitted during `PublishAot`
-  (via `scripts/build-lambda.*`) can turn into runtime failures in the deployed Lambda.
+  (via `tools/badgesmith.cs lambda build`) can turn into runtime failures in the deployed Lambda.
   Do not suppress them to get a green build.
 - **JSON must be registered for source generation.** Every serialized type must be part
   of `LambdaFunctionJsonSerializerContext`. A missing registration compiles fine but
