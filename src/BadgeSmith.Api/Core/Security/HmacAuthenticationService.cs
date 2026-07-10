@@ -1,5 +1,6 @@
 #pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
 
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -127,22 +128,30 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
             return false;
         }
 
-        var providedHash = providedSignature[7..];
+        var providedHash = providedSignature.AsSpan(7);
+        if (providedHash.Length != 64)
+        {
+            return false;
+        }
 
-        var computedHash = ComputeHmacSha256(payload, secret);
+        Span<byte> providedHashBytes = stackalloc byte[32];
+        var status = Convert.FromHexString(providedHash, providedHashBytes, out var charsConsumed, out var bytesWritten);
+        if (status != OperationStatus.Done || charsConsumed != providedHash.Length || bytesWritten != providedHashBytes.Length)
+        {
+            return false;
+        }
 
-        return CryptographicOperations.FixedTimeEquals(Convert.FromHexString(providedHash), Convert.FromHexString(computedHash));
+        var computedHashBytes = ComputeHmacSha256(payload, secret);
+        return CryptographicOperations.FixedTimeEquals(providedHashBytes, computedHashBytes);
     }
 
-    private static string ComputeHmacSha256(string payload, string secret)
+    private static byte[] ComputeHmacSha256(string payload, string secret)
     {
         var keyBytes = Encoding.UTF8.GetBytes(secret);
         var payloadBytes = Encoding.UTF8.GetBytes(payload);
 
         using var hmac = new HMACSHA256(keyBytes);
-        var hashBytes = hmac.ComputeHash(payloadBytes);
-
-        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+        return hmac.ComputeHash(payloadBytes);
     }
 }
 

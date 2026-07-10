@@ -1,39 +1,47 @@
 using BadgeSmith.Tools.Infrastructure;
-using BadgeSmith.Tools.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace BadgeSmith.Tools.Commands;
 
 internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
 {
+    private const string HmacSecretConfigurationKey = "BADGESMITH_HMAC_SECRET";
+
     private readonly IAnsiConsole _console;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfiguration _configuration;
 
-    public BadgeUpdateCommand(IHttpClientFactory httpClientFactory, IAnsiConsole console, IToolLogger logger)
+    public BadgeUpdateCommand(
+        IHttpClientFactory httpClientFactory,
+        IAnsiConsole console,
+        IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _console = console ?? throw new ArgumentNullException(nameof(console));
-        ArgumentNullException.ThrowIfNull(logger);
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     protected override async Task<int> ExecuteAsync(CommandContext context, BadgeUpdateSettings settings, CancellationToken cancellationToken)
     {
         var repositoryParts = settings.Repository.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (repositoryParts.Length != 2)
-        {
-            _console.MarkupLine("[red]Repository must be in owner/repo format.[/]");
-            return ToolExitCodes.ValidationFailure;
-        }
+        var urls = BadgeSmithUrlBuilder.Create(settings.BaseUrl);
 
         var owner = repositoryParts[0].ToLowerInvariant();
         var repo = repositoryParts[1].ToLowerInvariant();
         var platform = settings.Platform.ToLowerInvariant();
         var branch = GitHubActions.ResolveBranch(settings.Branch);
         var total = settings.TestPassed + settings.TestFailed + settings.TestSkipped;
+        var hmacSecret = _configuration[HmacSecretConfigurationKey];
+        if (string.IsNullOrWhiteSpace(hmacSecret))
+        {
+            _console.MarkupLine($"[red]{HmacSecretConfigurationKey} is required.[/]");
+            return ToolExitCodes.ValidationFailure;
+        }
 
         var payload = new TestResultPayload(
             Platform: settings.Platform,
@@ -48,10 +56,10 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
             WorkflowRunUrl: $"{settings.ServerUrl.TrimEnd('/')}/{settings.Repository}/actions/runs/{settings.RunId}");
 
         var payloadJson = JsonSerializer.Serialize(payload, ToolJsonSerializerContext.Default.TestResultPayload);
-        var url = $"https://{settings.ApiDomain}/tests/results/{platform}/{owner}/{repo}/{branch}";
-        var badgeUrl = $"https://{settings.ApiDomain}/badges/tests/{platform}/{owner}/{repo}/{branch}";
-        var redirectUrl = $"https://{settings.ApiDomain}/redirect/test-results/{platform}/{owner}/{repo}/{branch}";
-        var signature = HmacSigner.CreateSignature(payloadJson, settings.HmacSecret);
+        var url = urls.BuildIngestUrl(platform, owner, repo, branch);
+        var badgeUrl = urls.BuildBadgeUrl(platform, owner, repo, branch);
+        var redirectUrl = urls.BuildRedirectUrl(platform, owner, repo, branch);
+        var signature = HmacSigner.CreateSignature(payloadJson, hmacSecret);
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
         var nonce = Guid.NewGuid().ToString("N");
 
@@ -153,13 +161,9 @@ internal sealed class BadgeUpdateSettings : CommandSettings
     [Description("GitHub server URL.")]
     public string ServerUrl { get; init; } = "https://github.com";
 
-    [CommandOption("--api-domain")]
-    [Description("BadgeSmith API domain.")]
-    public string ApiDomain { get; init; } = "api.localstackfor.net";
-
-    [CommandOption("--hmac-secret")]
-    [Description("HMAC secret for BadgeSmith authentication.")]
-    public string HmacSecret { get; init; } = "";
+    [CommandOption("--base-url")]
+    [Description("BadgeSmith API base URL.")]
+    public string BaseUrl { get; init; } = "";
 
     [CommandOption("--branch")]
     [Description("Git branch name (auto-detected from environment if not set).")]
@@ -172,4 +176,36 @@ internal sealed class BadgeUpdateSettings : CommandSettings
     [CommandOption("--fail-on-error")]
     [Description("Exit with non-zero code when badge update fails.")]
     public bool FailOnError { get; init; }
+
+    public override ValidationResult Validate()
+    {
+        if (!BadgeSmithUrlBuilder.TryCreate(BaseUrl, out _, out var baseUrlError))
+        {
+            return ValidationResult.Error(baseUrlError);
+        }
+
+        if (string.IsNullOrWhiteSpace(Platform))
+        {
+            return ValidationResult.Error("--platform is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(CommitSha))
+        {
+            return ValidationResult.Error("--commit-sha is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(RunId))
+        {
+            return ValidationResult.Error("--run-id is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(ServerUrl))
+        {
+            return ValidationResult.Error("--server-url is required.");
+        }
+
+        return Repository.Split('/', StringSplitOptions.RemoveEmptyEntries).Length == 2
+            ? ValidationResult.Success()
+            : ValidationResult.Error("--repository must be in owner/repo format.");
+    }
 }

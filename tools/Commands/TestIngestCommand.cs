@@ -21,6 +21,8 @@ internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
 
     protected override async Task<int> ExecuteAsync(CommandContext context, TestIngestSettings settings, CancellationToken cancellationToken)
     {
+        var urls = BadgeSmithUrlBuilder.Create(settings.BaseUrl);
+
         var payloadJson = settings.PayloadFile is { Length: > 0 }
             ? await File.ReadAllTextAsync(settings.PayloadFile, cancellationToken).ConfigureAwait(false)
             : settings.Payload ?? string.Empty;
@@ -29,7 +31,7 @@ internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
         var repo = settings.Repo.ToLowerInvariant();
         var platform = settings.Platform.ToLowerInvariant();
         var branch = settings.Branch;
-        var url = $"{settings.BaseUrl.TrimEnd('/')}/tests/results/{platform}/{owner}/{repo}/{branch}";
+        var url = urls.BuildIngestUrl(platform, owner, repo, branch);
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
         var nonce = Guid.NewGuid().ToString("N");
         var signature = HmacSigner.CreateSignature(payloadJson, settings.Secret);
@@ -78,7 +80,7 @@ internal sealed class TestIngestSettings : CommandSettings
 {
     [CommandOption("--base-url")]
     [Description("BadgeSmith API base URL.")]
-    public string BaseUrl { get; init; } = "https://api.localstackfor.net";
+    public string BaseUrl { get; init; } = "";
 
     [CommandOption("--owner")]
     [Description("GitHub repository owner.")]
@@ -118,11 +120,46 @@ internal sealed class TestIngestSettings : CommandSettings
 
     public override ValidationResult Validate()
     {
-        var hasPayloadFile = PayloadFile is { Length: > 0 };
-        var hasPayload = Payload is { Length: > 0 };
-        if (!hasPayloadFile && !hasPayload)
+        if (!BadgeSmithUrlBuilder.TryCreate(BaseUrl, out _, out var baseUrlError))
         {
-            return ValidationResult.Error("Either --payload or --payload-file must be supplied.");
+            return ValidationResult.Error(baseUrlError);
+        }
+
+        if (string.IsNullOrWhiteSpace(Owner))
+        {
+            return ValidationResult.Error("--owner is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(Repo))
+        {
+            return ValidationResult.Error("--repo is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(Platform))
+        {
+            return ValidationResult.Error("--platform is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(Branch))
+        {
+            return ValidationResult.Error("--branch is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(Secret))
+        {
+            return ValidationResult.Error("--secret is required.");
+        }
+
+        var hasPayloadFile = !string.IsNullOrWhiteSpace(PayloadFile);
+        var hasPayload = !string.IsNullOrWhiteSpace(Payload);
+        if (hasPayloadFile == hasPayload)
+        {
+            return ValidationResult.Error("Exactly one of --payload and --payload-file must be supplied.");
+        }
+
+        if (hasPayloadFile && !File.Exists(PayloadFile))
+        {
+            return ValidationResult.Error($"Payload file not found: {PayloadFile}");
         }
 
         return ValidationResult.Success();

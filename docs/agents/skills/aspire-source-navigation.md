@@ -1,13 +1,16 @@
 ---
 name: aspire-source-navigation
-description: Use when compatibility-sensitive Aspire.Hosting.LocalStack work depends on Aspire/AWS/LocalStack upstream source, package-version alignment, AddLocalStack/UseLocalStack/WithReference behavior, endpoint/configuration flow, or AWS SDK/LocalStack.Client wiring.
+description: Use when BadgeSmith's compatibility-sensitive Aspire, AWS, or LocalStack consumer work depends on upstream source, package-version alignment, AddLocalStack/UseLocalStack/WithReference behavior, endpoint/configuration flow, or AWS SDK wiring.
 ---
 
 # Aspire Source Navigation
 
 ## Overview
 
-This repository maintains an Aspire hosting integration package. Compatibility-sensitive work depends on this repo's package versions and on matching upstream source checkouts, not on memory or upstream default branches.
+BadgeSmith consumes Aspire hosting integrations for local development; it does not
+build or publish those packages. Compatibility-sensitive work depends on this repo's
+package versions and on matching upstream source checkouts, not on memory or upstream
+default branches.
 
 Use source evidence before editing compatibility-sensitive code. Keep this skill version-light: package versions and concrete refs belong in `Directory.Packages.props`, local `external/` checkouts, and the upstream repositories.
 
@@ -19,7 +22,7 @@ Use this skill for work involving:
 
 - `Aspire.Hosting` or `Aspire.Hosting.AWS` internals
 - LocalStack.Client behavior
-- `Directory.Packages.props` Aspire, AWS integration, or LocalStack client versions
+- `Directory.Packages.props` Aspire, AWS integration, LocalStack hosting, or LocalStack client versions
 - `AddLocalStack`, `UseLocalStack`, `.WithReference(localstack)`, endpoint/configuration flow, manifest behavior, CloudFormation/CDK, Lambda, or AWS SDK wiring
 - String-based references to upstream AWS Aspire integration types
 - Reviews of Aspire hosting compatibility or package-version drift
@@ -31,7 +34,11 @@ Do not use this skill for ordinary Markdown edits, general C# cleanup, or playgr
 ## Required Workflow
 
 1. Read `Directory.Packages.props` and identify the exact package versions involved.
-2. Map the packages to their upstream repositories: Aspire packages to `dotnet/aspire`, `Aspire.Hosting.AWS` to `aws/integrations-on-dotnet-aspire-for-aws`, and LocalStack packages to `localstack-dotnet/localstack-dotnet-client`.
+2. Map the packages to their upstream repositories: Aspire packages to `dotnet/aspire`,
+   `Aspire.Hosting.AWS` to `aws/integrations-on-dotnet-aspire-for-aws`,
+   `LocalStack.Aspire.Hosting` to `localstack-dotnet/dotnet-aspire-for-localstack`, and
+   `LocalStack.Client` packages to `localstack-dotnet/localstack-dotnet-client` only
+   when SDK/client configuration behavior is involved.
 3. Check whether a matching local checkout exists under `external/`. Because `external/` is gitignored, use an ignored-file-aware check such as `Test-Path external`, `git ls-files --others --ignored --exclude-standard external/`, or a direct directory listing. Do not rely on workspace glob/search tools that skip ignored paths.
 4. Verify the local checkout's branch/tag/commit against the package version and upstream tags/releases before trusting it.
 5. If local source is missing or stale, report that explicitly. Use GitHub MCP only for tag/ref discovery, release verification, or targeted fallback reads.
@@ -47,6 +54,7 @@ Resolve package versions from `Directory.Packages.props` each time. Do not copy 
 | --- | --- | --- |
 | `Aspire.Hosting`, `Aspire.Hosting.AppHost`, `Aspire.Hosting.Testing` | `dotnet/aspire` | `external/aspire/{ref}/` |
 | `Aspire.Hosting.AWS`, CloudFormation, CDK, Lambda emulator integration | `aws/integrations-on-dotnet-aspire-for-aws` | `external/aws-integrations/{ref}/` |
+| `LocalStack.Aspire.Hosting`, `AddLocalStack`, `UseLocalStack`, LocalStack resource and endpoint wiring | `localstack-dotnet/dotnet-aspire-for-localstack` | `external/dotnet-aspire-for-localstack/{ref}/` |
 | `LocalStack.Client`, `LocalStack.Client.Extensions`, `ILocalStackOptions`, session/config options | `localstack-dotnet/localstack-dotnet-client` | `external/localstack-dotnet-client/{ref}/` |
 
 When a task spans multiple packages, verify every involved source. Example: `UseLocalStack()` with Lambda SQS event sources usually involves this repository, `Aspire.Hosting.AWS`, and possibly LocalStack client configuration behavior.
@@ -58,6 +66,7 @@ Use this layout when local source is available:
 ```text
 external/aspire/{ref}/
 external/aws-integrations/{ref}/
+external/dotnet-aspire-for-localstack/{ref}/
 external/localstack-dotnet-client/{ref}/
 ```
 
@@ -93,6 +102,7 @@ Use this wording pattern:
 Upstream source status:
 - Aspire.Hosting {version}: no matching local checkout under external/aspire/{ref}; using targeted GitHub fallback for {symbols/files} only.
 - Aspire.Hosting.AWS {version}: local checkout {path} verified at {ref-or-sha}.
+- LocalStack.Aspire.Hosting {version}: local checkout {path} verified at {ref-or-sha}.
 - LocalStack.Client {version}: not involved in this change.
 ```
 
@@ -132,6 +142,7 @@ Search by the exact behavior under review:
 - Extension methods: `AddLocalStack`, `UseLocalStack`, `WithReference`, `WithEnvironment`, `WaitFor`, `ExcludeFromManifest`.
 - Aspire resource model: annotations, `IResourceWithEnvironment`, `IResourceWithWaitSupport`, endpoint references, connection string callbacks, manifest publishing.
 - AWS integration: CloudFormation resources, CDK stacks/bootstrap, Lambda emulator resources, SQS event source resources, output/reference annotations.
+- LocalStack hosting integration: `AddLocalStack`, `UseLocalStack`, LocalStack resource annotations, endpoint propagation, and AppHost environment wiring.
 - LocalStack client: `ILocalStackOptions`, `LocalStackOptions`, `SessionOptions`, `ConfigOptions`, `AddLocalStack`, `AddAwsService`, environment variable binding.
 
 These are starting points, not a fixed checklist. Add or remove searches based on the concrete task.

@@ -1,38 +1,22 @@
 # Update Test Results Badge
 
-Composite GitHub Action that posts CI test results to the BadgeSmith API with
-HMAC authentication and writes the badge markdown to the GitHub Actions step
+Composite GitHub Action that posts CI test results to any BadgeSmith deployment
+with HMAC authentication and writes badge markdown to the GitHub Actions step
 summary.
 
 ## Inputs
 
-See [`action.yml`](./action.yml) for the canonical input list. Required inputs:
-`platform`, `test_passed`, `test_failed`, `test_skipped`, `commit_sha`,
-`run_id`, `repository`, `server_url`, and `hmac_secret`. `api_domain` defaults
-to `api.localstackfor.net` and `test_url_html` is optional.
+See [`action.yml`](./action.yml) for the canonical input list. Required inputs are
+`platform`, `test_passed`, `test_failed`, `test_skipped`, `commit_sha`, `run_id`,
+`repository`, `server_url`, `api_base_url`, and `hmac_secret`.
+`test_url_html` is optional. `api_base_url` must be an absolute HTTP or HTTPS URL
+for the target deployment and may include a port or path prefix.
 
-## What it runs
-
-The action shells out to the file-based `badgesmith` CLI:
-
-```bash
-"${{ github.workspace }}/tools/badgesmith.cs" badge update \
-  --platform "${{ inputs.platform }}" \
-  --test-passed "${{ inputs.test_passed }}" \
-  --test-failed "${{ inputs.test_failed }}" \
-  --test-skipped "${{ inputs.test_skipped }}" \
-  --hmac-secret "${{ inputs.hmac_secret }}" \
-  ...
-```
-
-See [`tools/README.md`](../../../tools/README.md) for the `badge update` option
-reference, including `--dry-run` and `--fail-on-error`.
-
-## Usage
+## Remote Usage
 
 ```yaml
 - name: Update test badge
-  uses: ./.github/workflows/update-test-badge
+  uses: localstack-dotnet/badge-smith/.github/workflows/update-test-badge@v1
   with:
     platform: 'Linux'
     test_passed: '${{ steps.test-results.outputs.passed }}'
@@ -42,10 +26,16 @@ reference, including `--dry-run` and `--fail-on-error`.
     run_id: '${{ github.run_id }}'
     repository: '${{ github.repository }}'
     server_url: '${{ github.server_url }}'
-    api_domain: 'api.localstackfor.net'
+    api_base_url: 'https://badges.example.com/api'
     hmac_secret: '${{ secrets.TESTDATASECRET }}'
 ```
 
+For the LocalStack.NET deployment, set `api_base_url` to
+`https://api.localstackfor.net` explicitly.
+
+The action installs the SDK pinned by BadgeSmith's `global.json` and runs the
+file-based CLI from the checked-out action repository. Callers do not copy the
+tool into their repositories.
+
 The `TESTDATASECRET` repository secret must hold the HMAC shared secret
-configured for the organization via `badgesmith secrets seed` (secret name
-`badgesmith/github/{org}/{key}`).
+configured for the organization through `badgesmith secrets seed`.

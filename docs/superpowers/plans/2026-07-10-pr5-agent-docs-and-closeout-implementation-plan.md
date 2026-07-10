@@ -182,7 +182,7 @@ Run:
 
 ```bash
 git diff --check
-go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/ci-cd.yml .github/workflows/update-test-badge/action.yml .github/workflows/run-dotnet-tests/action.yml
+go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/ci-cd.yml
 slopwatch analyze --fail-on warning --exclude "artifacts/**,external/**,**/bin/**,**/obj/**"
 ```
 

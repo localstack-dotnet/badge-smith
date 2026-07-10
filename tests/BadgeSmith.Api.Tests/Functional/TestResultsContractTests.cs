@@ -145,16 +145,21 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
     }
 
     [Fact]
-    public async Task Ingestion_Should_Return_500_When_Signature_Hex_Is_Malformed()
+    public async Task Ingestion_Should_Return_401_When_Signature_Hex_Is_Malformed()
     {
-        // Known bug (findings doc §2): malformed hex throws FormatException → 500.
-        // Wave 1 will change this to 401 and update this assertion.
         var testCase = CreateCase("malformed-hex", 6);
         var body = testCase.CreatePayload();
         var headers = AuthHeaders(body);
-        headers["x-signature"] = "sha256=zzzz";
-        var post = await stack.Api.InvokeAsync("POST", testCase.IngestPath, headers, body, TestContext.Current.CancellationToken);
-        Assert.Equal(500, post.StatusCode);
+        headers["x-signature"] = "sha256=" + new string('z', 64);
+
+        var post = await stack.Api.InvokeAsync(
+            "POST",
+            testCase.IngestPath,
+            headers,
+            body,
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(401, post.StatusCode);
     }
 
     [Fact]

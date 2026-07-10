@@ -13,20 +13,28 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Windows step -----------------------------------------------------------
     - if: runner.os == 'Windows'
       shell: pwsh
+      env:
+        BADGESMITH_TOOL_PATH: ${{ github.workspace }}/tools/badgesmith.cs
+        BADGESMITH_PROJECT_PATH: ${{ inputs.project-path }}
+        BADGESMITH_RESULTS_DIR: ${{ inputs.results-dir }}
+        BADGESMITH_CONFIGURATION: ${{ inputs.configuration }}
       run: |
-        dotnet run --file "${{ github.workspace }}/tools/badgesmith.cs" -- tests run `
-          --project-path "${{ inputs.project-path }}" `
-          --results-dir "${{ inputs.results-dir }}" `
-          --configuration "${{ inputs.configuration }}"
+        dotnet run --file "$env:BADGESMITH_TOOL_PATH" -- tests run `
+          --project-path "$env:BADGESMITH_PROJECT_PATH" `
+          --results-dir "$env:BADGESMITH_RESULTS_DIR" `
+          --configuration "$env:BADGESMITH_CONFIGURATION"
 
-    # Linux/macOS step -------------------------------------------------------
     - if: runner.os != 'Windows'
       shell: bash
+      env:
+        BADGESMITH_TOOL_PATH: ${{ github.workspace }}/tools/badgesmith.cs
+        BADGESMITH_PROJECT_PATH: ${{ inputs.project-path }}
+        BADGESMITH_RESULTS_DIR: ${{ inputs.results-dir }}
+        BADGESMITH_CONFIGURATION: ${{ inputs.configuration }}
       run: |
-        "${{ github.workspace }}/tools/badgesmith.cs" tests run \
-          --project-path "${{ inputs.project-path }}" \
-          --results-dir "${{ inputs.results-dir }}" \
-          --configuration "${{ inputs.configuration }}"
+        "$BADGESMITH_TOOL_PATH" tests run \
+          --project-path "$BADGESMITH_PROJECT_PATH" \
+          --results-dir "$BADGESMITH_RESULTS_DIR" \
+          --configuration "$BADGESMITH_CONFIGURATION"

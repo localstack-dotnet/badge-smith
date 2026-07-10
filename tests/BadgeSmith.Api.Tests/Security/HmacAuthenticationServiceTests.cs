@@ -11,6 +11,14 @@ namespace BadgeSmith.Api.Tests.Security;
 [Trait("Category", TestCategories.Unit)]
 public sealed class HmacAuthenticationServiceTests
 {
+    public static TheoryData<string> MalformedSignatures =>
+    [
+        "sha256=" + new string('z', 64),
+        "sha256=" + new string('0', 63),
+        "sha256=" + new string('0', 62),
+        "sha256=" + new string('0', 66),
+    ];
+
     [Fact]
     public async Task ValidateRequestAsync_Should_Use_Platform_In_Repository_Identifier_When_Signature_Is_Valid()
     {
@@ -86,6 +94,38 @@ public sealed class HmacAuthenticationServiceTests
         Assert.False(result.IsSuccess);
         Assert.True(result.Failure.IsT0); // InvalidSignature
 
+        secretsService.VerifyAll();
+        nonceService.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(MalformedSignatures))]
+    public async Task ValidateRequestAsync_Should_Return_Invalid_Signature_Without_Marking_Nonce_When_Signature_Is_Malformed(string signature)
+    {
+        const string owner = "localstack-dotnet";
+        const string repo = "badge-smith";
+        const string platform = "linux";
+        const string branch = "feature/tools";
+        const string secret = "test-secret";
+        const string body = "{\"total\":1}";
+        var (_, timestamp, nonce) = HmacTestSigner.Sign(body, secret);
+
+        var secretsService = new Mock<IGitHubOrgSecretsService>(MockBehavior.Strict);
+        secretsService
+            .Setup(service => service.GetGitHubTokenAsync(owner, "TestData", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((GithubSecretResult)secret);
+        var nonceService = new Mock<INonceService>(MockBehavior.Strict);
+        var service = new HmacAuthenticationService(
+            secretsService.Object,
+            nonceService.Object,
+            Mock.Of<ILogger<HmacAuthenticationService>>());
+
+        var result = await service.ValidateRequestAsync(
+            new HmacAuthContext(owner, repo, platform, branch, signature, timestamp, nonce, body),
+            TestContext.Current.CancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.True(result.Failure.IsT0);
         secretsService.VerifyAll();
         nonceService.VerifyAll();
     }

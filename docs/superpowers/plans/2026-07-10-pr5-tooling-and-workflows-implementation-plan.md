@@ -543,9 +543,11 @@ namespace BadgeSmith.Api.Tests.Tooling;
 public sealed class GitHubActionContractTests
 {
     [Fact]
-    public void Update_Test_Badge_Action_Should_Resolve_Sdk_And_Tool_From_Action_Path()
+    public async Task Update_Test_Badge_Action_Should_Resolve_Sdk_And_Tool_From_Action_Path()
     {
-        var action = ReadRepositoryFile(".github", "workflows", "update-test-badge", "action.yml");
+        var action = await ReadRepositoryFileAsync(
+            TestContext.Current.CancellationToken,
+            ".github", "workflows", "update-test-badge", "action.yml");
 
         Assert.Contains("uses: actions/setup-dotnet@v4", action, StringComparison.Ordinal);
         Assert.Contains("global-json-file: ${{ github.action_path }}/../../../global.json", action, StringComparison.Ordinal);
@@ -555,17 +557,18 @@ public sealed class GitHubActionContractTests
     }
 
     [Fact]
-    public void Composite_Actions_Should_Not_Interpolate_Expressions_Inside_Run_Scripts()
+    public async Task Workflow_And_Composite_Actions_Should_Not_Interpolate_Expressions_Inside_Run_Scripts()
     {
-        var actionPaths = new[]
-        {
-            new[] { ".github", "workflows", "update-test-badge", "action.yml" },
-            new[] { ".github", "workflows", "run-dotnet-tests", "action.yml" },
-        };
+        string[][] actionPaths =
+        [
+            [".github", "workflows", "ci-cd.yml"],
+            [".github", "workflows", "update-test-badge", "action.yml"],
+            [".github", "workflows", "run-dotnet-tests", "action.yml"],
+        ];
 
         foreach (var actionPath in actionPaths)
         {
-            var action = ReadRepositoryFile(actionPath);
+            var action = await ReadRepositoryFileAsync(TestContext.Current.CancellationToken, actionPath);
             var scripts = ExtractRunScripts(action);
             Assert.NotEmpty(scripts);
             foreach (var script in scripts)
@@ -576,9 +579,11 @@ public sealed class GitHubActionContractTests
     }
 
     [Fact]
-    public void Run_Dotnet_Tests_Action_Should_Resolve_Tool_From_Workspace_Environment()
+    public async Task Run_Dotnet_Tests_Action_Should_Resolve_Tool_From_Workspace_Environment()
     {
-        var action = ReadRepositoryFile(".github", "workflows", "run-dotnet-tests", "action.yml");
+        var action = await ReadRepositoryFileAsync(
+            TestContext.Current.CancellationToken,
+            ".github", "workflows", "run-dotnet-tests", "action.yml");
 
         Assert.Contains("BADGESMITH_TOOL_PATH: ${{ github.workspace }}/tools/badgesmith.cs", action, StringComparison.Ordinal);
         Assert.Contains("$env:BADGESMITH_TOOL_PATH", action, StringComparison.Ordinal);
@@ -586,21 +591,23 @@ public sealed class GitHubActionContractTests
     }
 
     [Fact]
-    public void Ci_Workflow_Should_Use_File_System_Safe_Pr_Artifact_Name()
+    public async Task Ci_Workflow_Should_Use_File_System_Safe_Pr_Artifact_Name()
     {
-        var workflow = ReadRepositoryFile(".github", "workflows", "ci-cd.yml");
+        var workflow = await ReadRepositoryFileAsync(
+            TestContext.Current.CancellationToken,
+            ".github", "workflows", "ci-cd.yml");
 
         Assert.Contains("format('lambda-zip-pr-{0}', github.event.pull_request.number)", workflow, StringComparison.Ordinal);
         Assert.DoesNotContain("format('lambda-zip-{0}', github.head_ref || github.ref_name)", workflow, StringComparison.Ordinal);
     }
 
-    private static string ReadRepositoryFile(params string[] segments)
+    private static Task<string> ReadRepositoryFileAsync(CancellationToken cancellationToken, params string[] segments)
     {
         var root = FindRepositoryRoot();
-        return File.ReadAllText(Path.Combine([root, .. segments]));
+        return File.ReadAllTextAsync(Path.Combine([root, .. segments]), cancellationToken);
     }
 
-    private static IReadOnlyList<string> ExtractRunScripts(string yaml)
+    private static List<string> ExtractRunScripts(string yaml)
     {
         var scripts = new List<string>();
         var currentScript = new List<string>();
@@ -865,10 +872,12 @@ Run:
 
 ```bash
 dotnet test tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj --filter "FullyQualifiedName~GitHubActionContractTests"
-go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/ci-cd.yml .github/workflows/update-test-badge/action.yml .github/workflows/run-dotnet-tests/action.yml
+go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/ci-cd.yml
 ```
 
-Expected: action contract tests pass and actionlint exits `0` without diagnostics.
+Expected: action contract tests pass and actionlint exits `0` without diagnostics for
+the workflow. Actionlint v1.7.7 parses composite action manifests as workflows when
+passed directly, so the C# contract tests own their static validation.
 
 - [ ] **Step 18: Rewrite the action README around remote white-label use**
 

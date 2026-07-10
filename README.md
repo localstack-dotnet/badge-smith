@@ -152,26 +152,27 @@ dotnet run --file tools/badgesmith.cs -- lambda build --target zip --rid linux-a
 
 ### **GitHub Actions**
 
-Copy the reusable workflows to your repository:
-
-```bash
-cp -r .github/workflows/run-dotnet-tests/ your-repo/.github/workflows/
-cp -r .github/workflows/update-test-badge/ your-repo/.github/workflows/
-```
-
-Then use in your workflow:
+Use the remotely reusable badge action and point it at your BadgeSmith deployment:
 
 ```yaml
 - name: Update test badge
-  uses: ./.github/workflows/update-test-badge
+  uses: localstack-dotnet/badge-smith/.github/workflows/update-test-badge@v1
   with:
     platform: 'Linux'
     test_passed: '${{ steps.test-results.outputs.passed }}'
     test_failed: '${{ steps.test-results.outputs.failed }}'
     test_skipped: '${{ steps.test-results.outputs.skipped }}'
+    commit_sha: '${{ github.sha }}'
+    run_id: '${{ github.run_id }}'
+    repository: '${{ github.repository }}'
+    server_url: '${{ github.server_url }}'
+    api_base_url: 'https://badges.example.com'
     hmac_secret: '${{ secrets.TESTDATASECRET }}'
-    api_domain: 'api.localstackfor.net'
 ```
+
+Set `api_base_url` to `https://api.localstackfor.net` only when using the
+LocalStack.NET deployment. The repository-local `run-dotnet-tests` action is an
+internal BadgeSmith workflow helper, not a portable test-runner contract.
 
 ## 🏢 **LocalStack.NET Organization**
 

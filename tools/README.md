@@ -105,6 +105,7 @@ end-to-end checks against a running BadgeSmith (Aspire AppHost or deployed API).
 
 # Inline payload, no network call:
 ./tools/badgesmith.cs tests ingest \
+  --base-url http://localhost:9474 \
   --owner localstack-dotnet --repo localstack.client \
   --platform linux --branch main \
   --secret "$HMAC_SECRET" \
@@ -122,13 +123,18 @@ to the GitHub Actions step summary. This is the command behind the
 `update-test-badge` composite action.
 
 ```bash
+export BADGESMITH_HMAC_SECRET="$HMAC_SECRET"
 ./tools/badgesmith.cs badge update \
+  --base-url https://badges.example.com/api \
   --platform Linux \
   --test-passed 190 --test-failed 0 --test-skipped 0 \
   --repository localstack-dotnet/badge-smith \
-  --hmac-secret "$HMAC_SECRET" \
   --dry-run
 ```
+
+`--base-url` is required and accepts an absolute HTTP or HTTPS deployment URL,
+including a custom port or path prefix. `badge update` reads the HMAC secret from
+`BADGESMITH_HMAC_SECRET`; it does not accept the secret as a command argument.
 
 By default a failed post does not fail CI; pass `--fail-on-error` to opt into a
 non-zero exit. Branch is auto-detected from the GitHub Actions environment when
@@ -140,7 +146,7 @@ Seeds the GitHub organization → secret mapping into DynamoDB and Secrets
 Manager. Reads from `tools/organization-pat-mapping.json` by default.
 
 ```bash
-# Validate the mapping without touching AWS:
+# Validate mapping content without a table name or AWS clients:
 ./tools/badgesmith.cs secrets seed --dry-run
 
 # Seed against LocalStack (set AWS_RESOURCE_ORG_SECRETS_TABLE first):

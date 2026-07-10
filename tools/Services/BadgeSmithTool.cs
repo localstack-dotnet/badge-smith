@@ -76,7 +76,7 @@ internal static class BadgeSmithTool
                 badge.SetDescription("BadgeSmith badge update commands.");
                 badge.AddCommand<BadgeUpdateCommand>("update")
                     .WithDescription("Post GitHub Actions test results to BadgeSmith.")
-                    .WithExample("badge", "update", "--platform", "Linux", "--test-passed", "1", "--test-failed", "0", "--test-skipped", "0", "--repository", "localstack-dotnet/badge-smith", "--hmac-secret", "secret", "--dry-run");
+                    .WithExample("badge", "update", "--base-url", "https://badges.example.com", "--platform", "Linux", "--test-passed", "1", "--test-failed", "0", "--test-skipped", "0", "--repository", "localstack-dotnet/badge-smith", "--dry-run");
             });
             config.SetExceptionHandler((exception, _) =>
             {

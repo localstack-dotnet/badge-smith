@@ -50,15 +50,15 @@ internal sealed class SecretsSeedCommand : AsyncCommand<SecretsSeedSettings>
             tableName = Environment.GetEnvironmentVariable("AWS_RESOURCE_ORG_SECRETS_TABLE");
         }
 
+        if (settings.DryRun)
+        {
+            return await _seeder.SeedAsync(configPath, tableName ?? "", dynamoDb: null, secretsManager: null, dryRun: true, cts.Token).ConfigureAwait(false);
+        }
+
         if (string.IsNullOrWhiteSpace(tableName))
         {
             _console.MarkupLine("[red]Org secrets table name is required. Use --table-name or AWS_RESOURCE_ORG_SECRETS_TABLE.[/]");
             return ToolExitCodes.ValidationFailure;
-        }
-
-        if (settings.DryRun)
-        {
-            return await _seeder.SeedAsync(configPath, tableName, dynamoDb: null, secretsManager: null, dryRun: true, cts.Token).ConfigureAwait(false);
         }
 
         var awsOptions = _awsOptionsResolver.Resolve(settings);

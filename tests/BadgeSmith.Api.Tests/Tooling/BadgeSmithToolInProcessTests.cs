@@ -1,5 +1,6 @@
 using BadgeSmith.Api.Tests.Testing;
 using BadgeSmith.Tools;
+using BadgeSmith.Tools.Commands;
 using BadgeSmith.Tools.Configuration;
 using BadgeSmith.Tools.Infrastructure;
 using BadgeSmith.Tools.Services;
@@ -64,15 +65,17 @@ public sealed class BadgeSmithToolInProcessTests
             "--run-id", "42",
             "--repository", "localstack-dotnet/badge-smith",
             "--server-url", "https://github.com",
-            "--api-domain", "api.example.com",
-            "--hmac-secret", "test-secret",
+            "--base-url", "https://api.example.com/prefix/",
             "--branch", "feature/tools",
             "--dry-run",
-        ], console: console);
+        ], builder => builder.Configuration.AddInMemoryCollection([
+            new KeyValuePair<string, string?>("BADGESMITH_HMAC_SECRET", "test-secret"),
+        ]), console);
 
         Assert.Equal(ToolExitCodes.Success, exitCode);
         Assert.Contains("DRY RUN", console.Output, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("https://api.example.com/tests/results/linux/localstack-dotnet/badge-smith/feature/tools", console.Output, StringComparison.Ordinal);
+        Assert.Contains("https://api.example.com/prefix/tests/results/linux/localstack-dotnet/badge-smith/feature%2Ftools", console.Output, StringComparison.Ordinal);
+        Assert.Contains("https://api.example.com/prefix/badges/tests/linux/localstack-dotnet/badge-smith/feature%2Ftools", console.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("test-secret", console.Output, StringComparison.Ordinal);
     }
 
@@ -89,7 +92,7 @@ public sealed class BadgeSmithToolInProcessTests
             "--owner", "LocalStack-DotNet",
             "--repo", "BadgeSmith",
             "--platform", "Linux",
-            "--branch", "Main",
+            "--branch", "feature/tools",
             "--secret", "test-secret",
             "--payload", payload,
             "--dry-run",
@@ -97,7 +100,7 @@ public sealed class BadgeSmithToolInProcessTests
 
         Assert.Equal(ToolExitCodes.Success, exitCode);
         Assert.Contains("DRY RUN", console.Output, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("https://example.com/tests/results/linux/localstack-dotnet/badgesmith/Main", console.Output, StringComparison.Ordinal);
+        Assert.Contains("https://example.com/tests/results/linux/localstack-dotnet/badgesmith/feature%2Ftools", console.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("test-secret", console.Output, StringComparison.Ordinal);
     }
 
@@ -108,25 +111,24 @@ public sealed class BadgeSmithToolInProcessTests
         console.Width(240);
         var configPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         await File.WriteAllTextAsync(configPath, """
-            {
-              "secrets": [
-                {
-                  "org_name": "LocalStack-DotNet",
-                  "name": "package",
-                  "secret": "ghp_testtoken",
-                  "type": "Package",
-                  "description": "Package token"
-                }
-              ]
-            }
-            """, TestContext.Current.CancellationToken);
+                                                 {
+                                                   "secrets": [
+                                                     {
+                                                       "org_name": "LocalStack-DotNet",
+                                                       "name": "package",
+                                                       "secret": "ghp_testtoken",
+                                                       "type": "Package",
+                                                       "description": "Package token"
+                                                     }
+                                                   ]
+                                                 }
+                                                 """, TestContext.Current.CancellationToken);
 
         try
         {
             var exitCode = await BadgeSmithTool.RunAsync([
                 "secrets", "seed",
                 "--config", configPath,
-                "--table-name", "badge-smith-github-org-secrets",
                 "--dry-run",
             ], builder => builder.Services.AddSingleton<IToolAwsClientFactory, ThrowingAwsClientFactory>(), console);
 
@@ -156,6 +158,61 @@ public sealed class BadgeSmithToolInProcessTests
         Assert.Contains("--config", console.Output, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("--table-name", console.Output, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("--dry-run", console.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void TestsIngestSettings_Should_Reject_Each_Required_Value_When_Value_Is_Empty()
+    {
+        var invalidSettings = new[]
+        {
+            CreateTestIngestSettings(baseUrl: ""), CreateTestIngestSettings(owner: ""), CreateTestIngestSettings(repo: ""), CreateTestIngestSettings(platform: ""),
+            CreateTestIngestSettings(branch: ""), CreateTestIngestSettings(secret: ""),
+        };
+
+        foreach (var settings in invalidSettings)
+        {
+            Assert.False(settings.Validate().Successful);
+        }
+    }
+
+    [Fact]
+    public void TestsIngestSettings_Should_Reject_Payload_And_Payload_File_When_Both_Are_Supplied()
+    {
+        var settings = CreateTestIngestSettings(payloadFile: "payload.json");
+
+        var result = settings.Validate();
+
+        Assert.False(result.Successful);
+        Assert.NotNull(result.Message);
+        Assert.Contains("exactly one", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void TestsIngestSettings_Should_Reject_Payload_File_When_File_Does_Not_Exist()
+    {
+        var missingPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var settings = CreateTestIngestSettings(payload: null, payloadFile: missingPath);
+
+        var result = settings.Validate();
+
+        Assert.False(result.Successful);
+        Assert.NotNull(result.Message);
+        Assert.Contains("not found", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void BadgeUpdateSettings_Should_Reject_Each_Required_Value_When_Value_Is_Empty()
+    {
+        var invalidSettings = new[]
+        {
+            CreateBadgeUpdateSettings(baseUrl: ""), CreateBadgeUpdateSettings(platform: ""), CreateBadgeUpdateSettings(commitSha: ""), CreateBadgeUpdateSettings(runId: ""),
+            CreateBadgeUpdateSettings(repository: ""), CreateBadgeUpdateSettings(serverUrl: ""),
+        };
+
+        foreach (var settings in invalidSettings)
+        {
+            Assert.False(settings.Validate().Successful);
+        }
     }
 
     [Fact]
@@ -217,6 +274,48 @@ public sealed class BadgeSmithToolInProcessTests
         Assert.False(options.UseLocalStack);
         Assert.Equal("ap-southeast-2", options.Region);
         Assert.Equal("command-profile", options.Profile);
+    }
+
+    private static BadgeUpdateSettings CreateBadgeUpdateSettings(
+        string baseUrl = "https://api.example.com",
+        string platform = "linux",
+        string commitSha = "abc123",
+        string runId = "42",
+        string repository = "localstack-dotnet/badge-smith",
+        string serverUrl = "https://github.com")
+    {
+        return new BadgeUpdateSettings
+        {
+            BaseUrl = baseUrl,
+            Platform = platform,
+            CommitSha = commitSha,
+            RunId = runId,
+            Repository = repository,
+            ServerUrl = serverUrl,
+        };
+    }
+
+    private static TestIngestSettings CreateTestIngestSettings(
+        string baseUrl = "https://api.example.com",
+        string owner = "localstack-dotnet",
+        string repo = "badge-smith",
+        string platform = "linux",
+        string branch = "main",
+        string secret = "test-secret",
+        string? payload = "{}",
+        string? payloadFile = null)
+    {
+        return new TestIngestSettings
+        {
+            BaseUrl = baseUrl,
+            Owner = owner,
+            Repo = repo,
+            Platform = platform,
+            Branch = branch,
+            Secret = secret,
+            Payload = payload,
+            PayloadFile = payloadFile,
+        };
     }
 
     private static IConfiguration BuildConfiguration(KeyValuePair<string, string?>[] values)
