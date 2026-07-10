@@ -207,60 +207,18 @@ For example, `org_name: localstack-dotnet`, `name: testdata` becomes
 `badgesmith/github/localstack-dotnet/testdata`. The DynamoDB org-secrets table
 maps `ORG#{org}` → `CONST#GITHUB#{type}` to that secret name.
 
-### PAT safety
+### Secret safety
 
-- **Never commit `tools/organization-pat-mapping.json`** with real PATs or
-  HMAC secrets. Only the `.dist` template is tracked. The repository
-  `.gitignore` covers `**/organization-pat-mapping.json`, so the real file
-  is ignored wherever it lives.
-- Treat the local mapping file the same as any other secret — restrict file
-  permissions on shared machines and rotate credentials if it leaks.
-- `secrets seed --dry-run` validates the mapping and prints the planned
-  secret names without writing to AWS.
-- Prefer **least-privilege fine-grained PATs** (or GitHub organization
-  secrets) scoped to exactly the repositories and permissions BadgeSmith
-  needs: read-only package access for the `Package` secret type and the
-  test-result ingestion HMAC for the `TestData` secret type. Avoid classic
-  PATs with broad `repo` / `write:packages` scope.
-
-### PAT rotation checklist
-
-Follow these operator steps whenever a new developer onboards, a token
-expires, or a token may have leaked:
-
-1. **Copy the template** — start from the tracked placeholder file, never
-   from a teammate's real mapping:
-
-   ```bash
-   cp tools/organization-pat-mapping.json.dist tools/organization-pat-mapping.json
-   ```
-
-2. **Fill placeholders only on the developer machine** — edit
-   `tools/organization-pat-mapping.json` locally. Do not paste real values
-   into the `.dist` template, chat, tickets, or screenshots.
-
-3. **Never commit the real file** — confirm git treats it as ignored before
-   staging anything in `tools/`:
-
-   ```bash
-   git check-ignore -v tools/organization-pat-mapping.json
-   git status --short
-   ```
-
-   Expected: `git check-ignore` reports the
-   `**/organization-pat-mapping.json` rule, and `git status --short` does
-   not list the real mapping.
-
-4. **Rotate on leak or expiry** — if a token may have leaked historically
-   (committed, screenshotted, or shared), rotate it in GitHub first
-   (Settings → Developer settings → Personal access tokens, or the org
-   secret), then update the local `tools/organization-pat-mapping.json`
-   with the replacement value. Re-run `secrets seed` (against LocalStack or
-   AWS) to refresh DynamoDB and Secrets Manager.
-
-5. **Re-seed after rotation** — `secrets seed --dry-run` to confirm the new
-   mapping parses, then `secrets seed` against the target environment so
-   DynamoDB and Secrets Manager hold the rotated value.
+- Never commit or share `tools/organization-pat-mapping.json`; only the `.dist`
+  template is tracked. Verify with `git check-ignore` before staging.
+- `Package` requires a classic GitHub PAT with `read:packages` and package read
+  access. GitHub Packages does not support fine-grained PAT authentication.
+- `TestData` is an independent HMAC secret, not a GitHub PAT.
+- Validate changes with `secrets seed --dry-run`, then run `secrets seed`
+  against the target environment.
+- Runtime secrets are cached for up to 15 minutes. After rotation, warm Lambda
+  instances may retain the previous value; invalidate them or allow the cache
+  window to expire before considering rotation complete.
 
 ## Performance testing (k6)
 
