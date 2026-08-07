@@ -147,15 +147,46 @@ BadgeSmith implements **custom routing** optimized for Lambda environments:
 
 ## 🔐 **Security Architecture**
 
-### **HMAC Authentication Flow**
+### **Canonical HMAC Authentication**
 
-**For test result ingestion endpoints:**
+`POST /tests/results/{platform}/{owner}/{repo}/{branch}` accepts only canonical-request
+HMAC-SHA256 signatures. This contract is a hard cut: clients and the server must use the
+same newline-delimited UTF-8 message in this exact field order:
 
-1. **Organization Lookup**: Extract organization from route parameters
-2. **Secret Retrieval**: Query organization secrets from DynamoDB → Secrets Manager
-3. **Signature Validation**: HMAC-SHA256 verification with constant-time comparison
-4. **Replay Protection**: Nonce validation with DynamoDB conditional writes
-5. **Timestamp Validation**: 5-minute window with clock skew protection
+```text
+BADGESMITH-HMAC
+POST
+/tests/results/{platform}/{owner}/{repo}/{branch}
+{timestamp}
+{nonce}
+{sha256-body}
+```
+
+There is no trailing newline. Canonical fields follow these rules:
+
+- The path is the logical BadgeSmith ingestion route, without a deployment host, stage,
+  custom base path, or query string.
+- The decoded logical `platform`, `owner`, and `repo` values use `ToLowerInvariant()`.
+- The decoded `branch` case and value are preserved.
+- Every logical route segment is escaped independently with `Uri.EscapeDataString`.
+- `timestamp` and `nonce` are the trimmed `X-Timestamp` and `X-Nonce` header values.
+- `sha256-body` is lowercase hexadecimal SHA-256 over the exact UTF-8 request body.
+
+The final `X-Signature` value is `sha256=` followed by exactly 64 lowercase
+HMAC-SHA256 hexadecimal characters. The HMAC key is the organization's `TestData`
+secret, separate from package-access credentials.
+
+Authentication validates that the timestamp is no more than five minutes old and no
+more than one minute in the future, resolves the organization-scoped secret, and
+compares the exact-length signature digest in fixed time. Only after that comparison
+succeeds is the trimmed nonce atomically marked in DynamoDB. A failed signature does not
+consume the nonce.
+
+Both `badgesmith tests ingest` and `badgesmith badge update` sign this canonical
+request. Their dry-run output may include the URL, payload, timestamp, and nonce, but
+never the signature or digest. Public `badge update` targets require HTTPS; HTTP is
+accepted only for loopback hosts (`localhost`, `127.0.0.0/8`, or `::1`). The explicit
+local/deployed probe command, `tests ingest`, accepts both HTTP and HTTPS.
 
 **Security Features:**
 
@@ -252,12 +283,22 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 
 ### **AWS CDK Integration**
 
-**`build/`** directory contains **CDK infrastructure**:
+**`build/`** contains shared constructs and two separate .NET CDK app entrypoints:
 
-- **Shared constructs**: Common infrastructure patterns
-- **Environment-agnostic**: Same code for local and production
-- **Type-safe**: .NET CDK with compile-time validation
-- **Aspire integration**: CDK stacks can be deployed from Aspire host
+| Purpose | App project | CDK working directory | Native stack ID |
+| --- | --- | --- | --- |
+| Production | `build/BadgeSmith.CDK/BadgeSmith.CDK.csproj` | `build` | `BadgeSmithStack` |
+| Local performance | `build/BadgeSmith.CDK.LocalPerformance/BadgeSmith.CDK.LocalPerformance.csproj` | `build/BadgeSmith.CDK.LocalPerformance` | `BadgeSmithPerformanceStack` |
+
+The production app constructs only the production stack. Production deployment remains
+approval-gated, must target `BadgeSmithStack` explicitly, and must never use `--all`.
+The local-performance app constructs only LocalStack benchmarking infrastructure and is
+never deployed to AWS.
+
+The deferred `badgesmith perf baseline` command will consume the local-performance app
+as its infrastructure boundary when that command is implemented. See the
+[BadgeSmith CDK app guide](build/BadgeSmith.CDK/README.md) for the exact build and safe
+synthesis commands for each app.
 
 ### **Local Development**
 

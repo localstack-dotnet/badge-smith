@@ -1,14 +1,65 @@
-# Welcome to your CDK C# project!
+# BadgeSmith CDK apps
 
-This is a blank project for CDK development with C#.
+BadgeSmith uses two separate CDK app entrypoints. Keep them separate: CDK constructs the
+whole app tree before CLI stack selectors are applied, and the production and
+local-performance stacks use different environments and Lambda ZIP assets.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Production app
 
-It uses the [.NET CLI](https://docs.microsoft.com/dotnet/articles/core/) to compile and execute your project.
+- Project: `build/BadgeSmith.CDK/BadgeSmith.CDK.csproj`
+- CDK working directory: `build`
+- CDK config: `build/cdk.json`
+- Native stack ID: `BadgeSmithStack`
+- Lambda ZIP default: `../artifacts/badge-lambda-linux-arm64.zip`
 
-## Useful commands
+Build and synthesize production infrastructure:
 
-* `dotnet build src` compile this app
-* `cdk deploy`       deploy this stack to your default AWS account/region
-* `cdk diff`         compare deployed stack with current state
-* `cdk synth`        emits the synthesized CloudFormation template
+```bash
+dotnet build build/BadgeSmith.CDK/BadgeSmith.CDK.csproj -c Release
+tools/badgesmith.cs lambda build --target zip --rid linux-arm64 --clean --verbose
+cd build
+cdk ls
+cdk synth BadgeSmithStack
+```
+
+Production deploy remains approval-gated and must target the single production stack:
+
+```bash
+cd build
+cdk deploy BadgeSmithStack --require-approval never
+```
+
+Do not use `--all` for production synth, diff, or deploy commands.
+
+## Local performance app
+
+- Project: `build/BadgeSmith.CDK.LocalPerformance/BadgeSmith.CDK.LocalPerformance.csproj`
+- CDK working directory: `build/BadgeSmith.CDK.LocalPerformance`
+- CDK config: `build/BadgeSmith.CDK.LocalPerformance/cdk.json`
+- Native stack ID: `BadgeSmithPerformanceStack`
+- Lambda ZIP default: `../../artifacts/badge-lambda-linux-x64.zip`
+
+Build and synthesize LocalStack-only performance infrastructure:
+
+```bash
+dotnet build build/BadgeSmith.CDK.LocalPerformance/BadgeSmith.CDK.LocalPerformance.csproj -c Release
+tools/badgesmith.cs lambda build --target zip --rid linux-x64 --verbose
+cd build/BadgeSmith.CDK.LocalPerformance
+cdklocal synth BadgeSmithPerformanceStack
+```
+
+The local-performance app is for LocalStack benchmarking only. Never deploy it to AWS.
+
+## Context values
+
+Both apps accept `account` and `region` context values. Production otherwise uses the CDK
+default account and region environment variables. The local-performance app defaults to
+account `000000000000` and region `us-east-1`.
+
+The local-performance app also accepts these context values:
+
+- `lambdaZipPath` (default `../../artifacts/badge-lambda-linux-x64.zip`)
+- `lambdaArchitecture` (`x86_64` or `arm64`, default `x86_64`)
+- `localStackEndpoint` (default `http://localstack:4566`)
+- `httpNuGetBaseUrl` (default `https://api.nuget.org/`)
+- `httpGitHubBaseUrl` (default `https://api.github.com/`)

@@ -44,6 +44,17 @@ Run `badgesmith <command> --help` for the full option list. `--dry-run` is
 available on `tests ingest`, `badge update`, and `secrets seed` to print the
 planned request without mutating anything.
 
+### Authenticated test-result requests
+
+Both `tests ingest` and `badge update` sign the canonical `POST` method, logical
+ingestion route, trimmed timestamp and nonce, and exact request body. The resulting
+`X-Signature` uses `sha256=` followed by 64 lowercase hexadecimal characters. See
+[ARCHITECTURE.md](../ARCHITECTURE.md#canonical-hmac-authentication) for the exact field
+order, normalization, escaping, timestamp policy, and nonce behavior.
+
+For either command, `--dry-run` may print the URL, payload, timestamp, and nonce, but it
+does not print the signature or digest.
+
 ### `lambda build`
 
 Multi-arch Docker build of the Native AOT Lambda. Used by CI and the deploy
@@ -94,6 +105,8 @@ unique TRX file per framework. Used by the `run-dotnet-tests` composite action.
 Posts a single test-result payload to `POST /tests/results/{platform}/{owner}/{repo}/{branch}`
 with HMAC-SHA256 signature, timestamp, and nonce headers. Useful for local
 end-to-end checks against a running BadgeSmith (Aspire AppHost or deployed API).
+As an explicit local/deployed endpoint probe, this command accepts both HTTP and HTTPS
+base URLs.
 
 ```bash
 ./tools/badgesmith.cs tests ingest \
@@ -113,8 +126,8 @@ end-to-end checks against a running BadgeSmith (Aspire AppHost or deployed API).
   --dry-run
 ```
 
-See [ARCHITECTURE.md](../ARCHITECTURE.md) for the HMAC authentication flow,
-replay protection, and the expected success/error response shapes.
+See [ARCHITECTURE.md](../ARCHITECTURE.md#canonical-hmac-authentication) for the HMAC
+authentication contract and replay protection.
 
 ### `badge update`
 
@@ -132,8 +145,10 @@ export BADGESMITH_HMAC_SECRET="$HMAC_SECRET"
   --dry-run
 ```
 
-`--base-url` is required and accepts an absolute HTTP or HTTPS deployment URL,
-including a custom port or path prefix. `badge update` reads the HMAC secret from
+`--base-url` is required and accepts an absolute HTTPS deployment URL, including a
+custom port or path prefix. HTTP is accepted only for loopback hosts (`localhost`,
+`127.0.0.0/8`, or `::1`) used during local development. Public HTTP URLs fail command
+validation before a request is created. `badge update` reads the HMAC secret from
 `BADGESMITH_HMAC_SECRET`; it does not accept the secret as a command argument.
 
 By default a failed post does not fail CI; pass `--fail-on-error` to opt into a
@@ -244,6 +259,8 @@ K6_API_URL=https://your-api-gateway-url.amazonaws.com k6 run scripts/k6-perf-tes
 ```
 
 The `badgesmith perf baseline` command — LocalStack seed + k6 invocation
-orchestration that previously lived in the retired perf-baseline shell scripts — is
-deferred. See `docs/ROADMAP.md` (Inbox / Untriaged) for the planned re-home
-under `tools/Commands/PerfBaselineCommand.cs`.
+orchestration — remains deferred. When implemented, it will consume the dedicated
+LocalStack-only `BadgeSmith.CDK.LocalPerformance` app as its infrastructure boundary;
+the app is never deployed to AWS. See the
+[CDK app guide](../build/BadgeSmith.CDK/README.md) for the current manual build and
+synthesis workflow, and `docs/ROADMAP.md` (Inbox / Untriaged) for the planned command.

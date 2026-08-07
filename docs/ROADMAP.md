@@ -1,10 +1,10 @@
 # BadgeSmith Roadmap
 
-Date: 2026-07-09
+Date: 2026-08-07
 
 Backlog and progress source of truth for BadgeSmith. Keep this current: the Status &
-Plan Mapping table is the permanent index, detailed plans live in `docs/plans/`, and
-new ideas land in Inbox / Untriaged until they are scoped.
+Plan Mapping table is the permanent index, detailed plans are linked from that table,
+and new ideas land in Inbox / Untriaged until they are scoped.
 
 ## Status & Plan Mapping
 
@@ -15,6 +15,8 @@ new ideas land in Inbox / Untriaged until they are scoped.
 | Wave 1 — correctness and hygiene fixes | done | — | Closed in W1.7 on `feature/iteration0-aot-contract-tier`. HMAC `repoIdentifier` (`845440f`); GSI1PK case normalization; nonce-after-signature; client error-message hygiene; PAT rotation docs; naming hygiene (`5cbf87b`). |
 | W1.5 — file-based tooling migration | done | [superpowers/plans/2026-07-06-w1-5-file-based-tools-implementation-plan.md](superpowers/plans/2026-07-06-w1-5-file-based-tools-implementation-plan.md) | Foundation `52d038a`; finished in W1.7: workflows call `tools/badgesmith.cs`, tracked `.sh`/`.ps1` retired, script-facing docs moved to `tools/README.md`, `perf baseline` C# command deferred (see Inbox). |
 | W1.7 — closeout and platform refresh | done | [superpowers/plans/2026-07-09-w1-7-closeout-and-platform-refresh-implementation-plan.md](superpowers/plans/2026-07-09-w1-7-closeout-and-platform-refresh-implementation-plan.md) | Design: [superpowers/specs/2026-07-09-w1-7-closeout-and-platform-refresh-design.md](superpowers/specs/2026-07-09-w1-7-closeout-and-platform-refresh-design.md). Packages: Aspire 13.4.6, LocalStack.Aspire.Hosting 13.4.0, explicit Aspire.Hosting.AWS 13.3.1, full CPM stable bump, MessagePack removed. Tooling finish + remaining Wave 1 correctness. |
+| PR #5 merge-readiness remediation | second pass required | [superpowers/specs/2026-07-10-pr5-merge-readiness-remediation-design.md](superpowers/specs/2026-07-10-pr5-merge-readiness-remediation-design.md) | Implemented in `34fe5f7`: restored Native AOT serializer compatibility, hardened malformed HMAC handling and white-label URLs, secured reusable workflow inputs, and corrected Aspire source ownership. Hosted checks passed, but the subsequent whole-PR review found merge-blocking HMAC and CDK issues tracked by the second-pass workstream below. |
+| PR #5 second-pass review remediation | local complete; hosted checks pending | [superpowers/plans/2026-08-07-pr5-second-pass-review-remediation-implementation-plan.md](superpowers/plans/2026-08-07-pr5-second-pass-review-remediation-implementation-plan.md) | Design: [superpowers/specs/2026-08-07-pr5-second-pass-review-remediation-design.md](superpowers/specs/2026-08-07-pr5-second-pass-review-remediation-design.md). Implemented on 2026-08-07: hard-cut canonical HMAC authentication, secure badge transport, LocalStack.Client.Extensions 2.0.1, and separate production/local-performance CDK apps. Local evidence: zero-warning Release build, 402 tests, file-based CLI build, actionlint, Slopwatch, package graphs, local-performance CDK synth, and two independent security reviews with no Medium-or-higher findings. Production ARM64 artifact/synth remains for the hosted ARM64 runner because local buildx exposes only `linux/amd64`; hosted PR checks await commit/push approval. No deploy or PR-state mutation is authorized. |
 
 ## Process Notes
 
@@ -23,11 +25,12 @@ new ideas land in Inbox / Untriaged until they are scoped.
 
 ## Backlog
 
-Scoped work waiting to start. Promote an item into Status & Plan Mapping (and write a
-plan under `docs/plans/`) when it becomes active.
+Scoped work waiting to start. Promote an item into Status & Plan Mapping and link its
+detailed plan when it becomes active.
 
-- **Wave 2 — test safety net** (next): HMAC / ResponseHelper / real RouteTable /
-  NuGetVersionService tests; align resolver tests with production routes. Details:
+- **Wave 2 — test safety net** (next after PR #5): ResponseHelper / real RouteTable /
+  NuGetVersionService tests; align resolver tests with production routes. The initial
+  HMAC suite landed during PR #5 remediation. Details:
   [research/2026-07-02-code-review-findings.md](research/2026-07-02-code-review-findings.md) §4.
 - **Wave 3 — hygiene**: DRY refactors (bootstrap, route-param extraction, package
   services), dead-code removal, script/docs drift, DynamoDB PITR/removal policy.
@@ -47,9 +50,14 @@ Raw capture spot for ideas and requests before they are scoped into the backlog.
   `TrimMode=full` + ILC knobs, result caching in package services. Rejected:
   provisioned concurrency, keep-warm pings, SnapStart (N/A on provided.al2023).
   Folds in GitHub issue #1 (RouteValues buffer guard).
+- **GitHub Packages prerelease-channel filtering:** support selecting the latest `ci`
+  prerelease without pinning the base version; tracked in
+  [GitHub issue #4](https://github.com/localstack-dotnet/badge-smith/issues/4).
 - **Deferred from W1.7:** `perf baseline` C# command — the previous
   `scripts/perf-baseline.{sh,ps1}` + `perf-baseline-seed.sh` (~16KB of orchestration)
   was retired in the W1.7 closeout rather than half-ported. Keep the k6 scenario at
   `scripts/k6-perf-test.js`; re-home the LocalStack seed + k6 invocation orchestration
   under `tools/Commands/PerfBaselineCommand.cs` (registered as `perf baseline` in
   `BadgeSmithTool.CreateCommandApp`) after Wave 2 or as part of the performance pass.
+  Consume the dedicated local-performance CDK app from the PR #5 second-pass
+  remediation; do not restore stack-selection context in the production app.

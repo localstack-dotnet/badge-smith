@@ -9,8 +9,10 @@ summary.
 See [`action.yml`](./action.yml) for the canonical input list. Required inputs are
 `platform`, `test_passed`, `test_failed`, `test_skipped`, `commit_sha`, `run_id`,
 `repository`, `server_url`, `api_base_url`, and `hmac_secret`.
-`test_url_html` is optional. `api_base_url` must be an absolute HTTP or HTTPS URL
-for the target deployment and may include a port or path prefix.
+`test_url_html` is optional. `api_base_url` must be an absolute HTTPS URL
+for public deployments and may include a port or path prefix. Plain HTTP is
+accepted only for loopback hosts (`localhost`, `127.0.0.0/8`, or `::1`) used
+by local development.
 
 ## Remote Usage
 

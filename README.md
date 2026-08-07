@@ -32,10 +32,17 @@ BadgeSmith badges itself using its own API:
 
 ### **🔒 Secure Authentication**
 
-- **HMAC-SHA256 authentication** with replay protection for test ingestion
-- **AWS Secrets Manager** integration for credential management
-- **Nonce-based replay prevention** using DynamoDB
-- **Organization-level access control** with token type separation
+- **Canonical HMAC-SHA256 authentication** binds the method, logical ingestion route,
+  timestamp, nonce, and exact request body
+- **Organization-scoped `TestData` secrets** are isolated from package credentials
+- **Timestamp validation** accepts requests up to five minutes old with at most one
+  minute of future clock skew
+- **Nonce-based replay prevention** atomically marks the nonce only after fixed-time
+  signature verification succeeds
+
+Canonical request construction is a hard-cut contract. See
+**[ARCHITECTURE.md](ARCHITECTURE.md#canonical-hmac-authentication)** for the exact field
+order, normalization, escaping, and signature envelope.
 
 ### **⚡ Performance Optimizations**
 
@@ -121,11 +128,19 @@ For detailed architectural decisions, performance considerations, data design, a
 ### **Self-Hosting**
 
 ```bash
-# Clone and deploy
+# Clone and compile the production CDK app (does not deploy)
 git clone https://github.com/localstack-dotnet/badge-smith.git
-cd badge-smith/build
-dotnet run --project BadgeSmith.CDK
+cd badge-smith
+dotnet build build/BadgeSmith.CDK/BadgeSmith.CDK.csproj -c Release
 ```
+
+BadgeSmith has separate production and LocalStack-only performance CDK apps. Production
+CDK commands run from `build` and target `BadgeSmithStack`; local-performance commands
+run from `build/BadgeSmith.CDK.LocalPerformance` and target
+`BadgeSmithPerformanceStack`. See the [CDK app guide](build/BadgeSmith.CDK/README.md)
+for the required Lambda artifacts and safe synthesis commands. Production deployment is
+approval-gated and must never use `--all`; the local-performance app is not deployed to
+AWS.
 
 ### **Local Development**
 
@@ -206,8 +221,9 @@ BadgeSmith demonstrates current .NET development practices:
 
 ### **Reusable CDK Patterns**
 
-- Environment-agnostic infrastructure design
-- Shared constructs between local and production for deployment consistency
+- Separate production and LocalStack-only performance app entrypoints
+- Native stack selection with `BadgeSmithStack` and `BadgeSmithPerformanceStack`
+- Shared constructs across the two app boundaries
 - Type-safe infrastructure with .NET CDK
 
 ## 🤝 **Contributing**
