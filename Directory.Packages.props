@@ -19,7 +19,7 @@
     <PackageVersion Include="Aspire.Hosting.AWS" Version="13.3.1" />
     <PackageVersion Include="LocalStack.Aspire.Hosting" Version="13.4.0" />
     <!-- aws packages -->
-    <PackageVersion Include="AWSSDK.Core" Version="4.0.100.3" />
+    <PackageVersion Include="AWSSDK.Core" Version="4.0.100.6" />
     <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.101.1" />
     <PackageVersion Include="AWSSDK.SecretsManager" Version="4.0.100.3" />
     <PackageVersion Include="Amazon.CDK.Lib" Version="2.261.0" />
@@ -29,10 +29,10 @@
     <!-- 3.0.0's net10.0 asset lacks the trimmability metadata required by BadgeSmith's Native AOT build. -->
     <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
     <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="4.1.0" />
-    <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.100.3" />
+    <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.100.5" />
     <!-- localstack packages -->
     <PackageVersion Include="LocalStack.Client" Version="2.0.0" />
-    <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.0" />
+    <PackageVersion Include="LocalStack.Client.Extensions" Version="2.0.1" />
     <!-- microsoft packages -->
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
