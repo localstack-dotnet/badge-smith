@@ -17,7 +17,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       !contains(github.event.head_commit.message, '[skip ci]') &&
       !contains(github.event.head_commit.message, '[ci skip]') &&
@@ -27,15 +27,15 @@ jobs:
     env:
       NUGET_PACKAGES: ${{ format('{0}/.nuget/packages', github.workspace) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
       - name: "Cache NuGet packages"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ format('{0}/.nuget/packages', github.workspace) }}
           key: nuget-${{ hashFiles('**/Directory.Packages.props') }}-${{ hashFiles('**/*.csproj') }}-${{ hashFiles('**/packages.lock.json') }}
@@ -57,7 +57,7 @@ jobs:
 
       - name: Publish Test Results
         id: test-results
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: 'Test Results (Linux)'
@@ -97,15 +97,15 @@ jobs:
       !contains(github.event.head_commit.message, '***NO_CD***')
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Lambda ZIP for ARM64
         env:
@@ -114,7 +114,7 @@ jobs:
           "$BADGESMITH_TOOL_PATH" lambda build --target zip --rid linux-arm64 --clean --verbose
 
       - name: Upload Lambda artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.ref == 'refs/heads/master' && 'lambda-zip-latest' || format('lambda-zip-pr-{0}', github.event.pull_request.number) }}
           path: artifacts/badge-lambda-linux-arm64.zip

@@ -28,7 +28,7 @@ public sealed class BadgeSmithUrlBuilderTests
     }
 
     [Fact]
-    public void TryCreate_Should_Accept_Public_Http_For_Shared_Syntax_Parsing()
+    public void TryCreate_Should_Parse_Public_Http_Before_Transport_Validation()
     {
         var created = BadgeSmithUrlBuilder.TryCreate("http://api.example.com", out var urls, out var error);
 

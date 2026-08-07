@@ -1,6 +1,5 @@
-#pragma warning disable S1075
-
 using System.Net;
+using static BadgeSmith.Constants;
 
 namespace BadgeSmith.Api.Core.Http;
 
@@ -10,15 +9,38 @@ namespace BadgeSmith.Api.Core.Http;
 /// </summary>
 internal static class HttpClientFactory
 {
+#pragma warning disable S1075 // These are intentional public service defaults, overridable for local tests.
     private const string NugetApiUrl = "https://api.nuget.org/";
     private const string GithubApiUrl = "https://api.github.com/";
+#pragma warning restore S1075
 
     private static Uri ResolveBaseUri(string envVar, string fallback)
     {
+        var upstreamMode = ResolveUpstreamMode();
         var value = Environment.GetEnvironmentVariable(envVar);
-        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        if (string.IsNullOrWhiteSpace(value))
         {
+            if (upstreamMode == UpstreamModeMock)
+            {
+                throw new InvalidOperationException($"{envVar} is required when {UpstreamModeEnvironmentVariable} is {UpstreamModeMock}.");
+            }
+
             return new Uri(fallback);
+        }
+
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            || string.IsNullOrWhiteSpace(uri.Host)
+            || !string.IsNullOrEmpty(uri.UserInfo)
+            || !string.IsNullOrEmpty(uri.Query)
+            || !string.IsNullOrEmpty(uri.Fragment)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException($"{envVar} must be an absolute HTTP or HTTPS URL without credentials, query, or fragment.");
+        }
+
+        if (upstreamMode == UpstreamModeLive && uri.Scheme != Uri.UriSchemeHttps)
+        {
+            throw new InvalidOperationException($"{envVar} must use HTTPS when {UpstreamModeEnvironmentVariable} is {UpstreamModeLive}.");
         }
 
         // Base addresses must end with '/' for correct relative URI resolution
@@ -31,6 +53,34 @@ internal static class HttpClientFactory
         }
 
         return uri;
+    }
+
+    private static string ResolveUpstreamMode()
+    {
+        var value = Environment.GetEnvironmentVariable(UpstreamModeEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(value) || value.Equals(UpstreamModeLive, StringComparison.OrdinalIgnoreCase))
+        {
+            return UpstreamModeLive;
+        }
+
+        if (value.Equals(UpstreamModeMock, StringComparison.OrdinalIgnoreCase))
+        {
+#if ENABLE_LOCALSTACK
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HTTP_NUGET_BASE_URL"))
+                || string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HTTP_GITHUB_BASE_URL")))
+            {
+                throw new InvalidOperationException(
+                    $"{UpstreamModeMock} upstream mode requires both HTTP_NUGET_BASE_URL and HTTP_GITHUB_BASE_URL.");
+            }
+
+            return UpstreamModeMock;
+#else
+            throw new InvalidOperationException($"{UpstreamModeMock} upstream mode is unavailable in production builds.");
+#endif
+        }
+
+        throw new InvalidOperationException(
+            $"{UpstreamModeEnvironmentVariable} must be either {UpstreamModeLive} or {UpstreamModeMock}.");
     }
 
     private static readonly Lazy<SocketsHttpHandler> NugetSocketsHttpHandlerFactory = new(CreateHandlerInstance());

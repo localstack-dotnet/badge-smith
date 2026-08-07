@@ -5,7 +5,7 @@ namespace BadgeSmith.Tools.Infrastructure;
 
 internal sealed class BadgeSmithUrlBuilder
 {
-    private const string BadgeUpdateTransportError = "Badge update base URL must use HTTPS unless the HTTP host is loopback (localhost, 127.0.0.0/8, or ::1).";
+    private const string SecureTransportError = "BadgeSmith base URL must use HTTPS unless the HTTP host is loopback (localhost, 127.0.0.0/8, or ::1).";
 
     private readonly Uri _baseUri;
     private readonly string _baseUrl;
@@ -65,7 +65,7 @@ internal sealed class BadgeSmithUrlBuilder
             : throw new ArgumentException(error, nameof(value));
     }
 
-    public bool TryValidateBadgeUpdateTransport(out string error)
+    public bool TryValidateSecureTransport(out string error)
     {
         if (_baseUri.Scheme == Uri.UriSchemeHttps || IsLoopbackHttpUri(_baseUri))
         {
@@ -73,7 +73,7 @@ internal sealed class BadgeSmithUrlBuilder
             return true;
         }
 
-        error = BadgeUpdateTransportError;
+        error = SecureTransportError;
         return false;
     }
 

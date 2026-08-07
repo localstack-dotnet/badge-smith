@@ -237,10 +237,15 @@ public sealed class BadgeSmithToolInProcessTests
         }
     }
 
-    [Fact]
-    public void BadgeUpdateSettings_Should_Reject_Public_Http_Base_Url()
+    [Theory]
+    [InlineData("http://api.example.com")]
+    [InlineData("http://localhost.evil.example")]
+    [InlineData("http://127.0.0.1.evil.example")]
+    [InlineData("http://10.0.0.1")]
+    [InlineData("http://[::2]")]
+    public void BadgeUpdateSettings_Should_Reject_Non_Loopback_Http_Base_Url(string baseUrl)
     {
-        var result = CreateBadgeUpdateSettings(baseUrl: "http://api.example.com").Validate();
+        var result = CreateBadgeUpdateSettings(baseUrl: baseUrl).Validate();
 
         Assert.False(result.Successful);
         Assert.NotNull(result.Message);
@@ -261,10 +266,30 @@ public sealed class BadgeSmithToolInProcessTests
         Assert.True(result.Successful, result.Message);
     }
 
-    [Fact]
-    public void TestsIngestSettings_Should_Accept_Public_Http_Base_Url()
+    [Theory]
+    [InlineData("http://api.example.com")]
+    [InlineData("http://localhost.evil.example")]
+    [InlineData("http://127.0.0.1.evil.example")]
+    [InlineData("http://10.0.0.1")]
+    [InlineData("http://[::2]")]
+    public void TestsIngestSettings_Should_Reject_Non_Loopback_Http_Base_Url(string baseUrl)
     {
-        var result = CreateTestIngestSettings(baseUrl: "http://api.example.com").Validate();
+        var result = CreateTestIngestSettings(baseUrl: baseUrl).Validate();
+
+        Assert.False(result.Successful);
+        Assert.NotNull(result.Message);
+        Assert.Contains("HTTPS", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("loopback", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("https://api.example.com")]
+    [InlineData("http://localhost:9474")]
+    [InlineData("http://127.12.34.56:9474")]
+    [InlineData("http://[::1]:9474")]
+    public void TestsIngestSettings_Should_Accept_Secure_Or_Loopback_Base_Url(string baseUrl)
+    {
+        var result = CreateTestIngestSettings(baseUrl: baseUrl).Validate();
 
         Assert.True(result.Successful, result.Message);
     }

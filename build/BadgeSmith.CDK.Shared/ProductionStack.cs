@@ -1,4 +1,4 @@
-#pragma warning disable CA1711, MA0051
+#pragma warning disable CA1711 // AWS CDK stack types intentionally use the Stack suffix.
 
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
@@ -203,3 +203,5 @@ public sealed class ProductionStack : Stack
 
     public Distribution CloudFrontDistribution { get; }
 }
+
+#pragma warning restore CA1711

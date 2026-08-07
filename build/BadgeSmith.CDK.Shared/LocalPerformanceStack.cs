@@ -1,4 +1,4 @@
-#pragma warning disable CA1711
+#pragma warning disable CA1711 // AWS CDK stack types intentionally use the Stack suffix.
 
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
@@ -109,9 +109,9 @@ public sealed class LocalPerformanceStack : Stack
     public HttpApi ApiGateway { get; }
 }
 
+#pragma warning restore CA1711
+
 public sealed record LocalPerformanceStackSettings(
     string LambdaAssetPath,
     Architecture LambdaArchitecture,
     IReadOnlyDictionary<string, string> LambdaEnvironment);
-
-#pragma warning restore CA1711

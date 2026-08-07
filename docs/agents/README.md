@@ -24,7 +24,7 @@ when the edit is Markdown-only.
 | `.github/copilot-instructions.md` | GitHub Copilot relay to `AGENTS.md` |
 | `docs/agents/README.md` | Harness adapter guide and capability mapping (this file) |
 | `docs/agents/KNOWN_ISSUES.md` | Agent-facing known notes and triage hints |
-| `docs/agents/handover-prompts/` | Session-pickup templates for stateful handovers |
+| `docs/agents/handover-prompts/session-pickup-template.md` | Session-pickup template for stateful handovers |
 | `docs/agents/skills/aspire-source-navigation.md` | Canonical project guidance for compatibility-sensitive Aspire source navigation |
 | `.opencode/skills/aspire-source-navigation/SKILL.md` | OpenCode discovery relay for the project skill |
 

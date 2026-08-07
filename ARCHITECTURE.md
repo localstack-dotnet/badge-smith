@@ -185,9 +185,26 @@ consume the nonce.
 
 Both `badgesmith tests ingest` and `badgesmith badge update` sign this canonical
 request. Their dry-run output may include the URL, payload, timestamp, and nonce, but
-never the signature or digest. Public `badge update` targets require HTTPS; HTTP is
-accepted only for loopback hosts (`localhost`, `127.0.0.0/8`, or `::1`). The explicit
-local/deployed probe command, `tests ingest`, accepts both HTTP and HTTPS.
+never the signature or digest. Both commands require HTTPS; HTTP is accepted only for
+loopback hosts (`localhost`, `127.0.0.0/8`, or `::1`).
+
+### Upstream And Transport Modes
+
+`BADGESMITH_UPSTREAM_MODE` is an explicit `Live` or `Mock` contract. Missing values
+default to `Live`.
+
+- `Live` requires HTTPS for configured NuGet and GitHub upstream URLs. The Aspire
+  AppHost also requires `tools/organization-pat-mapping.json` and fails before startup
+  when it is missing.
+- `Mock` is accepted only by builds compiled with `ENABLE_LOCALSTACK`. Both
+  `HTTP_NUGET_BASE_URL` and `HTTP_GITHUB_BASE_URL` are required and may use HTTP for
+  test-owned WireMock endpoints. The contract fixture owns deterministic secret seeding.
+- Production CDK sets `Live` explicitly, and production builds reject `Mock` even if an
+  environment variable is misconfigured.
+
+Client commands that upload HMAC-authenticated test data do not inherit upstream mode.
+Their BadgeSmith API base URL always requires HTTPS, with HTTP allowed only for loopback
+development endpoints.
 
 **Security Features:**
 

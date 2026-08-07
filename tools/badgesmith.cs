@@ -17,6 +17,6 @@
 #:include Configuration/**/*.cs
 #:include Infrastructure/**/*.cs
 #:include Services/**/*.cs
-#:include ../src/shared/Security/HmacCanonicalRequest.cs
+#:include ../src/shared/Protocol/HmacCanonicalRequest.cs
 
 return await BadgeSmith.Tools.BadgeSmithTool.RunAsync(args).ConfigureAwait(false);

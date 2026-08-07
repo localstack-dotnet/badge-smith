@@ -1,4 +1,4 @@
-#pragma warning disable CA1812,CA1852,CA1515
+#pragma warning disable CA1812, CA1852, CA1515 // BenchmarkDotNet requires public, non-sealed types instantiated by generated code.
 
 using System.Buffers;
 using BadgeSmith.Api.Core.Routing;
@@ -221,3 +221,5 @@ public class BufferAllocationBenchmarks
         }
     }
 }
+
+#pragma warning restore CA1812, CA1852, CA1515

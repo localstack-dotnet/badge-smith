@@ -1,13 +1,13 @@
-﻿#pragma warning disable S2325, CA1873 // Logger mocks use expression trees that trigger logging analyzer.
+﻿#pragma warning disable CA1873 // Logger mocks use expression trees that trigger logging analyzer.
 
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace BadgeSmith.Api.Tests;
 
-public class TestBase
+public static class TestBase
 {
-    public Mock<ILogger<TService>> SetupILoggerWithService<TService>()
+    public static Mock<ILogger<TService>> SetupILoggerWithService<TService>()
     {
         var mockFor = new Mock<ILogger<TService>>();
 
@@ -20,7 +20,7 @@ public class TestBase
         return mockFor;
     }
 
-    public Mock<ILogger> SetupILogger()
+    public static Mock<ILogger> SetupILogger()
     {
         var mockFor = new Mock<ILogger>();
 
@@ -33,7 +33,7 @@ public class TestBase
         return mockFor;
     }
 
-    public Mock<ILogger<TService>> VerifyLogging<TService>(Mock<ILogger<TService>> logger,
+    public static Mock<ILogger<TService>> VerifyLogging<TService>(Mock<ILogger<TService>> logger,
         string? expectedMessage = null,
         LogLevel expectedLogLevel = LogLevel.Debug,
         Times? times = null)
@@ -63,4 +63,4 @@ public class TestBase
     }
 }
 
-#pragma warning restore S2325, CA1873
+#pragma warning restore CA1873

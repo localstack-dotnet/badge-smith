@@ -69,8 +69,8 @@
     <Compile Include="..\shared\Constants.cs">
       <Link>Core\Constants.cs</Link>
     </Compile>
-    <Compile Include="..\shared\Security\HmacCanonicalRequest.cs">
-      <Link>Core\Security\HmacCanonicalRequest.cs</Link>
+    <Compile Include="..\shared\Protocol\HmacCanonicalRequest.cs">
+      <Link>Protocol\HmacCanonicalRequest.cs</Link>
     </Compile>
   </ItemGroup>
 

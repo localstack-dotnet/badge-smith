@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace BadgeSmith.Api.Core.Security;
+namespace BadgeSmith.Protocol;
 
 internal static class HmacCanonicalRequest
 {

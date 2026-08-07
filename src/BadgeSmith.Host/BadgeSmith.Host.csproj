@@ -6,7 +6,8 @@
     <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <OutputType>Exe</OutputType>
     <IsAspireHost>true</IsAspireHost>
-    <NoWarn>$(NoWarn);CS8002</NoWarn> <!-- AWS CDK packages are not signed -->
+    <!-- slopwatch-ignore: SW005 Amazon CDK assemblies are intentionally unsigned and trigger CS8002 -->
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
   </PropertyGroup>
 

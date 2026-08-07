@@ -7,6 +7,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Xunit;
+using static BadgeSmith.Constants;
 
 namespace BadgeSmith.Api.Tests.Testing.Infrastructure;
 
@@ -32,6 +33,7 @@ public sealed class AspireContractFixture : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
+        Environment.SetEnvironmentVariable(UpstreamModeEnvironmentVariable, UpstreamModeMock);
 
         var wiremockDir = Path.Combine(AppContext.BaseDirectory, "Testing", "Infrastructure", "wiremock");
         _wiremock = new ContainerBuilder("wiremock/wiremock:3.9.1")
@@ -84,6 +86,7 @@ public sealed class AspireContractFixture : IAsyncLifetime
     {
         Environment.SetEnvironmentVariable("HTTP_NUGET_BASE_URL", null);
         Environment.SetEnvironmentVariable("HTTP_GITHUB_BASE_URL", null);
+        Environment.SetEnvironmentVariable(UpstreamModeEnvironmentVariable, null);
 
         DynamoDb?.Dispose();
         Secrets?.Dispose();

@@ -13,7 +13,10 @@ public sealed class GitHubActionContractTests
             TestContext.Current.CancellationToken,
             ".github", "workflows", "update-test-badge", "action.yml");
 
-        Assert.Contains("uses: actions/setup-dotnet@v4", action, StringComparison.Ordinal);
+        Assert.Contains(
+            "uses: actions/setup-dotnet@v6",
+            action,
+            StringComparison.Ordinal);
         Assert.Contains("global-json-file: ${{ github.action_path }}/../../../global.json", action, StringComparison.Ordinal);
         Assert.Contains("$env:BADGESMITH_ACTION_PATH/../../../tools/badgesmith.cs", action, StringComparison.Ordinal);
         Assert.Contains("$BADGESMITH_ACTION_PATH/../../../tools/badgesmith.cs", action, StringComparison.Ordinal);
@@ -40,6 +43,42 @@ public sealed class GitHubActionContractTests
                 Assert.DoesNotContain("${{", script, StringComparison.Ordinal);
             }
         }
+    }
+
+    [Fact]
+    public async Task Workflows_Should_Pin_External_Actions_Runners_Node_And_Cdk()
+    {
+        string[][] workflowPaths =
+        [
+            [".github", "workflows", "ci-cd.yml"],
+            [".github", "workflows", "deploy.yml"],
+            [".github", "workflows", "update-test-badge", "action.yml"],
+        ];
+
+        var workflows = await Task.WhenAll(
+            workflowPaths.Select(path => ReadRepositoryFileAsync(TestContext.Current.CancellationToken, path)));
+
+        foreach (var workflow in workflows)
+        {
+            Assert.DoesNotContain("ubuntu-latest", workflow, StringComparison.Ordinal);
+
+            foreach (var line in workflow.Split('\n'))
+            {
+                var actionReference = line.Trim().TrimStart('-').TrimStart();
+                if (!actionReference.StartsWith("uses: ", StringComparison.Ordinal)
+                    || actionReference.StartsWith("uses: ./", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var version = actionReference.Split('#', 2)[0].Split('@', 2)[1].Trim();
+                Assert.Matches("^v[0-9]+$", version);
+            }
+        }
+
+        var deployWorkflow = workflows[1];
+        Assert.Contains("node-version: '24'", deployWorkflow, StringComparison.Ordinal);
+        Assert.Contains("aws-cdk@2.1135.1", deployWorkflow, StringComparison.Ordinal);
     }
 
     [Fact]

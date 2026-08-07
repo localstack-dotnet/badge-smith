@@ -110,8 +110,8 @@ unique TRX file per framework. Used by the `run-dotnet-tests` composite action.
 Posts a single test-result payload to `POST /tests/results/{platform}/{owner}/{repo}/{branch}`
 with HMAC-SHA256 signature, timestamp, and nonce headers. Useful for local
 end-to-end checks against a running BadgeSmith (Aspire AppHost or deployed API).
-As an explicit local/deployed endpoint probe, this command accepts both HTTP and HTTPS
-base URLs.
+The base URL must use HTTPS; HTTP is accepted only for loopback hosts (`localhost`,
+`127.0.0.0/8`, or `::1`) used during local development.
 
 ```bash
 ./tools/badgesmith.cs tests ingest \
@@ -232,6 +232,11 @@ badgesmith/github/{org}/{key}
 For example, `org_name: localstack-dotnet`, `name: testdata` becomes
 `badgesmith/github/localstack-dotnet/testdata`. The DynamoDB org-secrets table
 maps `ORG#{org}` → `CONST#GITHUB#{type}` to that secret name.
+
+The Aspire AppHost defaults to `BADGESMITH_UPSTREAM_MODE=Live`; in that mode this
+mapping file is required and startup fails when it is missing. Contract tests set mode
+to `Mock`, point both upstream URLs at WireMock, and seed deterministic fake secrets
+through their fixture instead of reading this file.
 
 ### Secret safety
 

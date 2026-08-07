@@ -1,161 +1,62 @@
 {
   "version": 1,
-  "createdAt": "2026-07-02T07:29:05.6447827+00:00",
-  "updatedAt": "2026-07-06T12:44:25.6615093+00:00",
-  "description": "Initial baseline created by 'slopwatch init' on 2026-07-02 07:29:05 UTC",
+  "createdAt": "2026-08-07T14:05:15.2436264+00:00",
+  "updatedAt": "2026-08-07T14:05:15.2493236+00:00",
+  "description": "Initial baseline created by 'slopwatch init' on 2026-08-07 14:05:15 UTC",
   "entries": [
     {
-      "hash": "d4ab977cc248de3a",
+      "hash": "3a24d697f1f7100e",
       "ruleId": "SW002",
-      "filePath": "build/BadgeSmith.CDK.Shared/ProductionStack.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable CA1711, MA0051",
-      "message": "#pragma warning disable for warnings CA1711, MA0051 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6473057+00:00"
-    },
-    {
-      "hash": "530a245df19ab780",
-      "ruleId": "SW002",
-      "filePath": "build/BadgeSmith.CDK.Shared/Constructs/DynamoDbTablesConstruct.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable CA1711, MA0051",
-      "message": "#pragma warning disable for warnings CA1711, MA0051 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6473925+00:00"
-    },
-    {
-      "hash": "35c40419d0396281",
-      "ruleId": "SW002",
-      "filePath": "build/BadgeSmith.CDK.Shared/Constructs/SharedInfrastructureConstruct.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable CA1711, MA0051, MA0056",
-      "message": "#pragma warning disable for warnings CA1711, MA0051, MA0056 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6473966+00:00"
-    },
-    {
-      "hash": "843c52e2514ea5b6",
-      "ruleId": "SW002",
-      "filePath": "src/BadgeSmith.Api/Core/Http/HttpClientFactory.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable S1075",
-      "message": "#pragma warning disable for warnings S1075 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6474065+00:00"
+      "filePath": "src/BadgeSmith.Api/Core/Security/HmacAuthenticationService.cs",
+      "lineNumber": 83,
+      "codeSnippet": "SuppressMessage(\n        \"Usage\",\n        \"MA0015:Specify the parameter name in ArgumentException\",\n        Justification = \"The validated values are nested request properties rather than method parameters.\")",
+      "message": "SuppressMessage attribute suppressing Usage:MA0015:Specify the parameter name in ArgumentException",
+      "baselinedAt": "2026-08-07T14:05:15.2491771+00:00"
     },
     {
       "hash": "8e76f6c9847c0e34",
       "ruleId": "SW003",
       "filePath": "src/BadgeSmith.Api/Core/Http/ResilienceRetryHandler.cs",
       "lineNumber": 33,
-      "codeSnippet": "catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && attempt < _maxRetries)\r\n            {\r\n                // timeout: retry\r\n            }",
+      "codeSnippet": "catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && attempt < _maxRetries)\n            {\n                // timeout: retry\n            }",
       "message": "Empty catch block swallows exceptions without handling",
-      "baselinedAt": "2026-07-02T07:29:05.6474133+00:00"
+      "baselinedAt": "2026-08-07T14:05:15.2492917+00:00"
     },
     {
       "hash": "1dbe6b723437a0c6",
       "ruleId": "SW003",
       "filePath": "src/BadgeSmith.Api/Core/Http/ResilienceRetryHandler.cs",
       "lineNumber": 37,
-      "codeSnippet": "catch (HttpRequestException) when (attempt < _maxRetries)\r\n            {\r\n                // transient network error: retry\r\n            }",
+      "codeSnippet": "catch (HttpRequestException) when (attempt < _maxRetries)\n            {\n                // transient network error: retry\n            }",
       "message": "Empty catch block swallows exceptions without handling",
-      "baselinedAt": "2026-07-02T07:29:05.6474167+00:00"
+      "baselinedAt": "2026-08-07T14:05:15.2492993+00:00"
     },
     {
-      "hash": "4047bfeade7908e2",
-      "ruleId": "SW002",
-      "filePath": "src/BadgeSmith.Api/Core/Security/HmacAuthenticationService.cs",
-      "lineNumber": 76,
-      "codeSnippet": "SuppressMessage(\"Usage\", \"MA0015:Specify the parameter name in ArgumentException\")",
-      "message": "SuppressMessage attribute suppressing Usage:MA0015:Specify the parameter name in ArgumentException",
-      "baselinedAt": "2026-07-02T07:29:05.6474191+00:00"
-    },
-    {
-      "hash": "7a0abdc1638e9dc7",
-      "ruleId": "SW005",
-      "filePath": "src/BadgeSmith.Host/BadgeSmith.Host.csproj",
-      "lineNumber": 9,
-      "codeSnippet": "<NoWarn>$(NoWarn);CS8002</NoWarn>",
-      "message": "Adding warnings to NoWarn: CS8002",
-      "baselinedAt": "2026-07-02T07:29:05.6474211+00:00"
-    },
-    {
-      "hash": "a4896e31db66e85f",
-      "ruleId": "SW002",
-      "filePath": "src/BadgeSmith.Host/BadgeSmithInfrastructureStack.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable CA1711",
-      "message": "#pragma warning disable for warnings CA1711 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6474234+00:00"
-    },
-    {
-      "hash": "3c33d74a70342611",
-      "ruleId": "SW002",
-      "filePath": "src/BadgeSmith.Host/BadgeSmithInfrastructureStack.cs",
-      "lineNumber": 17,
-      "codeSnippet": "#pragma warning disable CA1812",
-      "message": "#pragma warning disable for warnings CA1812 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.647425+00:00"
-    },
-    {
-      "hash": "2c3e661aea7945e1",
-      "ruleId": "SW002",
-      "filePath": "src/BadgeSmith.Host/Program.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable CA2252 // Using 'AddAWSLambdaFunction' requires opting into preview features.",
-      "message": "#pragma warning disable for warnings CA2252 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6474274+00:00"
-    },
-    {
-      "hash": "e64110d1b2254dc1",
-      "ruleId": "SW005",
-      "filePath": "tests/BadgeSmith.Api.Performance.Tests/BadgeSmith.Api.Performance.Tests.csproj",
-      "lineNumber": 6,
-      "codeSnippet": "<NoWarn>$(NoWarn);CA1707;CA1303</NoWarn>",
-      "message": "Adding warnings to NoWarn: CA1707;CA1303",
-      "baselinedAt": "2026-07-02T07:29:05.6474294+00:00"
-    },
-    {
-      "hash": "02899ada962d04da",
-      "ruleId": "SW002",
-      "filePath": "tests/BadgeSmith.Api.Performance.Tests/BufferAllocationBenchmarks.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable CA1812,CA1852,CA1515",
-      "message": "#pragma warning disable for warnings CA1812, CA1852, CA1515 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6474313+00:00"
-    },
-    {
-      "hash": "992583dc2c83097e",
-      "ruleId": "SW002",
-      "filePath": "tests/BadgeSmith.Api.Performance.Tests/RoutingBenchmarks.cs",
-      "lineNumber": 1,
-      "codeSnippet": "#pragma warning disable CA1812,CA1852,CA1515",
-      "message": "#pragma warning disable for warnings CA1812, CA1852, CA1515 without matching restore in same scope",
-      "baselinedAt": "2026-07-02T07:29:05.6474332+00:00"
-    },
-    {
-      "hash": "9e9efc33ac987127",
+      "hash": "39c21ee99e0a788c",
       "ruleId": "SW002",
       "filePath": "tests/BadgeSmith.Api.Tests/Routing/RouteResolverTests.cs",
-      "lineNumber": 328,
-      "codeSnippet": "SuppressMessage(\"Design\", \"MA0051:Method is too long\")",
+      "lineNumber": 330,
+      "codeSnippet": "SuppressMessage(\n        \"Design\",\n        \"MA0051:Method is too long\",\n        Justification = \"Keeping the routing scenarios in one MemberData source makes the route matrix auditable.\")",
       "message": "SuppressMessage attribute suppressing Design:MA0051:Method is too long",
-      "baselinedAt": "2026-07-02T07:29:05.6474395+00:00"
+      "baselinedAt": "2026-08-07T14:05:15.2493077+00:00"
     },
     {
-      "hash": "f9453961584da507",
-      "ruleId": "SW002",
-      "filePath": "tests/BadgeSmith.Api.Tests/Routing/Patterns/RegexPatternTests.cs",
-      "lineNumber": 274,
-      "codeSnippet": "SuppressMessage(\"Design\", \"CA1024:Use properties where appropriate\")",
-      "message": "SuppressMessage attribute suppressing Design:CA1024:Use properties where appropriate",
-      "baselinedAt": "2026-07-02T07:29:05.6474414+00:00"
-    },
-    {
-      "hash": "f808292cb200c5cc",
+      "hash": "f6808c24c886f1f2",
       "ruleId": "SW002",
       "filePath": "tests/BadgeSmith.Api.Tests/Routing/Patterns/TemplatePatternTests.cs",
-      "lineNumber": 249,
-      "codeSnippet": "SuppressMessage(\"Design\", \"MA0051:Method is too long\")",
+      "lineNumber": 251,
+      "codeSnippet": "SuppressMessage(\n        \"Design\",\n        \"MA0051:Method is too long\",\n        Justification = \"Keeping the template scenarios in one MemberData source makes the route matrix auditable.\")",
       "message": "SuppressMessage attribute suppressing Design:MA0051:Method is too long",
-      "baselinedAt": "2026-07-02T07:29:05.6474434+00:00"
+      "baselinedAt": "2026-08-07T14:05:15.2493165+00:00"
+    },
+    {
+      "hash": "c4d2c16a0642f5af",
+      "ruleId": "SW002",
+      "filePath": "tests/BadgeSmith.Api.Tests/Routing/Patterns/RegexPatternTests.cs",
+      "lineNumber": 276,
+      "codeSnippet": "SuppressMessage(\n        \"Design\",\n        \"CA1024:Use properties where appropriate\",\n        Justification = \"This iterator is an xUnit MemberData source and is clearer as a method.\")",
+      "message": "SuppressMessage attribute suppressing Design:CA1024:Use properties where appropriate",
+      "baselinedAt": "2026-08-07T14:05:15.2493234+00:00"
     }
   ]
 }

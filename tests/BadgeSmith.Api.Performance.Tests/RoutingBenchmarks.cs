@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1812,CA1852,CA1515
+﻿#pragma warning disable CA1812, CA1852, CA1515 // BenchmarkDotNet requires public, non-sealed types instantiated by generated code.
 
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Core.Routing.Patterns;
@@ -194,3 +194,5 @@ public class RoutingBenchmarks
         }
     }
 }
+
+#pragma warning restore CA1812, CA1852, CA1515

@@ -248,7 +248,10 @@ public sealed class TemplatePatternTests
         }
     }
 
-    [SuppressMessage("Design", "MA0051:Method is too long")]
+    [SuppressMessage(
+        "Design",
+        "MA0051:Method is too long",
+        Justification = "Keeping the template scenarios in one MemberData source makes the route matrix auditable.")]
     public static IEnumerable<object[]> GetRealWorldTestData()
     {
         yield return

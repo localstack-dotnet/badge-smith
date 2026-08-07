@@ -15,10 +15,9 @@
          suppressed here. No real IDE0005 violations are being hidden. -->
     <!-- slopwatch-ignore: SW005 IDE0005 cannot be evaluated when GenerateDocumentationFile=false for file-based apps -->
     <NoWarn>$(NoWarn);IDE0005</NoWarn>
-    <!-- ProcessRunner and RepositoryPaths are foundation infrastructure consumed by command
-         tasks added after this commit; CA1812 (internal class never instantiated) is expected
-         until those command types land and reference them. -->
-    <!-- slopwatch-ignore: SW005 CA1812 expected until follow-up command tasks wire up ProcessRunner and RepositoryPaths -->
+    <!-- Spectre.Console.Cli and Microsoft.Extensions.DependencyInjection instantiate command,
+         settings, and service types through reflection, which CA1812 cannot observe. -->
+    <!-- slopwatch-ignore: SW005 CA1812 cannot observe Spectre.Console.Cli and DI activation -->
     <NoWarn>$(NoWarn);CA1812</NoWarn>
   </PropertyGroup>
 </Project>

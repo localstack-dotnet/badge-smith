@@ -78,5 +78,11 @@ internal static class Constants
 
     public const string ApiLocalStackForNetDomain = "api.localstackfor.net";
 
+    public const string UpstreamModeEnvironmentVariable = "BADGESMITH_UPSTREAM_MODE";
+
+    public const string UpstreamModeLive = "Live";
+
+    public const string UpstreamModeMock = "Mock";
+
     public const int LambdaTimeoutInSeconds = 20;
 }

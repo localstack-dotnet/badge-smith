@@ -273,7 +273,10 @@ public sealed class RegexPatternTests
         }
     }
 
-    [SuppressMessage("Design", "CA1024:Use properties where appropriate")]
+    [SuppressMessage(
+        "Design",
+        "CA1024:Use properties where appropriate",
+        Justification = "This iterator is an xUnit MemberData source and is clearer as a method.")]
     public static IEnumerable<object[]> GetSourceGeneratedRegexData()
     {
         // Simulating source-generated regex patterns that could be used in the future

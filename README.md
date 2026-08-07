@@ -135,9 +135,14 @@ AWS.
 ### **Local Development**
 
 ```bash
-# Start with .NET Aspire + LocalStack
+# Live upstream mode requires local Package and TestData secrets.
+cp tools/organization-pat-mapping.json.dist tools/organization-pat-mapping.json
+# Edit the copied file, then start .NET Aspire + LocalStack.
 aspire start --apphost src/BadgeSmith.Host/BadgeSmith.Host.csproj --non-interactive
 ```
+
+The AppHost defaults to `BADGESMITH_UPSTREAM_MODE=Live`. Contract tests explicitly use
+`Mock`, route both package upstreams to WireMock, and own their fake secret seeding.
 
 ### **Tooling**
 
@@ -159,7 +164,7 @@ test runs, test-result ingestion, badge updates, and secret seeding. See
 
 The remotely reusable badge action posts test results to a BadgeSmith deployment. See the
 [action guide](.github/workflows/update-test-badge/README.md) for the canonical input
-list and the immutable reviewed commit used by the current example.
+list and supported major action tag.
 
 The repository-local `run-dotnet-tests` action is an internal BadgeSmith workflow
 helper, not a portable test-runner contract.

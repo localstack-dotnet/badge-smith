@@ -110,13 +110,13 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
     private static async Task WriteStepSummaryAsync(string badgeUrl, string redirectUrl, string platformDisplay, CancellationToken cancellationToken)
     {
         var markdown = $"""
-            **{platformDisplay} Badge:**
-            [![Test Results ({platformDisplay})]({badgeUrl})]({redirectUrl})
+                        **{platformDisplay} Badge:**
+                        [![Test Results ({platformDisplay})]({badgeUrl})]({redirectUrl})
 
-            **Raw URLs:**
-            - Badge: {badgeUrl}
-            - Redirect: {redirectUrl}
-            """;
+                        **Raw URLs:**
+                        - Badge: {badgeUrl}
+                        - Redirect: {redirectUrl}
+                        """;
 
         await GitHubActions.AppendStepSummaryAsync(markdown, cancellationToken).ConfigureAwait(false);
     }
@@ -183,7 +183,7 @@ internal sealed class BadgeUpdateSettings : CommandSettings
             return ValidationResult.Error(baseUrlError);
         }
 
-        if (!urls.TryValidateBadgeUpdateTransport(out var transportError))
+        if (!urls.TryValidateSecureTransport(out var transportError))
         {
             return ValidationResult.Error(transportError);
         }

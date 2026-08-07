@@ -1,7 +1,7 @@
 <Project>
   <ItemGroup>
     <!-- third-party analyzers -->
-    <PackageVersion Include="Amazon.JSII.Analyzers" Version="1.138.0" />
+    <PackageVersion Include="Amazon.JSII.Analyzers" Version="1.139.0" />
     <PackageVersion Include="Meziantou.Analyzer" Version="3.0.122" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.301" />
@@ -22,7 +22,7 @@
     <PackageVersion Include="AWSSDK.Core" Version="4.0.100.6" />
     <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.101.1" />
     <PackageVersion Include="AWSSDK.SecretsManager" Version="4.0.100.3" />
-    <PackageVersion Include="Amazon.CDK.Lib" Version="2.261.0" />
+    <PackageVersion Include="Amazon.CDK.Lib" Version="2.263.0" />
     <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
     <PackageVersion Include="Amazon.Lambda.Core" Version="3.1.1" />
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="2.1.2" />
@@ -53,7 +53,7 @@
     <!-- third-party packages -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CliWrap" Version="3.10.2" />
-    <PackageVersion Include="Constructs" Version="10.6.0" />
+    <PackageVersion Include="Constructs" Version="10.8.1" />
     <PackageVersion Include="NuGet.Versioning" Version="7.6.0" />
     <PackageVersion Include="OneOf" Version="3.0.271" />
     <PackageVersion Include="OneOf.SourceGenerator" Version="3.0.271" />

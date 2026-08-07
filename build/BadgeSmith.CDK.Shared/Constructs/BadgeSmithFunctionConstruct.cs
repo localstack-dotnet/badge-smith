@@ -53,6 +53,7 @@ public class BadgeSmithFunctionConstruct : Construct
             ["DOTNET_ENVIRONMENT"] = "Production",
             ["APP_NAME"] = LambdaName,
             ["APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS"] = "true",
+            [UpstreamModeEnvironmentVariable] = UpstreamModeLive,
             ["AWS_RESOURCE_TEST_RESULTS_TABLE"] = testResultsTable.TableName,
             ["AWS_RESOURCE_NONCE_TABLE"] = nonceTable.TableName,
             ["AWS_RESOURCE_ORG_SECRETS_TABLE"] = orgSecretTable.TableName,

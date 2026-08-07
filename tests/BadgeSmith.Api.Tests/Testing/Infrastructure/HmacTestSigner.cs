@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using BadgeSmith.Api.Core.Security;
+using BadgeSmith.Protocol;
 
 namespace BadgeSmith.Api.Tests.Testing.Infrastructure;
 

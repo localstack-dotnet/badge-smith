@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using BadgeSmith.Api.Core.Security.Contracts;
+using BadgeSmith.Protocol;
 using Microsoft.Extensions.Logging;
 
 namespace BadgeSmith.Api.Core.Security;
@@ -80,7 +81,10 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         return new AuthenticatedRequest(repoIdentifier, requestTimestamp);
     }
 
-    [SuppressMessage("Usage", "MA0015:Specify the parameter name in ArgumentException")]
+    [SuppressMessage(
+        "Usage",
+        "MA0015:Specify the parameter name in ArgumentException",
+        Justification = "The validated values are nested request properties rather than method parameters.")]
     private static void ValidateHmacAuthContext(HmacAuthContext routeContext)
     {
         ArgumentNullException.ThrowIfNull(routeContext);

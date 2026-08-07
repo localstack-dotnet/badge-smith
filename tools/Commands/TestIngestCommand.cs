@@ -120,9 +120,14 @@ internal sealed class TestIngestSettings : CommandSettings
 
     public override ValidationResult Validate()
     {
-        if (!BadgeSmithUrlBuilder.TryCreate(BaseUrl, out _, out var baseUrlError))
+        if (!BadgeSmithUrlBuilder.TryCreate(BaseUrl, out var urls, out var baseUrlError))
         {
             return ValidationResult.Error(baseUrlError);
+        }
+
+        if (!urls.TryValidateSecureTransport(out var transportError))
+        {
+            return ValidationResult.Error(transportError);
         }
 
         if (string.IsNullOrWhiteSpace(Owner))

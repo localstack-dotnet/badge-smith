@@ -327,7 +327,10 @@ public sealed class RouteResolverTests
         }
     }
 
-    [SuppressMessage("Design", "MA0051:Method is too long")]
+    [SuppressMessage(
+        "Design",
+        "MA0051:Method is too long",
+        Justification = "Keeping the routing scenarios in one MemberData source makes the route matrix auditable.")]
     public static IEnumerable<object?[]> GetRealWorldRoutingScenarios()
     {
         // Valid scenarios with parameters

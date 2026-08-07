@@ -19,19 +19,28 @@ static Amazon.CDK.Environment CreateLocalPerformanceEnvironment(App app)
 {
     return new Amazon.CDK.Environment
     {
-        Account = app.Node.TryGetContext("account") as string
-                  ?? "000000000000",
-        Region = app.Node.TryGetContext("region") as string
-                 ?? "us-east-1",
+        Account = GetRequiredEnvironmentValue(app, "account", "CDK_DEFAULT_ACCOUNT"),
+        Region = GetRequiredEnvironmentValue(app, "region", "CDK_DEFAULT_REGION"),
     };
+}
+
+static string GetRequiredEnvironmentValue(App app, string contextKey, string environmentVariable)
+{
+    var value = app.Node.TryGetContext(contextKey) as string
+                ?? System.Environment.GetEnvironmentVariable(environmentVariable);
+
+    return !string.IsNullOrWhiteSpace(value)
+        ? value
+        : throw new InvalidOperationException(
+            $"CDK environment value '{contextKey}' is required. Set CDK context '{contextKey}' or {environmentVariable}.");
 }
 
 static LocalPerformanceStackSettings CreateLocalPerformanceSettings(App app)
 {
     var lambdaAssetPath = GetContextValue(app, "lambdaZipPath", "../../artifacts/badge-lambda-linux-x64.zip");
     var lambdaArchitecture = GetLambdaArchitecture(GetContextValue(app, "lambdaArchitecture", "x86_64"));
-    var httpNuGetBaseUrl = GetContextValue(app, "httpNuGetBaseUrl", "https://api.nuget.org/");
-    var httpGitHubBaseUrl = GetContextValue(app, "httpGitHubBaseUrl", "https://api.github.com/");
+    var httpNuGetBaseUrl = GetLiveUpstreamUrl(app, "httpNuGetBaseUrl", "https://api.nuget.org/");
+    var httpGitHubBaseUrl = GetLiveUpstreamUrl(app, "httpGitHubBaseUrl", "https://api.github.com/");
 #pragma warning disable S5332 // LocalStack container endpoint is HTTP-only inside the Docker network.
     var localStackEndpoint = GetContextValue(app, "localStackEndpoint", "http://localstack:4566");
 #pragma warning restore S5332
@@ -53,6 +62,23 @@ static LocalPerformanceStackSettings CreateLocalPerformanceSettings(App app)
 static string GetContextValue(App app, string key, string defaultValue)
 {
     return app.Node.TryGetContext(key) as string ?? defaultValue;
+}
+
+static string GetLiveUpstreamUrl(App app, string key, string defaultValue)
+{
+    var value = GetContextValue(app, key, defaultValue);
+    if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
+        || string.IsNullOrWhiteSpace(uri.Host)
+        || !string.IsNullOrEmpty(uri.UserInfo)
+        || !string.IsNullOrEmpty(uri.Query)
+        || !string.IsNullOrEmpty(uri.Fragment)
+        || uri.Scheme != Uri.UriSchemeHttps)
+    {
+        throw new InvalidOperationException(
+            $"CDK context '{key}' must be an absolute HTTPS URL without credentials, query, or fragment in Live mode.");
+    }
+
+    return value;
 }
 
 static Amazon.CDK.AWS.Lambda.Architecture GetLambdaArchitecture(string value)
