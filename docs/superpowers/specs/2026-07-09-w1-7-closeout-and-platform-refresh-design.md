@@ -2,6 +2,11 @@
 
 Date: 2026-07-09
 
+Status: Completed/historical. Current package versions live in
+`Directory.Packages.props`, current commands live in `tools/README.md` and
+`build/BadgeSmith.CDK/README.md`, and current workstream status lives in
+`docs/ROADMAP.md`.
+
 ## Summary
 
 W1.7 is a single consolidated wave that closes unfinished Wave 1 correctness work and

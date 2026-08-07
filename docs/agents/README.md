@@ -1,6 +1,6 @@
 # Agent Harness Guide
 
-Date: 2026-07-01
+Date: 2026-07-24
 
 This directory contains repository-specific guidance for AI coding agents.
 
@@ -25,16 +25,19 @@ when the edit is Markdown-only.
 | `docs/agents/README.md` | Harness adapter guide and capability mapping (this file) |
 | `docs/agents/KNOWN_ISSUES.md` | Agent-facing known notes and triage hints |
 | `docs/agents/handover-prompts/` | Session-pickup templates for stateful handovers |
+| `docs/agents/skills/aspire-source-navigation.md` | Canonical project guidance for compatibility-sensitive Aspire source navigation |
+| `.opencode/skills/aspire-source-navigation/SKILL.md` | OpenCode discovery relay for the project skill |
 
-**No project skill is shipped.** BadgeSmith does not author a custom skill; it curates
-the installed marketplace skills below. If a project skill is ever added, it should live
-at `docs/agents/skills/<name>.md` (canonical body) with thin native relays under
-`.claude/skills/<name>/SKILL.md`, `.opencode/skills/<name>/SKILL.md`, and
-`.github/skills/<name>/SKILL.md`. Those folders do not exist today, by design.
+BadgeSmith ships exactly one project skill: `aspire-source-navigation`. Its canonical
+body lives in `docs/agents/skills/aspire-source-navigation.md`, and OpenCode discovers it
+through `.opencode/skills/aspire-source-navigation/SKILL.md`. The repository does not
+ship Claude Code or GitHub Copilot relays for this project skill.
 
 ## Harness Notes
 
 Claude Code discovers project skills under `.claude/skills/{skill-name}/SKILL.md`.
+BadgeSmith does not currently expose `aspire-source-navigation` through that location;
+Claude Code agents can read the canonical guide directly when the capability is needed.
 
 OpenCode discovers project skills under `.opencode/skills/{skill-name}/SKILL.md`.
 OpenCode loads skill files at session start, so restart OpenCode after changing
@@ -43,8 +46,12 @@ project skills.
 
 GitHub Copilot in VS Code supports repository instructions through
 `.github/copilot-instructions.md` and Agent Skills under `.github/skills/`.
+BadgeSmith does not currently expose `aspire-source-navigation` as a Copilot Agent Skill;
+Copilot agents can read the canonical guide directly when the capability is needed.
 
-These project-skill folders are currently absent because no project skill is shipped.
+Only the OpenCode project-skill relay is shipped. Adding another harness relay is a
+deliberate agent-infrastructure change, not an automatic consequence of adding a
+canonical guide.
 Do not create `.vscode` skill folders — that is not a canonical Agent Skills location
 for this repository.
 
@@ -64,8 +71,6 @@ Tier meanings:
   have it.
 - **Out of scope** — do not use unless this repo adds that technology or Deniz
   explicitly asks.
-
-This repo ships exactly one project skill: `aspire-source-navigation`. Its canonical body lives in `docs/agents/skills/aspire-source-navigation.md`, with thin native relays under `.claude/skills/`, `.opencode/skills/`, and `.github/skills/`.
 
 Claude Code uses plugin-qualified names. Copilot CLI exposes the installed skill IDs
 directly through the running harness's `skill` list. OpenCode exposes skill
@@ -96,7 +101,7 @@ manually.
 
 | Capability | Claude Code | Copilot CLI | OpenCode |
 | --- | --- | --- | --- |
-| Aspire source compatibility for upstream Aspire/AWS/LocalStack.Client internals | `aspire-source-navigation` | `aspire-source-navigation` | `aspire-source-navigation` |
+| Aspire source compatibility for upstream Aspire/AWS/LocalStack.Client internals | Canonical guide only (no relay) | Canonical guide only (no relay) | `aspire-source-navigation` |
 | System.Text.Json AOT source-generation / serialization contracts | `dotnet-skills:serialization` | `serialization` | `serialization` |
 | Modern C# coding standards | `dotnet-skills:csharp-coding-standards` | `modern-csharp-coding-standards` | `modern-csharp-coding-standards` |
 | Type design and performance (seal, readonly struct, static pure) | `dotnet-skills:csharp-type-design-performance` | `type-design-performance` | `type-design-performance` |
@@ -178,7 +183,7 @@ Official Microsoft Aspire skills and MCP server are local harness setup, not com
 | Runtime resource state/logs/traces/commands over MCP | `aspire` MCP server (`aspire agent mcp`, stdio; tools surface as `mcp__aspire__*`) | `aspire` MCP server (`aspire agent mcp`, stdio; user `~/.copilot/mcp-config.json`) | `aspire` MCP server (`aspire agent mcp`, stdio; local `opencode.jsonc`) |
 
 - The MCP server only discovers AppHosts launched with `aspire start` from the workspace directory. In-process `DistributedApplicationTestingBuilder` AppHosts used by integration tests are invisible to it — test debugging stays log/debugger-based.
-- These skills/tools are for *consuming* Aspire (running and debugging playground AppHosts). They do not replace `aspire-source-navigation` for upstream source-compatibility work; on conflict, verified package source wins.
+- These skills/tools are for *consuming* Aspire (running and debugging playground AppHosts). They do not replace the canonical `aspire-source-navigation` guidance for upstream source-compatibility work; on conflict, verified package source wins.
 - The bundle also ships `aspire-init` and `aspireify` (not for this repo — AppHosts already exist) and `aspire-deployment` (approval-gated and real-AWS targeted; LocalStack playgrounds do not deploy).
 - Set up each harness locally and update only that harness's cells after verifying the native skill IDs and MCP status.
 
@@ -291,10 +296,14 @@ checkout exposes the same `subagent_type` names.
 
 ## Skill Maintenance
 
-Because no project skill is shipped, skill maintenance reduces to routing maintenance:
+BadgeSmith's only project skill is `aspire-source-navigation`, exposed through OpenCode:
 
 - Update `AGENTS.md` only for mandatory cross-harness policy.
 - Update this file for adapter mechanics and the capability mapping table.
+- Keep `docs/agents/skills/aspire-source-navigation.md` canonical and the OpenCode relay
+  thin; update both when discovery metadata changes.
+- Do not add Claude Code or GitHub Copilot relays unless BadgeSmith deliberately expands
+  the skill beyond OpenCode.
 - Use the `skills-index-snippets` capability to keep the capability index consistent
   when skills are added, retired, or re-tiered.
 - Change the roster deliberately: re-tier or drop a skill only when the repo's actual

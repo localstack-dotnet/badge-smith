@@ -4,7 +4,6 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
 [![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange.svg)](https://aws.amazon.com/lambda/)
 [![Native AOT](https://img.shields.io/badge/Native-AOT-blue.svg)](https://docs.microsoft.com/en-us/dotnet/core/deploying/native-aot/)
-[![Test Results (Linux)](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.localstackfor.net%2Fbadges%2Ftests%2Flinux%2Flocalstack-dotnet%2Fbadge-smith%2Fmaster)](https://api.localstackfor.net/redirect/test-results/linux/localstack-dotnet/badge-smith/master)
 
 > **Badge service** for .NET packages and CI/CD test results with secure authentication and performance optimizations.
 
@@ -13,12 +12,6 @@
 **Successor to [localstack-nuget-badge-lambda](https://github.com/localstack-dotnet/localstack-nuget-badge-lambda)** with 5-10x performance improvements and security features.
 
 ## 🚀 **Live Examples**
-
-### **This Repository**
-
-BadgeSmith badges itself using its own API:
-
-[![Test Results (Linux)](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.localstackfor.net%2Fbadges%2Ftests%2Flinux%2Flocalstack-dotnet%2Fbadge-smith%2Fmaster)](https://api.localstackfor.net/redirect/test-results/linux/localstack-dotnet/badge-smith/master)
 
 ### **LocalStack.NET Client Examples**
 
@@ -91,9 +84,6 @@ https://api.localstackfor.net/badges/packages/nuget/Newtonsoft.Json
 
 # GitHub package with version filtering
 https://api.localstackfor.net/badges/packages/github/localstack-dotnet/localstack.client?version=(1.0,2.0)
-
-# Test results for this repository
-https://api.localstackfor.net/badges/tests/linux/localstack-dotnet/badge-smith/master
 ```
 
 ## 🏗️ **Architecture**
@@ -146,7 +136,7 @@ AWS.
 
 ```bash
 # Start with .NET Aspire + LocalStack
-dotnet run --project src/BadgeSmith.Host
+aspire start --apphost src/BadgeSmith.Host/BadgeSmith.Host.csproj --non-interactive
 ```
 
 ### **Tooling**
@@ -156,38 +146,23 @@ test runs, test-result ingestion, badge updates, and secret seeding. See
 [`tools/README.md`](tools/README.md) for the full command reference.
 
 ```bash
-# Unix
-./tools/badgesmith.cs lambda build --target zip --rid linux-arm64 --clean
+# Local AOT/LocalStack validation
+./tools/badgesmith.cs lambda build --target zip --rid linux-x64 --clean
 
-# Windows
-dotnet run --file tools/badgesmith.cs -- lambda build --target zip --rid linux-arm64 --clean
+# Production artifact; requires an ARM64-capable builder and is validated in hosted CI
+./tools/badgesmith.cs lambda build --target zip --rid linux-arm64 --clean
 ```
 
 ## 🔄 **CI/CD Integration**
 
 ### **GitHub Actions**
 
-Use the remotely reusable badge action and point it at your BadgeSmith deployment:
+The remotely reusable badge action posts test results to a BadgeSmith deployment. See the
+[action guide](.github/workflows/update-test-badge/README.md) for the canonical input
+list and the immutable reviewed commit used by the current example.
 
-```yaml
-- name: Update test badge
-  uses: localstack-dotnet/badge-smith/.github/workflows/update-test-badge@v1
-  with:
-    platform: 'Linux'
-    test_passed: '${{ steps.test-results.outputs.passed }}'
-    test_failed: '${{ steps.test-results.outputs.failed }}'
-    test_skipped: '${{ steps.test-results.outputs.skipped }}'
-    commit_sha: '${{ github.sha }}'
-    run_id: '${{ github.run_id }}'
-    repository: '${{ github.repository }}'
-    server_url: '${{ github.server_url }}'
-    api_base_url: 'https://badges.example.com'
-    hmac_secret: '${{ secrets.TESTDATASECRET }}'
-```
-
-Set `api_base_url` to `https://api.localstackfor.net` only when using the
-LocalStack.NET deployment. The repository-local `run-dotnet-tests` action is an
-internal BadgeSmith workflow helper, not a portable test-runner contract.
+The repository-local `run-dotnet-tests` action is an internal BadgeSmith workflow
+helper, not a portable test-runner contract.
 
 ## 🏢 **LocalStack.NET Organization**
 

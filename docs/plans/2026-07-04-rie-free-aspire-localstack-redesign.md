@@ -1,7 +1,8 @@
 # RIE-Free Aspire Testing And LocalStack Benchmark Redesign
 
 Date: 2026-07-04
-Status: approved direction, pending implementation plan
+Status: Implemented/historical in `991769e`. Current behavior and follow-up status live
+in `ARCHITECTURE.md`, `build/BadgeSmith.CDK/README.md`, and `docs/ROADMAP.md`.
 
 ## Context
 

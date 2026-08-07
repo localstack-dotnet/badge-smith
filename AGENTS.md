@@ -109,8 +109,10 @@ Repository layout:
   observability)
 - `src/BadgeSmith.Host`: .NET Aspire AppHost for local development (LocalStack, Lambda
   and API Gateway emulation, DynamoDB seeding)
-- `src/shared`: constants and ActivitySources shared via linked compilation
-- `build/`: AWS CDK infrastructure (shared constructs + production stack)
+- `src/shared`: constants, ActivitySources, and canonical security helpers shared via
+  linked compilation
+- `build/`: AWS CDK shared constructs plus separate production and local-performance
+  apps; see `build/BadgeSmith.CDK/README.md`
 - `tests/BadgeSmith.Api.Tests`: xUnit v3 unit tests
 - `tests/BadgeSmith.Api.Performance.Tests`: BenchmarkDotNet benchmarks
 - `tools/`: file-based `badgesmith` CLI (Lambda build, test run/ingest, badge update,
@@ -132,7 +134,9 @@ Repository layout:
 ## Harness Independence
 
 - `AGENTS.md` is the canonical repository contract.
-- Harness-specific instructions and skill files are adapters, not policy sources.
+- Harness-specific instructions and discovery relays are adapters, not policy sources.
+  Canonical capability guides may live under `docs/agents/skills/`, but they cannot
+  override this contract.
 - `CLAUDE.md` and `.github/copilot-instructions.md` are relay-only; OpenCode reads
   `AGENTS.md` natively.
 - Harness-native invocation names, LSP wiring, local-only setup notes, and skill

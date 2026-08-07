@@ -1,5 +1,9 @@
 # W1.5 Task 4.5 Tool Hosting, DI, And AWS Client Implementation Plan
 
+Status: Completed/historical. Do not execute this checklist. Current CLI commands live
+in `tools/README.md`, package versions live in `Directory.Packages.props`, and current
+workstream status lives in `docs/ROADMAP.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Convert the BadgeSmith file-based tool to hosted DI with PathSmith-style Spectre logging, LocalStack.Client-backed AWS clients, and linked-source command tests while keeping `tools/badgesmith.cs` a true file-based app.

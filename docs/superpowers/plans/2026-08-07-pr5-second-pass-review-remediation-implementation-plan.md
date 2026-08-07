@@ -1,6 +1,8 @@
 # PR #5 Second-Pass Review Remediation Implementation Plan
 
-Status: In progress. Current workstream status is tracked in `docs/ROADMAP.md`.
+Status: Implemented locally in `4d9c699`, `9e1344c`, `eae8df3`, and `621f2ce`.
+Hosted ARM64 checks and the separate production synth gate remain pending; current
+workstream status is tracked in `docs/ROADMAP.md`.
 
 **Goal:** Replace body-only HMAC authentication with one canonical request contract,
 enforce secure badge-update transport, update LocalStack client compatibility, and

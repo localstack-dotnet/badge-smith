@@ -2,7 +2,8 @@
 
 Date: 2026-08-07
 
-Status: Approved
+Status: Implemented locally in `4d9c699`, `9e1344c`, `eae8df3`, and `621f2ce`;
+hosted ARM64 verification and the separate production synth gate remain pending.
 
 ## Context
 

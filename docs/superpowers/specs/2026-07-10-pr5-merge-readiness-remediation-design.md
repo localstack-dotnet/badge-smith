@@ -2,7 +2,8 @@
 
 Date: 2026-07-10
 
-Status: Approved
+Status: Implemented in `34fe5f7`. This document is historical; the second-pass design
+and active operator guides supersede it where behavior changed.
 
 ## Context
 

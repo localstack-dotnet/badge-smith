@@ -3,7 +3,7 @@
 > Superseded note (2026-07-04): RIE-dependent contract and benchmark paths are superseded by `2026-07-04-rie-free-aspire-localstack-redesign.md`. Keep this document for historical context only.
 
 Date: 2026-07-02
-Status: approved design, pending implementation plan
+Status: Superseded/historical; do not implement this RIE-based design.
 
 ## Context
 

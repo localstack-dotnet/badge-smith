@@ -16,9 +16,12 @@ by local development.
 
 ## Remote Usage
 
+Until a release tag is published, use the reviewed canonical-HMAC commit pinned below
+rather than a mutable branch.
+
 ```yaml
 - name: Update test badge
-  uses: localstack-dotnet/badge-smith/.github/workflows/update-test-badge@v1
+  uses: localstack-dotnet/badge-smith/.github/workflows/update-test-badge@4d9c6999d0e86b247f4d4eaaf6347db5726da5c0
   with:
     platform: 'Linux'
     test_passed: '${{ steps.test-results.outputs.passed }}'

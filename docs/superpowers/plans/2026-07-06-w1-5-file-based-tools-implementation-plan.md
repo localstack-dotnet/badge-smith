@@ -1,5 +1,10 @@
 # W1.5 File-Based Tools Implementation Plan
 
+Status: Completed/historical. Do not execute this checklist. Current CLI commands live
+in `tools/README.md`, CDK commands live in `build/BadgeSmith.CDK/README.md`, package
+versions live in `Directory.Packages.props`, and current workstream status lives in
+`docs/ROADMAP.md`. The deferred `perf baseline` command remains tracked there.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace every tracked `.sh` and `.ps1` file with one modular .NET 10 file-based BadgeSmith CLI under `tools/`.
@@ -1682,7 +1687,7 @@ Expected: all pass.
 Run only when Docker/LocalStack local dev dependencies are available and Deniz agrees to start the AppHost:
 
 ```bash
-dotnet run --project src/BadgeSmith.Host/BadgeSmith.Host.csproj
+aspire start --apphost src/BadgeSmith.Host/BadgeSmith.Host.csproj --non-interactive
 ```
 
 Expected: when `tools/organization-pat-mapping.json` exists, Aspire starts `BadgeSmithDynamoDbSeeders` as a C# file-based app resource and `BadgeSmithApi` waits for it. When the ignored local config is absent, Aspire starts without the seeder resource and does not block API startup.

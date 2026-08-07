@@ -172,9 +172,10 @@ There is no trailing newline. Canonical fields follow these rules:
 - `timestamp` and `nonce` are the trimmed `X-Timestamp` and `X-Nonce` header values.
 - `sha256-body` is lowercase hexadecimal SHA-256 over the exact UTF-8 request body.
 
-The final `X-Signature` value is `sha256=` followed by exactly 64 lowercase
-HMAC-SHA256 hexadecimal characters. The HMAC key is the organization's `TestData`
-secret, separate from package-access credentials.
+Clients must emit `X-Signature` as `sha256=` followed by exactly 64 lowercase
+HMAC-SHA256 hexadecimal characters. The verifier accepts case-insensitive scheme and
+digest casing, but producer output remains canonical. The HMAC key is the organization's
+`TestData` secret, separate from package-access credentials.
 
 Authentication validates that the timestamp is no more than five minutes old and no
 more than one minute in the future, resolves the organization-scoped secret, and
@@ -346,21 +347,24 @@ synthesis commands for each app.
 
 ## 🔄 **CI/CD Integration**
 
-### **Reusable Workflows**
+### **CI Composite Actions**
 
-**`.github/workflows/`** contains **reusable GitHub Actions**:
+**`.github/workflows/`** contains two composite actions with different scopes:
 
-- **`run-dotnet-tests/`**: Multi-framework test execution
-- **`update-test-badge/`**: HMAC-authenticated badge updates
+- **`run-dotnet-tests/`**: Repository-local multi-framework test execution
+- **`update-test-badge/`**: Remotely reusable HMAC-authenticated badge updates
 - **Cross-platform support**: Windows, Linux, macOS
 
-### **Self-Hosting Validation**
+### **Hosted Validation**
 
-BadgeSmith **validates itself** through CI/CD integration:
+Eligible pull requests run the Release build, the full test suite, and the hosted ARM64
+Lambda ZIP build. Live test-result publication is intentionally narrower:
 
-- **Real authentication**: HMAC signatures generated and validated
-- **Live API calls**: Test results posted to production API
-- **End-to-end verification**: Complete pipeline tested on every commit
+- **Pull requests**: Build, tests, and ARM64 artifact validation without production
+  mutation
+- **Master pushes**: The same checks plus a best-effort authenticated badge update
+- **Production CDK synth/deploy**: Separate approval-gated deployment workflow, not part
+  of the ordinary PR CI pipeline
 
 ---
 

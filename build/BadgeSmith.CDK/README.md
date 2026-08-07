@@ -4,6 +4,15 @@ BadgeSmith uses two separate CDK app entrypoints. Keep them separate: CDK constr
 whole app tree before CLI stack selectors are applied, and the production and
 local-performance stacks use different environments and Lambda ZIP assets.
 
+| Boundary | Runtime ID | Lambda asset | Validation environment |
+| --- | --- | --- | --- |
+| Local performance | `linux-x64` | `artifacts/badge-lambda-linux-x64.zip` | Local x64 AOT build and LocalStack synth |
+| Production | `linux-arm64` | `artifacts/badge-lambda-linux-arm64.zip` | ARM64-capable builder and hosted ARM64 CI |
+
+Neither app accepts a topology-selection context such as
+`-c stack=local-performance`. Select topology by using the app's project/working
+directory and its native stack ID.
+
 ## Production app
 
 - Project: `build/BadgeSmith.CDK/BadgeSmith.CDK.csproj`
@@ -21,6 +30,12 @@ cd build
 cdk ls
 cdk synth BadgeSmithStack
 ```
+
+The ARM64 ZIP is not part of the ordinary local test loop. Building it locally requires
+an ARM64 host or a buildx builder with ARM64 execution support; hosted CI owns the
+required production artifact check. The PR CI workflow builds the ZIP but does not run
+production CDK synth, so `cdk synth BadgeSmithStack` remains a separate infrastructure
+gate.
 
 Production deploy remains approval-gated and must target the single production stack:
 
@@ -49,6 +64,7 @@ cdklocal synth BadgeSmithPerformanceStack
 ```
 
 The local-performance app is for LocalStack benchmarking only. Never deploy it to AWS.
+Its x64 ZIP build and `cdklocal synth` are the normal local AOT/infrastructure checks.
 
 ## Context values
 

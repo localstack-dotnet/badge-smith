@@ -146,8 +146,9 @@ full mirror of `AGENTS.md`.
   source-gen context, treat trim/AOT warnings as blocking, `DateTime.UtcNow` only.
 - Tests are xUnit v3 on VSTest — plain `dotnet test` / `--filter`, not TUnit.
 - `AGENTS.md` is canonical; `CLAUDE.md` and `.github/copilot-instructions.md` stay
-  relay-only. No custom project skill is shipped; the curated skill roster lives in
-  `docs/agents/README.md`.
+  relay-only. `aspire-source-navigation` is the only custom project skill and is exposed
+  through OpenCode only; its canonical guide and the curated roster live under
+  `docs/agents/`.
 
 ### `## Final Steering Note`
 

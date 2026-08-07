@@ -2,6 +2,10 @@
 
 Date: 2026-07-06
 
+Status: Completed/historical. Current CLI guidance lives in `tools/README.md`, package
+versions live in `Directory.Packages.props`, and current workstream status lives in
+`docs/ROADMAP.md`.
+
 ## Context
 
 BadgeSmith W1.5 is replacing tracked shell and PowerShell scripts with a single .NET 10

@@ -57,10 +57,12 @@ does not print the signature or digest.
 
 ### `lambda build`
 
-Multi-arch Docker build of the Native AOT Lambda. Used by CI and the deploy
-workflow. Defaults to `linux-arm64` and `zip` target to match production.
+Multi-arch Docker build of the Native AOT Lambda. Used by CI and the deploy workflow.
+Defaults to `linux-arm64` and `zip` to match production, while the normal local
+AOT/LocalStack path uses `linux-x64`.
 
 ```bash
+./tools/badgesmith.cs lambda build --target zip --rid linux-x64 --clean --verbose
 ./tools/badgesmith.cs lambda build --target zip --rid linux-arm64 --clean --verbose
 ./tools/badgesmith.cs lambda build --target image --rid linux-x64 --image-tag badgesmith-lambda:local
 ./tools/badgesmith.cs lambda build --target both --rid linux-arm64 --push
@@ -80,6 +82,9 @@ workflow. Defaults to `linux-arm64` and `zip` target to match production.
 
 This command is **not** part of the ordinary `dotnet build` loop. AOT/trim
 warnings emitted here are blocking — do not suppress them to get a green build.
+Local ARM64 execution additionally requires an ARM64 host or a buildx builder with
+ARM64 execution support. See the [CDK app guide](../build/BadgeSmith.CDK/README.md) for
+the local-x64 and production-ARM64 boundaries.
 
 ### `tests run`
 

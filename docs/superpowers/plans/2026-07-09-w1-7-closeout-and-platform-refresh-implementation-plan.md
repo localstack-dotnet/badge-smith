@@ -1,5 +1,10 @@
 # W1.7 Closeout And Platform Refresh Implementation Plan
 
+Status: Completed/historical. Do not execute this checklist. Current package versions
+live in `Directory.Packages.props`, current commands live in `tools/README.md` and
+`build/BadgeSmith.CDK/README.md`, and current workstream status lives in
+`docs/ROADMAP.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Close Wave 1 correctness and W1.5 tooling leftovers, refresh the full CPM stack onto LocalStack.Aspire.Hosting 13.4.0 / Aspire 13.4.6, remove MessagePack, and leave Wave 2 as the next backlog item.

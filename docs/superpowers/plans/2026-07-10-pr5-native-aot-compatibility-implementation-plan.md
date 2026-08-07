@@ -1,5 +1,8 @@
 # PR #5 Native AOT Compatibility Implementation Plan
 
+Status: Implemented in `34fe5f7`. The checkboxes below preserve the approved execution
+sequence; current workstream status is tracked in `docs/ROADMAP.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Restore a warning-free .NET 10 Native AOT publish by pinning the AWS Lambda System.Text.Json serializer to the last package version with the required trimming metadata.

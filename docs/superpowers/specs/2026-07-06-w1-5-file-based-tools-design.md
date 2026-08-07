@@ -2,7 +2,8 @@
 
 Date: 2026-07-06
 
-Status: Approved design, pending implementation plan.
+Status: Completed/historical. Current CLI guidance lives in `tools/README.md`; current
+workstream status lives in `docs/ROADMAP.md`.
 
 ## Purpose
 

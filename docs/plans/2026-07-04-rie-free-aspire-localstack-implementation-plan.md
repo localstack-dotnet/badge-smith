@@ -1,5 +1,10 @@
 # RIE-Free Aspire Testing And LocalStack Benchmark Implementation Plan
 
+Status: Completed/historical in `991769e`. Do not execute this checklist. Current local
+development guidance lives in `README.md`, current CDK commands live in
+`build/BadgeSmith.CDK/README.md`, and current workstream status lives in
+`docs/ROADMAP.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the RIE-based contract and benchmark path with Aspire Testing for contract/integration coverage and LocalStack for local benchmark execution.
