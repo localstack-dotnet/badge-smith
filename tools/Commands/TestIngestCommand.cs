@@ -34,15 +34,15 @@ internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
         var url = urls.BuildIngestUrl(platform, owner, repo, branch);
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
         var nonce = Guid.NewGuid().ToString("N");
-        var signature = HmacSigner.CreateSignature(payloadJson, settings.Secret);
+        var signature = HmacSigner.CreateSignature(owner, repo, platform, branch, timestamp, nonce, payloadJson, settings.Secret);
 
         if (settings.DryRun)
         {
             _console.MarkupLine("[yellow]DRY RUN: request was not sent.[/]");
             await _console.Profile.Out.Writer.WriteLineAsync(url).ConfigureAwait(false);
+            await _console.Profile.Out.Writer.WriteLineAsync($"Payload: {payloadJson}").ConfigureAwait(false);
             await _console.Profile.Out.Writer.WriteLineAsync($"X-Timestamp: {timestamp}").ConfigureAwait(false);
             await _console.Profile.Out.Writer.WriteLineAsync($"X-Nonce: {nonce}").ConfigureAwait(false);
-            await _console.Profile.Out.Writer.WriteLineAsync($"X-Signature: {signature}").ConfigureAwait(false);
             return ToolExitCodes.Success;
         }
 

@@ -27,6 +27,17 @@ public sealed class BadgeSmithUrlBuilderTests
             urls.BuildRedirectUrl("linux", "localstack-dotnet", "badge smith", "feature/tools"));
     }
 
+    [Fact]
+    public void TryCreate_Should_Accept_Public_Http_For_Shared_Syntax_Parsing()
+    {
+        var created = BadgeSmithUrlBuilder.TryCreate("http://api.example.com", out var urls, out var error);
+
+        Assert.True(created, error);
+        Assert.Equal(
+            "http://api.example.com/tests/results/linux/localstack-dotnet/badge-smith/main",
+            urls.BuildIngestUrl("linux", "localstack-dotnet", "badge-smith", "main"));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("api.example.com")]

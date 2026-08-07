@@ -59,9 +59,9 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
         var url = urls.BuildIngestUrl(platform, owner, repo, branch);
         var badgeUrl = urls.BuildBadgeUrl(platform, owner, repo, branch);
         var redirectUrl = urls.BuildRedirectUrl(platform, owner, repo, branch);
-        var signature = HmacSigner.CreateSignature(payloadJson, hmacSecret);
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
         var nonce = Guid.NewGuid().ToString("N");
+        var signature = HmacSigner.CreateSignature(owner, repo, platform, branch, timestamp, nonce, payloadJson, hmacSecret);
 
         if (settings.DryRun)
         {
@@ -72,7 +72,6 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
             await _console.Profile.Out.Writer.WriteLineAsync($"Payload: {payloadJson}").ConfigureAwait(false);
             await _console.Profile.Out.Writer.WriteLineAsync($"X-Timestamp: {timestamp}").ConfigureAwait(false);
             await _console.Profile.Out.Writer.WriteLineAsync($"X-Nonce: {nonce}").ConfigureAwait(false);
-            await _console.Profile.Out.Writer.WriteLineAsync($"X-Signature: {signature}").ConfigureAwait(false);
             return ToolExitCodes.Success;
         }
 
@@ -179,9 +178,14 @@ internal sealed class BadgeUpdateSettings : CommandSettings
 
     public override ValidationResult Validate()
     {
-        if (!BadgeSmithUrlBuilder.TryCreate(BaseUrl, out _, out var baseUrlError))
+        if (!BadgeSmithUrlBuilder.TryCreate(BaseUrl, out var urls, out var baseUrlError))
         {
             return ValidationResult.Error(baseUrlError);
+        }
+
+        if (!urls.TryValidateBadgeUpdateTransport(out var transportError))
+        {
+            return ValidationResult.Error(transportError);
         }
 
         if (string.IsNullOrWhiteSpace(Platform))

@@ -77,6 +77,8 @@ public sealed class BadgeSmithToolInProcessTests
         Assert.Contains("https://api.example.com/prefix/tests/results/linux/localstack-dotnet/badge-smith/feature%2Ftools", console.Output, StringComparison.Ordinal);
         Assert.Contains("https://api.example.com/prefix/badges/tests/linux/localstack-dotnet/badge-smith/feature%2Ftools", console.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("test-secret", console.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("X-Signature", console.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("sha256=", console.Output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -102,6 +104,26 @@ public sealed class BadgeSmithToolInProcessTests
         Assert.Contains("DRY RUN", console.Output, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("https://example.com/tests/results/linux/localstack-dotnet/badgesmith/feature%2Ftools", console.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("test-secret", console.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("X-Signature", console.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("sha256=", console.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void HmacSigner_Should_Create_Literal_Canonical_Signature_When_Route_Fields_Require_Normalization()
+    {
+        const string signature = "sha256=9ca1aa9744b92149e0a4267632db0d6c74a24f86c4d875ac5c4e4d3b3b2ccf15";
+
+        var result = HmacSigner.CreateSignature(
+            owner: "LocalStack-DotNet",
+            repo: "BadgeSmith",
+            platform: "Linux",
+            branch: "feature/iteration0",
+            timestamp: "2026-08-07T12:34:56.789Z",
+            nonce: "nonce-123",
+            payload: "{\"total\":1,\"platform\":\"Linux\"}",
+            secret: "super-secret");
+
+        Assert.Equal(signature, result);
     }
 
     [Fact]
@@ -213,6 +235,38 @@ public sealed class BadgeSmithToolInProcessTests
         {
             Assert.False(settings.Validate().Successful);
         }
+    }
+
+    [Fact]
+    public void BadgeUpdateSettings_Should_Reject_Public_Http_Base_Url()
+    {
+        var result = CreateBadgeUpdateSettings(baseUrl: "http://api.example.com").Validate();
+
+        Assert.False(result.Successful);
+        Assert.NotNull(result.Message);
+        Assert.Contains("HTTPS", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("loopback", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("https://api.example.com")]
+    [InlineData("https://api.example.com/prefix")]
+    [InlineData("http://localhost:9474")]
+    [InlineData("http://127.12.34.56:9474")]
+    [InlineData("http://[::1]:9474")]
+    public void BadgeUpdateSettings_Should_Accept_Secure_Or_Loopback_Base_Url(string baseUrl)
+    {
+        var result = CreateBadgeUpdateSettings(baseUrl: baseUrl).Validate();
+
+        Assert.True(result.Successful, result.Message);
+    }
+
+    [Fact]
+    public void TestsIngestSettings_Should_Accept_Public_Http_Base_Url()
+    {
+        var result = CreateTestIngestSettings(baseUrl: "http://api.example.com").Validate();
+
+        Assert.True(result.Successful, result.Message);
     }
 
     [Fact]

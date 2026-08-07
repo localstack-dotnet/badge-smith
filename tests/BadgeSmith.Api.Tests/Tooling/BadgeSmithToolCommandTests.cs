@@ -79,6 +79,8 @@ public sealed class BadgeSmithToolCommandTests
         Assert.Contains("DRY RUN", result.Output, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("https://example.com/tests/results/linux/localstack-dotnet/badgesmith/feature%2Ftools", result.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("test-secret", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("X-Signature", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("sha256=", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -118,6 +120,8 @@ public sealed class BadgeSmithToolCommandTests
         Assert.Contains("https://api.example.com/prefix/tests/results/linux/localstack-dotnet/badge-smith/feature%2Ftools", result.Output, StringComparison.Ordinal);
         Assert.Contains("https://api.example.com/prefix/badges/tests/linux/localstack-dotnet/badge-smith/feature%2Ftools", result.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("test-secret", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("X-Signature", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("sha256=", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -37,12 +37,15 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
 
         ValidateHmacAuthContext(authContext);
 
-        if (!TryParseTimestamp(authContext.Timestamp, out var requestTimestamp, out var timestampError))
+        var timestamp = authContext.Timestamp.Trim();
+        var nonce = authContext.Nonce.Trim();
+
+        if (!TryParseTimestamp(timestamp, out var requestTimestamp, out var timestampError))
         {
             return timestampError;
         }
 
-        var repoIdentifier = $"{authContext.Owner}/{authContext.Repo}/{authContext.Platform}/{authContext.Branch}";
+        var repoIdentifier = $"{authContext.Owner.ToLowerInvariant()}/{authContext.Repo.ToLowerInvariant()}/{authContext.Platform.ToLowerInvariant()}/{authContext.Branch}";
 
         var secretResult = await _gitHubOrgSecretsService.GetGitHubTokenAsync(authContext.Owner, TokenType, ct).ConfigureAwait(false);
         if (secretResult is { IsSuccess: false, GithubSecret: null })
@@ -56,13 +59,13 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
 
         var secret = secretResult.GithubSecret!;
 
-        if (!ValidateHmacSignature(authContext.Signature, authContext.RequestBody, secret))
+        if (!ValidateHmacSignature(authContext, timestamp, nonce, secret))
         {
             _logger.LogWarning("Invalid HMAC signature for repository {RepoIdentifier}", repoIdentifier);
             return new InvalidSignature("HMAC signature verification failed");
         }
 
-        var nonceResult = await _nonceService.ValidateAndMarkNonceAsync(authContext.Nonce, repoIdentifier, requestTimestamp, ct).ConfigureAwait(false);
+        var nonceResult = await _nonceService.ValidateAndMarkNonceAsync(nonce, repoIdentifier, requestTimestamp, ct).ConfigureAwait(false);
 
         if (!nonceResult.IsSuccess)
         {
@@ -121,8 +124,9 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
         return true;
     }
 
-    private static bool ValidateHmacSignature(string providedSignature, string payload, string secret)
+    private static bool ValidateHmacSignature(HmacAuthContext authContext, string timestamp, string nonce, string secret)
     {
+        var providedSignature = authContext.Signature;
         if (!providedSignature.StartsWith("sha256=", StringComparison.OrdinalIgnoreCase))
         {
             return false;
@@ -141,7 +145,15 @@ internal sealed class HmacAuthenticationService : IHmacAuthenticationService
             return false;
         }
 
-        var computedHashBytes = ComputeHmacSha256(payload, secret);
+        var canonicalText = HmacCanonicalRequest.CreateCanonicalText(
+            authContext.Platform,
+            authContext.Owner,
+            authContext.Repo,
+            authContext.Branch,
+            timestamp,
+            nonce,
+            authContext.RequestBody);
+        var computedHashBytes = ComputeHmacSha256(canonicalText, secret);
         return CryptographicOperations.FixedTimeEquals(providedHashBytes, computedHashBytes);
     }
 

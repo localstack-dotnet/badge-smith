@@ -1,13 +1,18 @@
+using System.Net;
 using System.Text;
 
 namespace BadgeSmith.Tools.Infrastructure;
 
 internal sealed class BadgeSmithUrlBuilder
 {
+    private const string BadgeUpdateTransportError = "Badge update base URL must use HTTPS unless the HTTP host is loopback (localhost, 127.0.0.0/8, or ::1).";
+
+    private readonly Uri _baseUri;
     private readonly string _baseUrl;
 
     private BadgeSmithUrlBuilder(Uri baseUri)
     {
+        _baseUri = baseUri;
         _baseUrl = baseUri.AbsoluteUri.TrimEnd('/');
     }
 
@@ -60,6 +65,18 @@ internal sealed class BadgeSmithUrlBuilder
             : throw new ArgumentException(error, nameof(value));
     }
 
+    public bool TryValidateBadgeUpdateTransport(out string error)
+    {
+        if (_baseUri.Scheme == Uri.UriSchemeHttps || IsLoopbackHttpUri(_baseUri))
+        {
+            error = "";
+            return true;
+        }
+
+        error = BadgeUpdateTransportError;
+        return false;
+    }
+
     public string BuildIngestUrl(string platform, string owner, string repository, string branch)
     {
         return BuildUrl("tests", "results", platform, owner, repository, branch);
@@ -84,5 +101,20 @@ internal sealed class BadgeSmithUrlBuilder
         }
 
         return url.ToString();
+    }
+
+    private static bool IsLoopbackHttpUri(Uri uri)
+    {
+        if (uri.Scheme != Uri.UriSchemeHttp)
+        {
+            return false;
+        }
+
+        if (uri.HostNameType == UriHostNameType.Dns && uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return IPAddress.TryParse(uri.Host, out var address) && IPAddress.IsLoopback(address);
     }
 }
