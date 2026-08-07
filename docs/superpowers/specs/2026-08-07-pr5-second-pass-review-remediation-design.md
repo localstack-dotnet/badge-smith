@@ -2,8 +2,10 @@
 
 Date: 2026-08-07
 
-Status: Implemented locally in `4d9c699`, `9e1344c`, `eae8df3`, and `621f2ce`;
-hosted ARM64 verification and the separate production synth gate remain pending.
+Status: Implemented in `4d9c699`, `9e1344c`, `eae8df3`, and `621f2ce`. Hosted
+`build-and-test` and ARM64 artifact checks passed in
+[CI run 31157895297](https://github.com/localstack-dotnet/badge-smith/actions/runs/31157895297);
+the separate production synth gate remains pending.
 
 ## Context
 

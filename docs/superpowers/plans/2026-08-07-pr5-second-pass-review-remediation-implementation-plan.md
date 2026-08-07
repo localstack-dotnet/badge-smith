@@ -1,8 +1,10 @@
 # PR #5 Second-Pass Review Remediation Implementation Plan
 
-Status: Implemented locally in `4d9c699`, `9e1344c`, `eae8df3`, and `621f2ce`.
-Hosted ARM64 checks and the separate production synth gate remain pending; current
-workstream status is tracked in `docs/ROADMAP.md`.
+Status: Implemented in `4d9c699`, `9e1344c`, `eae8df3`, and `621f2ce`. Hosted
+`build-and-test` and ARM64 artifact checks passed in
+[CI run 31157895297](https://github.com/localstack-dotnet/badge-smith/actions/runs/31157895297).
+The separate production synth gate remains pending; current workstream status is tracked
+in `docs/ROADMAP.md`.
 
 **Goal:** Replace body-only HMAC authentication with one canonical request contract,
 enforce secure badge-update transport, update LocalStack client compatibility, and
