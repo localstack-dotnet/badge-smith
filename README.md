@@ -8,9 +8,9 @@
 
 > **Badge service** for .NET packages and CI/CD test results with secure authentication and performance optimizations.
 
-**BadgeSmith** is a general-purpose, high-performance badge service that provides [Shields.io](https://shields.io)-compatible endpoints for **NuGet packages**, **GitHub packages**, and **CI/CD test results**. Built with .NET 10 Native AOT for sub-100ms cold starts and designed for extensibility.
+**BadgeSmith** is a general-purpose, high-performance badge service that provides [Shields.io](https://shields.io)-compatible endpoints for **NuGet packages**, **GitHub packages**, and **CI/CD test results**. Built with .NET 10 Native AOT to avoid JIT startup overhead and designed for extensibility.
 
-**Successor to [localstack-nuget-badge-lambda](https://github.com/localstack-dotnet/localstack-nuget-badge-lambda)** with 5-10x performance improvements and security features.
+**Successor to [localstack-nuget-badge-lambda](https://github.com/localstack-dotnet/localstack-nuget-badge-lambda)** with Native AOT deployment and strengthened security controls.
 
 ## 🚀 **Live Examples**
 
@@ -40,9 +40,9 @@ order, normalization, escaping, and signature envelope.
 
 ### **⚡ Performance Optimizations**
 
-- **Native AOT compilation** for ~50-100ms cold starts (vs 500ms+ traditional)
+- **Native AOT compilation** to remove JIT startup overhead
 - **DynamoDB with GSI** for efficient latest-result queries
-- **Caching** with ETag support and configurable TTL
+- **Caching** with ETag support and endpoint-specific TTLs
 - **CloudFront-compatible** with proper cache headers
 
 ### **🎯 Flexible Design**
@@ -61,7 +61,7 @@ order, normalization, escaping, and signature envelope.
 GET /badges/packages/nuget/{package}[?version={range}&prerelease={bool}]
 
 # GitHub packages
-GET /badges/packages/github/{org}/{package}[?version={pattern}&prerelease={bool}]
+GET /badges/packages/github/{org}/{package}[?version={range}&prerelease={bool}]
 ```
 
 ### **Test Result Badges**
@@ -99,7 +99,7 @@ Client → CloudFront → API Gateway → Lambda → DynamoDB/Secrets Manager
 
 **Key Technologies:**
 
-- **.NET 10 Native AOT** - Sub-100ms cold starts
+- **.NET 10 Native AOT** - Startup without JIT compilation
 - **AWS Lambda** - Serverless compute
 - **DynamoDB** - NoSQL storage with GSI optimization
 - **Custom routing** - High-performance request handling

@@ -16,7 +16,7 @@ Client → CloudFront → API Gateway → Lambda → DynamoDB
 
 **Components:**
 
-- **CloudFront**: Global edge caching with configurable TTL
+- **CloudFront**: Global edge caching with endpoint-specific TTLs
 - **API Gateway HTTP v2**: Request routing and CORS handling
 - **Lambda Function**: .NET 10 Native AOT runtime
 - **DynamoDB**: NoSQL storage with optimized access patterns
@@ -24,13 +24,16 @@ Client → CloudFront → API Gateway → Lambda → DynamoDB
 
 ### **Cache Strategy**
 
-BadgeSmith implements **multi-layer caching** without CloudFront cache policies:
+BadgeSmith implements **multi-layer caching** with an origin-controlled CloudFront cache
+policy:
 
-1. **CloudFront Edge Cache**: Configured via Lambda response headers
+1. **CloudFront Edge Cache**: A custom policy bounds TTL while Lambda response headers
+   select endpoint-specific cache lifetimes
 2. **Lambda Memory Cache**: In-memory caching with TTL
 3. **Conditional Requests**: ETag support for bandwidth optimization
 
-Cache headers are **managed by the Lambda function** to maintain full control over cache behavior across different endpoint types.
+Cache headers are **managed by the Lambda function** within the minimum and maximum TTL
+bounds enforced by the CloudFront policy.
 
 ## 🎯 **Core Design Decisions**
 
@@ -40,10 +43,10 @@ BadgeSmith prioritizes **cold start performance** and **deployment efficiency**:
 
 **Motivations:**
 
-- **Sub-100ms cold starts** vs 500ms+ with traditional .NET hosting
-- **Smaller deployment packages** (~6MB zipped vs ~50MB)
+- **No JIT startup overhead** in the Lambda runtime
+- **Smaller self-contained deployment artifacts**
 - **Lower memory footprint** for cost optimization
-- **Predictable performance** without JIT compilation overhead
+- **Native executable deployment** on the Lambda `provided.al2023` runtime
 
 **Implementation Choices:**
 
@@ -123,7 +126,7 @@ BadgeSmith implements **custom routing** optimized for Lambda environments:
 
 **Design Principles:**
 
-- **Zero allocation** route matching with span-based operations
+- **Allocation-conscious** route matching with span-based operations on hot paths
 - **Pattern-based routing**: Template patterns (`{param}`) and exact matches
 - **Handler resolution**: Direct function calls via `ApplicationRegistry`
 - **Route-first validation**: Parameters validated before handler execution
@@ -216,16 +219,21 @@ absolute HTTPS URLs without embedded credentials.
 
 - **Organization isolation**: Each organization has separate secrets
 - **Token type separation**: Different secrets for package access vs test ingestion
-- **Audit logging**: All authentication attempts logged
+- **Authentication logging**: Successful authentication and invalid signatures are
+  logged; API access logs record request outcomes
 - **No secrets in code**: All credentials externalized to AWS services
 
 ### **Public Endpoints**
 
-Package badge endpoints are **unauthenticated** but include:
+Package badge endpoints are **unauthenticated** and include:
 
-- **Rate limiting** (via CloudFront and API Gateway)
 - **Input validation** with comprehensive error responses
-- **Graceful degradation** during upstream service failures
+- **Stale-if-error cache directives** for eligible cached responses during origin
+  failures
+
+The production stack does not currently configure an application-specific WAF or API
+throttling policy. Explicit abuse controls remain roadmap work; generic AWS service
+quotas are not treated as an application rate-limit contract.
 
 ## ⚡ **Performance Optimizations**
 
@@ -238,14 +246,10 @@ Package badge endpoints are **unauthenticated** but include:
 
 ### **Runtime Performance**
 
-- **Span-based operations**: Zero-allocation string processing
+- **Span-based operations**: Allocation-conscious string processing on hot paths
 - **Memory caching**: Reduces external API calls
 - **Connection pooling**: Reused HTTP clients and AWS SDK clients
 - **Efficient data structures**: Optimized for read-heavy workloads
-
-### **Caching Strategy**
-
-**Multi-tier caching** with appropriate TTL for each content type:
 
 ## 🛠️ **Development Tooling**
 
@@ -354,13 +358,13 @@ synthesis commands for each app.
 
 ## 📈 **Performance Characteristics**
 
-### **Benchmarks**
+### **Measurement Policy**
 
-| Metric | BadgeSmith | Traditional .NET |
-|--------|------------|------------------|
-| **Cold Start** | ~50-100ms | ~500ms+ |
-| **Memory Usage** | ~50MB | ~128MB+ |
-| **Package Size** | ~6MB zipped | ~50MB+ |
+Native AOT removes JIT compilation from Lambda startup, but cold-start latency and
+memory usage must be measured for each deployed revision rather than treated as fixed
+architecture guarantees. Dated measurements live under `docs/research/` and
+`docs/research/baselines/`; CloudWatch Lambda `REPORT` lines are the source of truth for
+production INIT duration, execution duration, and memory usage.
 
 ### **Scalability**
 

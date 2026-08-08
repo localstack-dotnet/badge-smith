@@ -113,7 +113,8 @@ Repository layout:
   linked compilation
 - `build/`: AWS CDK shared constructs plus separate production and local-performance
   apps; see `build/BadgeSmith.CDK/README.md`
-- `tests/BadgeSmith.Api.Tests`: xUnit v3 unit tests
+- `tests/BadgeSmith.Api.Tests`: xUnit v3 unit and Aspire/LocalStack functional contract
+  tests
 - `tests/BadgeSmith.Api.Performance.Tests`: BenchmarkDotNet benchmarks
 - `tools/`: file-based `badgesmith` CLI (Lambda build, test run/ingest, badge update,
   secrets seed); see `tools/README.md`

@@ -10,15 +10,19 @@ sample ingestion payload (see [Performance testing](#performance-testing-k6)).
 
 ## Invocation
 
-`badgesmith.cs` is a shebang-style file-based program. The working directory for
-all path-based options is the repository root unless the option says otherwise.
+`badgesmith.cs` is a shebang-style file-based program. It discovers the repository root
+by walking upward from the process working directory. Test project/result paths, Lambda
+output, and secret-mapping config resolve from that root; Docker runs with the repository
+root as its working directory, so relative Dockerfile and build-context paths do too.
+`tests ingest --payload-file` is the exception: a relative payload path resolves from the
+process working directory.
 
 **Unix / Linux / macOS** (CI runners, WSL):
 
 ```bash
 ./tools/badgesmith.cs <command> [options]
-# or from anywhere:
-"$(pwd)/tools/badgesmith.cs" <command> [options]
+# or via an absolute path while the working directory is inside this repository:
+/absolute/path/to/badge-smith/tools/badgesmith.cs <command> [options]
 ```
 
 **Windows** (PowerShell, local dev):
@@ -91,8 +95,9 @@ the local-x64 and production-ARM64 boundaries.
 
 ### `tests run`
 
-Runs `dotnet test` once per target framework declared on the project, writing a
-unique TRX file per framework. Used by the `run-dotnet-tests` composite action.
+Runs `dotnet test --no-build` once per target framework declared on the project, writing
+a unique TRX file per framework. Build the selected configuration first; the
+`run-dotnet-tests` composite action relies on the preceding solution build in CI.
 
 ```bash
 ./tools/badgesmith.cs tests run \

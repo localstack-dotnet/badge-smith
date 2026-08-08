@@ -78,8 +78,9 @@ Durable stack facts for this repo:
   source generation (`LambdaFunctionJsonSerializerContext`), OneOf result pattern,
   custom span-based routing.
 - **Source layout:** `src/BadgeSmith.Api` (Lambda), `src/BadgeSmith.Host` (Aspire
-  AppHost), `src/shared`, `build/` (CDK), `tests/` (Api.Tests, Api.Performance.Tests,
-  seeders), `docs/`.
+  AppHost), `src/shared`, `build/` (CDK), `tests/BadgeSmith.Api.Tests` (unit and
+  Aspire/LocalStack functional contracts), `tests/BadgeSmith.Api.Performance.Tests`,
+  `tools/` (CLI and secret seeding), `docs/`.
 
 ### `## Current State You Should Assume Until Verified`
 

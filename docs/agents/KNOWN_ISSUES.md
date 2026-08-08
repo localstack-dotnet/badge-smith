@@ -21,8 +21,10 @@ refactor unrelated code.
   `BadgeSmith.Api.Tests`, `BadgeSmith.Api.Performance.Tests`, and
   `DynamicProxyGenAssembly2` (Moq). Moved/renamed internals can break test compilation.
 - **Local dev needs Docker.** LocalStack integration requires Docker. The Aspire AppHost
-  (`src/BadgeSmith.Host`) starts LocalStack, provisions the CDK stack, seeds DynamoDB,
-  and only then starts the Lambda (`WaitFor` on the seeder).
+  (`src/BadgeSmith.Host`) starts LocalStack and provisions the CDK stack. In `Live` mode
+  it runs `badgesmith secrets seed` and starts the Lambda only after that seeder is ready;
+  `Mock` contract tests instead seed deterministic tables and secrets from their fixture
+  after the distributed application starts.
 - **Time is UTC-only.** `DateTime.Now` / `DateTimeOffset.Now` are banned via
   `BannedSymbols.txt`; HMAC timestamp and nonce logic depends on UTC. Use `DateTime.UtcNow`.
 - **Env-var configuration is load-bearing.** Services read table names directly from

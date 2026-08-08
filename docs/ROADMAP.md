@@ -1,6 +1,6 @@
 # BadgeSmith Roadmap
 
-Date: 2026-08-07
+Date: 2026-08-08
 
 Backlog and progress source of truth for BadgeSmith. Keep this current: the status table
 is the permanent history, active workstreams may link a temporary detailed plan, and new
@@ -16,7 +16,7 @@ ideas land in Inbox / Untriaged until they are scoped.
 | W1.5 — file-based tooling migration | done | — | Foundation `52d038a`; finished in W1.7: workflows call `tools/badgesmith.cs`, tracked `.sh`/`.ps1` retired, script-facing docs moved to `tools/README.md`, `perf baseline` C# command deferred (see Inbox). |
 | W1.7 — closeout and platform refresh | done | — | Packages: Aspire 13.4.6, LocalStack.Aspire.Hosting 13.4.0, explicit Aspire.Hosting.AWS 13.3.1, full CPM stable bump, MessagePack removed. Tooling finish + remaining Wave 1 correctness. |
 | PR #5 merge-readiness remediation | superseded by second pass | — | Implemented in `34fe5f7`: restored Native AOT serializer compatibility, hardened malformed HMAC handling and white-label URLs, secured reusable workflow inputs, and corrected Aspire source ownership. Hosted checks passed, but the subsequent whole-PR review found merge-blocking HMAC and CDK issues tracked by the second-pass workstream below. |
-| PR #5 second-pass review remediation | review follow-ups in progress; infrastructure gates passed | — | Implemented on 2026-08-07 in `4d9c699`, `9e1344c`, `eae8df3`, and `621f2ce`: hard-cut canonical HMAC authentication, secure badge transport, LocalStack.Client.Extensions 2.0.1, and separate production/local-performance CDK apps. Local evidence: zero-warning Release build, 403 tests, file-based CLI build, actionlint, Slopwatch, package graphs, local-performance CDK synth, and two independent security reviews with no Medium-or-higher findings. Hosted [CI run 31159120605](https://github.com/localstack-dotnet/badge-smith/actions/runs/31159120605) passed `build-and-test` and the ARM64 Native AOT ZIP build/upload on head `fba5c8d`. Production `cdk synth BadgeSmithStack` passed on 2026-08-07 using that hosted ARM64 artifact, pinned AWS CDK CLI `2.1135.1`, and Amazon.CDK.Lib `2.263.0`; no deployment was performed. PR #5 has review comments pending discussion and closure. |
+| PR #5 second-pass review remediation | done | — | Completed across `4d9c699`, `9e1344c`, `eae8df3`, `621f2ce`, `8503f87`, and `ef216e9`: hard-cut canonical HMAC authentication, secure badge transport, LocalStack.Client.Extensions 2.0.1, separate production/local-performance CDK apps, and final review hardening. Pre-merge evidence included a zero-warning Release build, 403 tests, file-based CLI build, actionlint, Slopwatch, package graphs, local-performance CDK synth, two independent security reviews with no Medium-or-higher findings, hosted [CI run 31159120605](https://github.com/localstack-dotnet/badge-smith/actions/runs/31159120605), and a successful production synth; no deployment occurred at that stage. PR #5 merged as `2b147de` on 2026-08-08. Final hosted [CI run 31255516767, attempt 2](https://github.com/localstack-dotnet/badge-smith/actions/runs/31255516767/attempts/2) passed 437 tests, built the ARM64 Native AOT ZIP, and ingested the badge result with HTTP 201. The observed CDK diff for production [deploy run 31257227036](https://github.com/localstack-dotnet/badge-smith/actions/runs/31257227036) contained only Lambda code/environment and CDK metadata updates. Separate manual post-deploy checks returned HTTP 200 through direct API Gateway and CloudFront, the public badge returned `437 passed`, and the redirect targeted the verified CI run. Action tags `v1.0.0` and `v1` point to `2b147de`; the live README badge was restored in `de7a0b8`. |
 
 ## Process Notes
 
@@ -28,16 +28,23 @@ ideas land in Inbox / Untriaged until they are scoped.
 Scoped work waiting to start. Promote an item into Status & Plan Mapping and link its
 detailed plan when it becomes active.
 
-- **Wave 2 — test safety net** (next after PR #5): ResponseHelper / real RouteTable /
+- **Wave 2 — test safety net** (next planned engineering wave): ResponseHelper / real RouteTable /
   NuGetVersionService tests; align resolver tests with production routes. The initial
   HMAC suite landed during PR #5 remediation. Details:
   [research/2026-07-02-code-review-findings.md](research/2026-07-02-code-review-findings.md) §4.
 - **Wave 3 — hygiene**: DRY refactors (bootstrap, route-param extraction, package
-  services), dead-code removal, script/docs drift, DynamoDB PITR/removal policy.
+  services), dead-code removal, and script/docs drift.
   Details: findings doc §3, §5.
 - **Logging hygiene — source-generated logging migration** (2026-07-02): Replace
   temporary `CA1873` pragmas with `LoggerMessageAttribute` source-generated logging,
   then remove the suppressions and keep the zero-warning build contract.
+- **Production delivery hardening** (captured 2026-08-08): Pin deploy artifacts to a
+  successful workflow run, head SHA, and verified digest; stop masking genuine CDK diff
+  errors; add automated post-deploy health and badge smoke checks; configure production
+  environment protection; decide DynamoDB PITR/retention policies; define explicit
+  abuse controls; choose retry/alert/failure semantics for badge publication; execute a
+  hosted ARM64 Native AOT runtime smoke; and document promotion of immutable `v1.x.y`
+  action tags plus the moving `v1` alias.
 
 ## Inbox / Untriaged
 
