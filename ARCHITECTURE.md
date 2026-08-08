@@ -358,13 +358,51 @@ synthesis commands for each app.
 
 ## 📈 **Performance Characteristics**
 
+### **Performance Goals**
+
+The following non-functional requirements are design targets, not statements that every
+deployed revision already satisfies:
+
+| Objective | Target | Measurement source |
+| --- | --- | --- |
+| Lambda initialization | CloudWatch `Init Duration` p95 ≤100 ms | Cold-start Lambda `REPORT` lines for the deployed production revision |
+| Runtime memory | CloudWatch `Max Memory Used` p95 ≤50 MB | Lambda `REPORT` lines for the deployed production revision |
+| Deployment size | Production ARM64 ZIP ≤6 MB (6,000,000 bytes) | Hosted CI artifact before deployment |
+
+The initialization goal covers Lambda's CloudWatch `Init Duration`, not the total
+latency of the first request. First-invoke AWS client, credential, TLS, and upstream work
+is measured separately as effective cold-request duration. No numeric effective
+cold-request target is set yet; report it alongside INIT so optimization does not merely
+move latency between phases.
+
 ### **Measurement Policy**
 
 Native AOT removes JIT compilation from Lambda startup, but cold-start latency and
 memory usage must be measured for each deployed revision rather than treated as fixed
 architecture guarantees. Dated measurements live under `docs/research/` and
 `docs/research/baselines/`; CloudWatch Lambda `REPORT` lines are the source of truth for
-production INIT duration, execution duration, and memory usage.
+production INIT duration, execution duration, and memory usage. The initial production
+baseline and optimization plan are recorded in
+[`docs/research/2026-07-02-performance-opportunities.md`](docs/research/2026-07-02-performance-opportunities.md).
+
+Goal verification uses this protocol:
+
+- Measure the deployed production ARM64 revision on `provided.al2023`; record its commit,
+  configured memory, deployment timestamp, and observation window. Do not mix samples
+  from different deployment intervals.
+- Use the most recent slice of up to 30 days wholly contained in one deployment interval,
+  with at least 100 cold-start `REPORT` samples for `Init Duration`. If the interval has
+  fewer samples, report the goal as unverified.
+- Calculate each p95 with the nearest-rank method: sort the numeric samples ascending and
+  select rank `ceil(0.95 × sample-count)`. Preserve the Logs Insights query or exported
+  sample set with the result.
+- Calculate `Max Memory Used` p95 over all `REPORT` samples in the same deployment slice,
+  with at least 100 total samples.
+- Measure the exact byte length of the ARM64 ZIP consumed by deployment; pre-deploy CI
+  artifacts that are not deployed are validation inputs, not production results.
+
+The 2026-07-02 baseline predates this percentile-based protocol. It remains useful
+historical evidence but does not by itself establish pass/fail for these goals.
 
 ### **Scalability**
 

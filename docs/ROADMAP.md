@@ -45,18 +45,23 @@ detailed plan when it becomes active.
   abuse controls; choose retry/alert/failure semantics for badge publication; execute a
   hosted ARM64 Native AOT runtime smoke; and document promotion of immutable `v1.x.y`
   action tags plus the moving `v1` alias.
+- **Performance pass — Native AOT INIT, memory, and artifact size**: Meet the measurable
+  [architecture performance goals](../ARCHITECTURE.md#performance-goals) using the
+  measured baseline and agreed implementation/validation sequence in
+  [research/2026-07-02-performance-opportunities.md](research/2026-07-02-performance-opportunities.md).
+  Agreed levers: edge-side 404 caching + badge TTL increase, `TrimMode=full` +
+  individually measured ILC knobs, result caching in package services, and request-path
+  cleanup. Evaluate eager INIT warm-up as a separate trade-off: it may reduce effective
+  cold-request duration by increasing CloudWatch `Init Duration`, so report both metrics
+  and retain it only if the candidate still satisfies the ≤100 ms INIT p95 goal;
+  otherwise reject the change or explicitly revise the goal before proceeding. Rejected:
+  provisioned concurrency, keep-warm pings, and SnapStart (not available on
+  `provided.al2023`). This work also folds in GitHub issue #1 (RouteValues buffer guard).
 
 ## Inbox / Untriaged
 
 Raw capture spot for ideas and requests before they are scoped into the backlog.
 
-- Performance pass (cold start + memory footprint) — measured and decided, ready to
-  implement:
-  [research/2026-07-02-performance-opportunities.md](research/2026-07-02-performance-opportunities.md).
-  Agreed levers: edge-side 404 caching + badge TTL increase, eager INIT warm-up,
-  `TrimMode=full` + ILC knobs, result caching in package services. Rejected:
-  provisioned concurrency, keep-warm pings, SnapStart (N/A on provided.al2023).
-  Folds in GitHub issue #1 (RouteValues buffer guard).
 - **GitHub Packages prerelease-channel filtering:** support selecting the latest `ci`
   prerelease without pinning the base version; tracked in
   [GitHub issue #4](https://github.com/localstack-dotnet/badge-smith/issues/4).

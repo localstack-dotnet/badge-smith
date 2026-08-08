@@ -41,9 +41,15 @@ order, normalization, escaping, and signature envelope.
 ### **⚡ Performance Optimizations**
 
 - **Native AOT compilation** to remove JIT startup overhead
+- **Measurable performance goals**: CloudWatch `Init Duration` p95 ≤100 ms,
+  `Max Memory Used` p95 ≤50 MB, and production ARM64 ZIP ≤6 MB
 - **DynamoDB with GSI** for efficient latest-result queries
 - **Caching** with ETag support and endpoint-specific TTLs
 - **CloudFront-compatible** with proper cache headers
+
+These are design targets, not claims about every deployed revision. See
+**[ARCHITECTURE.md](ARCHITECTURE.md#performance-goals)** for the measurement contract and
+the dated baselines linked from it.
 
 ### **🎯 Flexible Design**
 
