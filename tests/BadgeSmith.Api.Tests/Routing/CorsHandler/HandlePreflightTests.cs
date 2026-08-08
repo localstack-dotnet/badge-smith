@@ -1,13 +1,16 @@
 ﻿using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Cors;
 using BadgeSmith.Api.Tests.TestHelpers;
+using BadgeSmith.Api.Tests.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using static BadgeSmith.Api.Tests.TestBase;
 
 namespace BadgeSmith.Api.Tests.Routing.CorsHandler;
 
-public class HandlePreflightTests : TestBase
+[Trait("Category", TestCategories.Unit)]
+public class HandlePreflightTests
 {
     private readonly Mock<IRouteResolver> _mockRouteResolver;
     private readonly Mock<ILogger<Core.Routing.Cors.CorsHandler>> _mockLogger;
@@ -19,7 +22,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_ReturnBasicCorsHeaders_ForSimpleRequest()
+    public void HandlePreflight_Should_Return_Basic_Cors_Headers_When_Request_Is_Simple()
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
@@ -47,7 +50,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_HandleSpecificMethodRequest()
+    public void HandlePreflight_Should_Handle_Specific_Method_Request()
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
@@ -75,7 +78,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_FilterRequestHeaders()
+    public void HandlePreflight_Should_Filter_Request_Headers()
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
@@ -105,7 +108,7 @@ public class HandlePreflightTests : TestBase
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public void HandlePreflight_Should_HandleMissingRequestHeaders(string? requestHeaders)
+    public void HandlePreflight_Should_Handle_Missing_Request_Headers(string? requestHeaders)
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
@@ -134,7 +137,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_HandleCredentialsWithSpecificOrigin()
+    public void HandlePreflight_Should_Handle_Credentials_When_Origin_Is_Specific()
     {
         var allowedOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -169,7 +172,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_RejectUntrustedOriginWithCredentials()
+    public void HandlePreflight_Should_Reject_Untrusted_Origin_When_Credentials_Are_Enabled()
     {
         var allowedOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -202,7 +205,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_UseOriginPredicateWhenProvided()
+    public void HandlePreflight_Should_Use_Origin_Predicate_When_Provided()
     {
         var options = new CorsOptions
         {
@@ -231,7 +234,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_HandleNoOriginHeader()
+    public void HandlePreflight_Should_Handle_No_Origin_Header()
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
@@ -255,7 +258,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_HandleNullHeaders()
+    public void HandlePreflight_Should_Handle_Null_Headers()
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);
@@ -274,7 +277,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_IntegrateWithRouteResolver()
+    public void HandlePreflight_Should_Integrate_With_RouteResolver()
     {
         var routes = new[]
         {
@@ -299,7 +302,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_HandleNonExistentRoute()
+    public void HandlePreflight_Should_Handle_Nonexistent_Route()
     {
         var routes = new[] { RouteTestBuilder.CreateRouteDescriptor("Health", "GET", RouteTestBuilder.CreateExactPattern("/health")), };
         var resolver = RouteTestBuilder.CreateRouteResolver(routes);
@@ -318,7 +321,7 @@ public class HandlePreflightTests : TestBase
     }
 
     [Fact]
-    public void HandlePreflight_Should_AlwaysIncludeContentTypeHeader()
+    public void HandlePreflight_Should_Always_Include_Content_Type_Header()
     {
         var options = CorsOptions.Default;
         var handler = new Core.Routing.Cors.CorsHandler(_mockRouteResolver.Object, _mockLogger.Object, options);

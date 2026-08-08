@@ -1,5 +1,3 @@
-#pragma warning disable CA1711
-
 using Amazon.CDK;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
@@ -14,7 +12,6 @@ namespace BadgeSmith.Host;
 /// Uses the same shared SharedInfrastructureConstruct construct as production to ensure parity.
 /// This avoids nested stack complexity that can cause issues with AWS Aspire's CDK provisioner.
 /// </summary>
-#pragma warning disable CA1812
 internal sealed class BadgeSmithInfrastructureStack : Stack
 {
     public BadgeSmithInfrastructureStack(Construct scope, string id, IStackProps? props = null) : base(scope, id, props)

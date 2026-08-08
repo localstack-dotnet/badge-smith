@@ -1,0 +1,4 @@
+{
+  "request": { "method": "GET", "urlPathPattern": "/nuget/v3-flatcontainer/missing.pkg/index.json" },
+  "response": { "status": 404 }
+}

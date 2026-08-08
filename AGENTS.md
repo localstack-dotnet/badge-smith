@@ -36,13 +36,14 @@ adapters, not policy sources.
 - Fix production-code bugs unless Deniz has explicitly asked you to fix, apply,
   proceed, or equivalent.
 - Modify build system behavior (`Directory.Build.props`, `Directory.Packages.props`,
-  MSBuild, `Dockerfile`, `scripts/build-lambda.*`).
+  MSBuild, `Dockerfile`, `tools/badgesmith.cs`).
 - Change CI/CD pipelines (`.github/workflows/**`).
 - Change agent policy, approval gates, capability routing, skill triggers, or harness
   adapter behavior.
 - Weaken, skip, delete, or substantially rewrite tests to change what behavior is
   verified.
-- Run CDK deploy, Lambda publish, `scripts/build-lambda` release, or any AWS mutation.
+- Run CDK deploy, Lambda publish, `tools/badgesmith.cs lambda build` release, or any
+  AWS mutation.
 - Commit, amend, push, or create a PR.
 
 Approval phrases include `go`, `apply`, `proceed`, `başla`, and `yap`.
@@ -108,12 +109,15 @@ Repository layout:
   observability)
 - `src/BadgeSmith.Host`: .NET Aspire AppHost for local development (LocalStack, Lambda
   and API Gateway emulation, DynamoDB seeding)
-- `src/shared`: constants and ActivitySources shared via linked compilation
-- `build/`: AWS CDK infrastructure (shared constructs + production stack)
+- `src/shared`: constants, ActivitySources, and canonical security helpers shared via
+  linked compilation
+- `build/`: AWS CDK shared constructs plus separate production and local-performance
+  apps; see `build/BadgeSmith.CDK/README.md`
 - `tests/BadgeSmith.Api.Tests`: xUnit v3 unit tests
 - `tests/BadgeSmith.Api.Performance.Tests`: BenchmarkDotNet benchmarks
-- `tests/seeders`: DynamoDB seeding utility
-- `scripts/`: build, ingestion, and load-testing tooling
+- `tools/`: file-based `badgesmith` CLI (Lambda build, test run/ingest, badge update,
+  secrets seed); see `tools/README.md`
+- `scripts/`: remaining k6 load-test scenario and sample ingestion payload
 - `docs/`: project documentation
 - `docs/agents/`: harness adapter guide, capability mapping, and known agent notes
 
@@ -130,7 +134,9 @@ Repository layout:
 ## Harness Independence
 
 - `AGENTS.md` is the canonical repository contract.
-- Harness-specific instructions and skill files are adapters, not policy sources.
+- Harness-specific instructions and discovery relays are adapters, not policy sources.
+  Canonical capability guides may live under `docs/agents/skills/`, but they cannot
+  override this contract.
 - `CLAUDE.md` and `.github/copilot-instructions.md` are relay-only; OpenCode reads
   `AGENTS.md` natively.
 - Harness-native invocation names, LSP wiring, local-only setup notes, and skill
@@ -168,7 +174,12 @@ these constraints on every code change:
   `xunit.runner.visualstudio`). Plain `dotnet test --project
   tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj` and standard `--filter` are
   correct. This is NOT TUnit — ignore any `--treenode-filter` guidance.
-- Native AOT publishing goes through `scripts/build-lambda.{sh,ps1}` (multi-arch ZIP /
+- Test and benchmark method names use `Subject_Should_Expected_Behavior_When_Condition`.
+  Keep real code identifiers such as method, property, type, header, and route names
+  intact; separate all other human-readable words with underscores. `Should` belongs
+  immediately after the subject, and scenario/input conditions belong at the end with a
+  `When...` suffix.
+- Native AOT publishing goes through `tools/badgesmith.cs lambda build` (multi-arch ZIP /
   container targets); it is not part of the ordinary `dotnet build` loop.
 - Strict analyzers and warnings-as-errors are enabled through shared project
   configuration; keep the zero-warning bar.
@@ -178,7 +189,9 @@ these constraints on every code change:
 - Documentation-only changes do not require build/test unless they add or change
   commands that should be validated.
 - If Slopwatch is available after LLM-authored code, project, or test changes, run
-  `slopwatch analyze --fail-on warning --exclude "artifacts/**,**/bin/**,**/obj/**"`.
+  `slopwatch analyze --fail-on warning --exclude "artifacts/**,external/**,**/bin/**,**/obj/**"`.
+  The existing baseline lives under `.slopwatch/`; `external/**` is excluded because it
+  contains ignored upstream source checkouts for source navigation, not BadgeSmith-owned code.
 
 ## Capability Routing
 
@@ -220,6 +233,14 @@ its trigger applies, and do not invent an ID.
 | Running or filtering tests | .NET test-running capability (xUnit v3 on VSTest) |
 | Performance work / benchmarks | Benchmark and performance-diagnostics capabilities; require measured data |
 | Package version changes (`Directory.Packages.props`) | Package-management capability (CPM) |
+
+## Aspire Source Compatibility
+
+For read-only explanation questions, inspect this repository's docs/code first. Invoke `aspire-source-navigation` only when the answer depends on upstream internals, version-specific API shape, or a compatibility conclusion.
+
+## Aspire MCP Server
+
+Utilize Aspire MCP server for runtime resource state/logs/traces of CLI-launched AppHosts and LocalStack. And context7 for Aspire related documentation.
 
 ## Semantic Code Navigation
 

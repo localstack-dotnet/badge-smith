@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing;
@@ -103,3 +105,5 @@ internal class TestResultRedirectionHandler : ITestResultRedirectionHandler
         return true;
     }
 }
+
+#pragma warning restore CA1873

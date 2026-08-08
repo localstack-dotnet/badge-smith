@@ -1,5 +1,5 @@
 name: 'Update Test Results Badge'
-description: 'Posts test results to BadgeSmith API with HMAC authentication'
+description: 'Posts test results to a BadgeSmith API with HMAC authentication'
 author: 'LocalStack .NET Team'
 
 inputs:
@@ -16,7 +16,7 @@ inputs:
     description: 'Number of skipped tests'
     required: true
   test_url_html:
-    description: 'URL to test results page'
+    description: 'Optional HTTPS test-report URL; defaults to the current workflow run'
     required: false
     default: ''
   commit_sha:
@@ -31,10 +31,9 @@ inputs:
   server_url:
     description: 'GitHub server URL'
     required: true
-  api_domain:
-    description: 'BadgeSmith API domain'
-    required: false
-    default: 'api.localstackfor.net'
+  api_base_url:
+    description: 'Absolute BadgeSmith API base URL'
+    required: true
   hmac_secret:
     description: 'HMAC secret for BadgeSmith authentication'
     required: true
@@ -42,107 +41,69 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: 'Post Test Results to BadgeSmith API'
-      shell: bash
+    - name: 'Setup .NET'
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: ${{ github.action_path }}/../../../global.json
+
+    - name: 'Post Test Results to BadgeSmith API on Windows'
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        BADGESMITH_ACTION_PATH: ${{ github.action_path }}
+        BADGESMITH_HMAC_SECRET: ${{ inputs.hmac_secret }}
+        BADGESMITH_PLATFORM: ${{ inputs.platform }}
+        BADGESMITH_TEST_PASSED: ${{ inputs.test_passed }}
+        BADGESMITH_TEST_FAILED: ${{ inputs.test_failed }}
+        BADGESMITH_TEST_SKIPPED: ${{ inputs.test_skipped }}
+        BADGESMITH_TEST_URL_HTML: ${{ inputs.test_url_html }}
+        BADGESMITH_COMMIT_SHA: ${{ inputs.commit_sha }}
+        BADGESMITH_RUN_ID: ${{ inputs.run_id }}
+        BADGESMITH_REPOSITORY: ${{ inputs.repository }}
+        BADGESMITH_SERVER_URL: ${{ inputs.server_url }}
+        BADGESMITH_API_BASE_URL: ${{ inputs.api_base_url }}
+        BADGESMITH_BRANCH: ${{ github.head_ref || github.ref_name }}
       run: |
-        # Extract owner and repo from repository input
-        IFS='/' read -ra REPO_PARTS <<< "${{ inputs.repository }}"
-        OWNER="${REPO_PARTS[0]}"
-        REPO="${REPO_PARTS[1]}"
+        dotnet run --file "$env:BADGESMITH_ACTION_PATH/../../../tools/badgesmith.cs" -- badge update `
+          --platform "$env:BADGESMITH_PLATFORM" `
+          --test-passed "$env:BADGESMITH_TEST_PASSED" `
+          --test-failed "$env:BADGESMITH_TEST_FAILED" `
+          --test-skipped "$env:BADGESMITH_TEST_SKIPPED" `
+          --test-url-html "$env:BADGESMITH_TEST_URL_HTML" `
+          --commit-sha "$env:BADGESMITH_COMMIT_SHA" `
+          --run-id "$env:BADGESMITH_RUN_ID" `
+          --repository "$env:BADGESMITH_REPOSITORY" `
+          --server-url "$env:BADGESMITH_SERVER_URL" `
+          --base-url "$env:BADGESMITH_API_BASE_URL" `
+          --branch "$env:BADGESMITH_BRANCH"
 
-        # Normalize platform name
-        PLATFORM_LOWER=$(echo "${{ inputs.platform }}" | tr '[:upper:]' '[:lower:]')
-
-        # Extract branch from GitHub context
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          BRANCH="${{ github.head_ref }}"
-        else
-          BRANCH="${{ github.ref_name }}"
-        fi
-
-        # Calculate totals
-        TOTAL=$((${{ inputs.test_passed }} + ${{ inputs.test_failed }} + ${{ inputs.test_skipped }}))
-
-        # Create JSON payload for BadgeSmith API
-        cat > test-results.json << EOF
-        {
-          "platform": "${{ inputs.platform }}",
-          "passed": ${{ inputs.test_passed }},
-          "failed": ${{ inputs.test_failed }},
-          "skipped": ${{ inputs.test_skipped }},
-          "total": ${TOTAL},
-          "url_html": "${{ inputs.test_url_html }}",
-          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-          "commit": "${{ inputs.commit_sha }}",
-          "run_id": "${{ inputs.run_id }}",
-          "workflow_run_url": "${{ inputs.server_url }}/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }}"
-        }
-        EOF
-
-        echo "📊 Generated test results JSON for ${{ inputs.platform }}:"
-        cat test-results.json | jq '.' 2>/dev/null || cat test-results.json
-
-        # Prepare HMAC authentication
-        PAYLOAD_JSON=$(cat test-results.json)
-        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
-        NONCE=$(uuidgen | tr -d '-' | tr '[:upper:]' '[:lower:]')
-
-        # Compute HMAC-SHA256 signature
-        SIGNATURE="sha256=$(echo -n "$PAYLOAD_JSON" | openssl dgst -sha256 -hmac "${{ inputs.hmac_secret }}" -binary | xxd -p -c 256)"
-
-        # Build BadgeSmith API URL
-        API_URL="https://${{ inputs.api_domain }}/tests/results/${PLATFORM_LOWER}/${OWNER}/${REPO}/${BRANCH}"
-
-        echo "🚀 Posting to BadgeSmith API: ${API_URL}"
-
-        # Send request to BadgeSmith API
-        HTTP_CODE=$(curl -s -w "%{http_code}" -o response.tmp \
-          -X POST "${API_URL}" \
-          -H "Content-Type: application/json" \
-          -H "X-Signature: ${SIGNATURE}" \
-          -H "X-Timestamp: ${TIMESTAMP}" \
-          -H "X-Nonce: ${NONCE}" \
-          -d "$PAYLOAD_JSON")
-
-        RESPONSE_BODY=$(cat response.tmp)
-        rm -f response.tmp
-
-        if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
-          echo "✅ Successfully posted test results to BadgeSmith API (HTTP $HTTP_CODE)"
-          echo "Response:"
-          echo "$RESPONSE_BODY" | jq . 2>/dev/null || echo "$RESPONSE_BODY"
-        else
-          echo "⚠️ Failed to post test results to BadgeSmith API (HTTP $HTTP_CODE)"
-          echo "Response:"
-          echo "$RESPONSE_BODY" | jq . 2>/dev/null || echo "$RESPONSE_BODY"
-          # Don't fail the build for badge update failures
-        fi
-
-    - name: 'Display Badge URLs'
+    - name: 'Post Test Results to BadgeSmith API on Unix'
+      if: runner.os != 'Windows'
       shell: bash
+      env:
+        BADGESMITH_ACTION_PATH: ${{ github.action_path }}
+        BADGESMITH_HMAC_SECRET: ${{ inputs.hmac_secret }}
+        BADGESMITH_PLATFORM: ${{ inputs.platform }}
+        BADGESMITH_TEST_PASSED: ${{ inputs.test_passed }}
+        BADGESMITH_TEST_FAILED: ${{ inputs.test_failed }}
+        BADGESMITH_TEST_SKIPPED: ${{ inputs.test_skipped }}
+        BADGESMITH_TEST_URL_HTML: ${{ inputs.test_url_html }}
+        BADGESMITH_COMMIT_SHA: ${{ inputs.commit_sha }}
+        BADGESMITH_RUN_ID: ${{ inputs.run_id }}
+        BADGESMITH_REPOSITORY: ${{ inputs.repository }}
+        BADGESMITH_SERVER_URL: ${{ inputs.server_url }}
+        BADGESMITH_API_BASE_URL: ${{ inputs.api_base_url }}
+        BADGESMITH_BRANCH: ${{ github.head_ref || github.ref_name }}
       run: |
-        # Extract owner and repo from repository input
-        IFS='/' read -ra REPO_PARTS <<< "${{ inputs.repository }}"
-        OWNER="${REPO_PARTS[0]}"
-        REPO="${REPO_PARTS[1]}"
-
-        PLATFORM_LOWER=$(echo "${{ inputs.platform }}" | tr '[:upper:]' '[:lower:]')
-
-        # Extract branch from GitHub context
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          BRANCH="${{ github.head_ref }}"
-        else
-          BRANCH="${{ github.ref_name }}"
-        fi
-
-        echo "🎯 BadgeSmith URLs for ${{ inputs.platform }}:"
-        echo ""
-        echo "**${{ inputs.platform }} Badge:**"
-        echo "[![Test Results (${{ inputs.platform }})](https://${{ inputs.api_domain }}/badges/tests/${PLATFORM_LOWER}/${OWNER}/${REPO}/${BRANCH})](https://${{ inputs.api_domain }}/redirect/test-results/${PLATFORM_LOWER}/${OWNER}/${REPO}/${BRANCH})"
-        echo ""
-        echo "**Raw URLs:**"
-        echo "- Badge: https://${{ inputs.api_domain }}/badges/tests/${PLATFORM_LOWER}/${OWNER}/${REPO}/${BRANCH}"
-        echo "- Redirect: https://${{ inputs.api_domain }}/redirect/test-results/${PLATFORM_LOWER}/${OWNER}/${REPO}/${BRANCH}"
-        echo ""
-        echo "**API Test:**"
-        echo "curl \"https://${{ inputs.api_domain }}/badges/tests/${PLATFORM_LOWER}/${OWNER}/${REPO}/${BRANCH}\""
+        "$BADGESMITH_ACTION_PATH/../../../tools/badgesmith.cs" badge update \
+          --platform "$BADGESMITH_PLATFORM" \
+          --test-passed "$BADGESMITH_TEST_PASSED" \
+          --test-failed "$BADGESMITH_TEST_FAILED" \
+          --test-skipped "$BADGESMITH_TEST_SKIPPED" \
+          --test-url-html "$BADGESMITH_TEST_URL_HTML" \
+          --commit-sha "$BADGESMITH_COMMIT_SHA" \
+          --run-id "$BADGESMITH_RUN_ID" \
+          --repository "$BADGESMITH_REPOSITORY" \
+          --server-url "$BADGESMITH_SERVER_URL" \
+          --base-url "$BADGESMITH_API_BASE_URL" \
+          --branch "$BADGESMITH_BRANCH"

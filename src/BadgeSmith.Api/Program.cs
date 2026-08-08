@@ -1,5 +1,5 @@
 #if !ENABLE_TELEMETRY
-#pragma warning disable CA1502
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
 
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
@@ -47,4 +47,6 @@ static async Task<APIGatewayHttpApiV2ProxyResponse> FunctionCoreAsync(APIGateway
         return ResponseHelper.InternalServerError("An error occurred processing the request");
     }
 }
+
+#pragma warning restore CA1873
 #endif

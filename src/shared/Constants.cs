@@ -44,6 +44,8 @@ internal static class Constants
 
     public const string LambdaOutputFunctionArn = "BadgeSmithLambdaFunctionArn";
 
+    public const string LambdaOutputFunctionUrl = "BadgeSmithLambdaFunctionUrl";
+
     public const string HttpLambdaIntegrationId = "BadgeSmithLambdaIntegration";
 
     public const string ApiGatewayRoleId = "BadgeSmithApi";
@@ -70,9 +72,17 @@ internal static class Constants
 
     public const string ProductionStackId = "BadgeSmithStack";
 
+    public const string LocalPerformanceStackId = "BadgeSmithPerformanceStack";
+
     public const string SharedInfrastructureConstructId = "BadgeSmithSharedInfrastructureConstruct";
 
     public const string ApiLocalStackForNetDomain = "api.localstackfor.net";
+
+    public const string UpstreamModeEnvironmentVariable = "BADGESMITH_UPSTREAM_MODE";
+
+    public const string UpstreamModeLive = "Live";
+
+    public const string UpstreamModeMock = "Mock";
 
     public const int LambdaTimeoutInSeconds = 20;
 }

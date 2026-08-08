@@ -2,14 +2,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using BadgeSmith.Api.Core.Routing.Patterns;
 using BadgeSmith.Api.Tests.TestHelpers;
+using BadgeSmith.Api.Tests.Testing;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.Patterns;
 
+[Trait("Category", TestCategories.Unit)]
 public sealed class RegexPatternTests
 {
     [Fact]
-    public void Constructor_Should_InitializeWithSimpleRegex()
+    public void Constructor_Should_Initialize_When_Regex_Is_Simple()
     {
         var pattern = new RegexPattern(() => new Regex("^/health$", RegexOptions.IgnoreCase | RegexOptions.Compiled));
 
@@ -17,7 +19,7 @@ public sealed class RegexPatternTests
     }
 
     [Fact]
-    public void Constructor_Should_InitializeWithNamedGroups()
+    public void Constructor_Should_Initialize_When_Regex_Has_Named_Groups()
     {
         var pattern = new RegexPattern(() => new Regex(@"^/badges/packages/(?<provider>\w+)/(?<package>[\w.-]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled));
 
@@ -32,7 +34,7 @@ public sealed class RegexPatternTests
     [InlineData("/health/check", false)]
     [InlineData("health", false)] // Missing slash
     [InlineData("", false)]
-    public void TryMatch_Should_HandleSimpleRegexPatterns(string path, bool expectedMatch)
+    public void TryMatch_Should_Handle_Simple_RegexPattern(string path, bool expectedMatch)
     {
         var pattern = new RegexPattern(() => new Regex("^/health$", RegexOptions.IgnoreCase | RegexOptions.Compiled));
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -50,7 +52,7 @@ public sealed class RegexPatternTests
     [InlineData("/badges/packages/", false, null, null)]
     [InlineData("/badges/packages/nuget", false, null, null)]
     [InlineData("/different/path", false, null, null)]
-    public void TryMatch_Should_ExtractNamedGroupsCorrectly(string path, bool expectedMatch, string? expectedProvider, string? expectedPackage)
+    public void TryMatch_Should_Extract_Named_Groups_Correctly(string path, bool expectedMatch, string? expectedProvider, string? expectedPackage)
     {
         var pattern = new RegexPattern(() => new Regex(@"^/badges/packages/(?<provider>\w+)/(?<package>[\w.-]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled));
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -70,7 +72,7 @@ public sealed class RegexPatternTests
     [InlineData("/badges/tests/linux/owner/repo/main", "linux", "owner", "repo", "main")]
     [InlineData("/badges/tests/windows/microsoft/vscode/release-1.2", "windows", "microsoft", "vscode", "release-1.2")]
     [InlineData("/badges/tests/macos/facebook/react/feature_branch", "macos", "facebook", "react", "feature_branch")]
-    public void TryMatch_Should_ExtractMultipleNamedGroups(string path, string expectedPlatform, string expectedOwner, string expectedRepo, string expectedBranch)
+    public void TryMatch_Should_Extract_Multiple_Named_Groups(string path, string expectedPlatform, string expectedOwner, string expectedRepo, string expectedBranch)
     {
         var pattern = new RegexPattern(() => new Regex(
             @"^/badges/tests/(?<platform>\w+)/(?<owner>[\w-]+)/(?<repo>[\w.-]+)/(?<branch>[\w.-]+)$",
@@ -90,7 +92,7 @@ public sealed class RegexPatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_HandleOptionalGroups()
+    public void TryMatch_Should_Handle_Optional_Groups()
     {
         var pattern = new RegexPattern(() => new Regex(
             @"^/badges/packages/(?<provider>\w+)(?:/(?<org>[\w-]+))?/(?<package>[\w.-]+)$",
@@ -127,7 +129,7 @@ public sealed class RegexPatternTests
     [InlineData(@"^/badges/packages/(?<provider>\w+)/(?<package>[\w.-]+)$", "/badges/packages/nuget/Package.With.Dots")]
     [InlineData(@"^/badges/packages/(?<provider>\w+)/(?<package>[\w.-]+)$", "/badges/packages/nuget/Package-With-Dashes")]
     [InlineData(@"^/badges/tests/(?<platform>\w+)/(?<owner>[\w-]+)/(?<repo>[\w.-]+)/(?<branch>[\w.-_]+)$", "/badges/tests/linux/owner-name/repo.name/branch_name")]
-    public void TryMatch_Should_HandleSpecialCharactersInGroups(string regexPattern, string path)
+    public void TryMatch_Should_Handle_Special_Characters_When_Groups_Contain_Them(string regexPattern, string path)
     {
         var pattern = new RegexPattern(() => new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled));
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -148,7 +150,7 @@ public sealed class RegexPatternTests
     [InlineData("/badges/packages/nuget/Package%3FWith%3FQuestion", "nuget", "Package?With?Question")]
     [InlineData("/badges/packages/nuget/Package%23With%23Hash", "nuget", "Package#With#Hash")]
     [InlineData("/badges/packages/nuget/Microsoft%2EExtensions%2EHttp", "nuget", "Microsoft.Extensions.Http")]
-    public void TryMatch_Should_HandleUrlEncodedPackageNames(string path, string expectedProvider, string expectedPackage)
+    public void TryMatch_Should_Handle_Url_Encoded_Package_Names(string path, string expectedProvider, string expectedPackage)
     {
         var pattern = new RegexPattern(() => new Regex(@"^/badges/packages/(?<provider>\w+)/(?<package>[\w.%+-]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled));
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -166,7 +168,7 @@ public sealed class RegexPatternTests
     [InlineData("/badges/tests/macos/org/repo/release%2F2024%2D01%2D15", "macos", "org", "repo", "release/2024-01-15")]
     [InlineData("/badges/tests/linux/org/repo/hotfix%2Fissue%23123", "linux", "org", "repo", "hotfix/issue#123")]
     [InlineData("/badges/tests/windows/org/repo/feature%2Fadd%2Bsupport", "windows", "org", "repo", "feature/add+support")]
-    public void TryMatch_Should_HandleUrlEncodedBranchNames(string path, string expectedPlatform, string expectedOwner, string expectedRepo, string expectedBranch)
+    public void TryMatch_Should_Handle_Url_Encoded_Branch_Names(string path, string expectedPlatform, string expectedOwner, string expectedRepo, string expectedBranch)
     {
         var pattern = new RegexPattern(() => new Regex(
             @"^/badges/tests/(?<platform>\w+)/(?<owner>[\w-]+)/(?<repo>[\w.-]+)/(?<branch>[\w.%+-]+)$",
@@ -183,7 +185,7 @@ public sealed class RegexPatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_HandleComplexPackageNames()
+    public void TryMatch_Should_Handle_Complex_Package_Names()
     {
         var pattern = new RegexPattern(() => new Regex(
             @"^/badges/packages/(?<provider>\w+)/(?<package>[\w.-]+(?:\.[\w.-]+)*)$",
@@ -215,7 +217,7 @@ public sealed class RegexPatternTests
     [InlineData("/badges/packages/nuget/Package With Spaces")] // Spaces not allowed in \w
     [InlineData("/badges/packages//package")] // Empty provider
     [InlineData("/badges/packages/provider/")] // Empty package
-    public void TryMatch_Should_RejectInvalidPatterns(string path)
+    public void TryMatch_Should_Reject_Invalid_Patterns(string path)
     {
         var pattern = new RegexPattern(() => new Regex(@"^/badges/packages/(?<provider>\w+)/(?<package>[\w.-]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled));
         var values = RouteTestBuilder.CreateRouteValues(path);
@@ -226,7 +228,7 @@ public sealed class RegexPatternTests
     }
 
     [Fact]
-    public void TryMatch_Should_NotSetParametersForUnsuccessfulGroups()
+    public void TryMatch_Should_Not_Set_Parameters_When_Groups_Are_Unsuccessful()
     {
         var pattern = new RegexPattern(() => new Regex(
             @"^/badges/packages/(?<provider>\w+)/(?<package>[\w.-]+)(?:/(?<version>\d+\.\d+\.\d+))?$",
@@ -248,7 +250,7 @@ public sealed class RegexPatternTests
 
     [Theory]
     [MemberData(nameof(GetSourceGeneratedRegexData))]
-    public void TryMatch_Should_WorkWithSourceGeneratedRegex(Func<Regex> regexFactory, string path, bool expectedMatch, IDictionary<string, string> expectedParameters)
+    public void TryMatch_Should_Work_When_Regex_Is_Source_Generated(Func<Regex> regexFactory, string path, bool expectedMatch, IDictionary<string, string> expectedParameters)
     {
         ArgumentNullException.ThrowIfNull(regexFactory);
         ArgumentNullException.ThrowIfNull(expectedParameters);
@@ -271,7 +273,10 @@ public sealed class RegexPatternTests
         }
     }
 
-    [SuppressMessage("Design", "CA1024:Use properties where appropriate")]
+    [SuppressMessage(
+        "Design",
+        "CA1024:Use properties where appropriate",
+        Justification = "This iterator is an xUnit MemberData source and is clearer as a method.")]
     public static IEnumerable<object[]> GetSourceGeneratedRegexData()
     {
         // Simulating source-generated regex patterns that could be used in the future

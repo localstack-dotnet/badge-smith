@@ -1,28 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.0"/>
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.4.6" />
 
   <PropertyGroup>
     <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <OutputType>Exe</OutputType>
     <IsAspireHost>true</IsAspireHost>
-    <NoWarn>$(NoWarn);CS8002</NoWarn> <!-- AWS CDK packages are not signed -->
+    <!-- slopwatch-ignore: SW005 Amazon CDK assemblies are intentionally unsigned and trigger CS8002 -->
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost"/>
-    <PackageReference Include="LocalStack.Aspire.Hosting"/>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.AWS" />
+    <PackageReference Include="AWSSDK.Core" />
+    <PackageReference Include="LocalStack.Aspire.Hosting" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\build\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj" IsAspireProjectResource="false"/>
-    <ProjectReference Include="..\..\tests\seeders\BadgeSmith.DynamoDb.Seeders\BadgeSmith.DynamoDb.Seeders.csproj"/>
-    <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj"/>
+    <ProjectReference Include="..\..\build\BadgeSmith.CDK.Shared\BadgeSmith.CDK.Shared.csproj" IsAspireProjectResource="false" />
+
+    <ProjectReference Include="..\BadgeSmith.Api\BadgeSmith.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(SharedDir)\Constants.cs" Link="Constants.cs"/>
+    <Compile Include="$(SharedDir)\Constants.cs" Link="Constants.cs" />
   </ItemGroup>
 
 </Project>

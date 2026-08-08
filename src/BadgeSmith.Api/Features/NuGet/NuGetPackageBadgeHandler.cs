@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core;
@@ -123,3 +125,5 @@ internal class NuGetPackageBadgeHandler : INugetPackageBadgeHandler
         return true;
     }
 }
+
+#pragma warning restore CA1873

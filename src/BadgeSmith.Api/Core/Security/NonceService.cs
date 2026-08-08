@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Globalization;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
@@ -85,7 +87,9 @@ internal sealed class NonceService : INonceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to validate nonce {Nonce} for repository {RepoIdentifier}", nonce, repoIdentifier);
-            return new Error($"Failed to validate nonce: {ex.Message}");
+            return new Error("Failed to validate nonce");
         }
     }
 }
+
+#pragma warning restore CA1873

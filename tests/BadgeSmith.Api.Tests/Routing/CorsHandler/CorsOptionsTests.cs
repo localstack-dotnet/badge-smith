@@ -1,12 +1,14 @@
 using BadgeSmith.Api.Core.Routing.Cors;
+using BadgeSmith.Api.Tests.Testing;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Routing.CorsHandler;
 
+[Trait("Category", TestCategories.Unit)]
 public class CorsOptionsTests
 {
     [Fact]
-    public void CorsOptions_Default_Should_HaveCorrectValues()
+    public void CorsOptions_Should_Have_Correct_Values_When_Default()
     {
         var options = CorsOptions.Default;
 
@@ -20,7 +22,7 @@ public class CorsOptionsTests
     }
 
     [Fact]
-    public void CorsOptions_Should_SupportCustomConfiguration()
+    public void CorsOptions_Should_Support_Custom_Configuration()
     {
         var customOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

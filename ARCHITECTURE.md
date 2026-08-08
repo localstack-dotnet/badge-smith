@@ -66,7 +66,7 @@ BadgeSmith prioritizes **cold start performance** and **deployment efficiency**:
 - Reduce final binary size
 - Improve cold start performance
 
-Controlled via build arguments in `Dockerfile` and `build-lambda.sh` scripts.
+Controlled via build arguments in `Dockerfile` and the `tools/badgesmith.cs lambda build` command.
 
 ## 📊 **Data Architecture**
 
@@ -105,12 +105,15 @@ BadgeSmith uses **three DynamoDB tables** with optimized access patterns:
 
 ### **Database Seeding**
 
-The **`BadgeSmith.DynamoDb.Seeders`** project provides:
+The **`badgesmith secrets seed`** command (in `tools/badgesmith.cs`) provides:
 
 - **Local development setup**: Seeds test data for LocalStack
 - **Production deployment**: Can seed real AWS resources (with appropriate credentials)
 - **Configuration-driven**: JSON-based organization and secret management
 - **Idempotent operations**: Safe to run multiple times
+
+See `tools/README.md` for secret mapping format and the org-scoped secret name
+`badgesmith/github/{org}/{key}`.
 
 ## 🚦 **Routing Infrastructure**
 
@@ -144,15 +147,70 @@ BadgeSmith implements **custom routing** optimized for Lambda environments:
 
 ## 🔐 **Security Architecture**
 
-### **HMAC Authentication Flow**
+### **Canonical HMAC Authentication**
 
-**For test result ingestion endpoints:**
+`POST /tests/results/{platform}/{owner}/{repo}/{branch}` accepts only canonical-request
+HMAC-SHA256 signatures. This contract is a hard cut: clients and the server must use the
+same newline-delimited UTF-8 message in this exact field order:
 
-1. **Organization Lookup**: Extract organization from route parameters
-2. **Secret Retrieval**: Query organization secrets from DynamoDB → Secrets Manager
-3. **Signature Validation**: HMAC-SHA256 verification with constant-time comparison
-4. **Replay Protection**: Nonce validation with DynamoDB conditional writes
-5. **Timestamp Validation**: 5-minute window with clock skew protection
+```text
+BADGESMITH-HMAC
+POST
+/tests/results/{platform}/{owner}/{repo}/{branch}
+{timestamp}
+{nonce}
+{sha256-body}
+```
+
+There is no trailing newline. Canonical fields follow these rules:
+
+- The path is the logical BadgeSmith ingestion route, without a deployment host, stage,
+  custom base path, or query string.
+- The decoded logical `platform`, `owner`, and `repo` values use `ToLowerInvariant()`.
+- The decoded `branch` case and value are preserved.
+- Every logical route segment is escaped independently with `Uri.EscapeDataString`.
+- `timestamp` and `nonce` are the trimmed `X-Timestamp` and `X-Nonce` header values.
+- `sha256-body` is lowercase hexadecimal SHA-256 over the exact UTF-8 request body.
+
+Clients must emit `X-Signature` as `sha256=` followed by exactly 64 lowercase
+HMAC-SHA256 hexadecimal characters. The verifier accepts case-insensitive scheme and
+digest casing, but producer output remains canonical. The HMAC key is the organization's
+`TestData` secret, separate from package-access credentials.
+
+Authentication validates that the timestamp is no more than five minutes old and no
+more than one minute in the future, resolves the organization-scoped secret, and
+compares the exact-length signature digest in fixed time. Only after that comparison
+succeeds is the trimmed nonce atomically marked in DynamoDB. A failed signature does not
+consume the nonce.
+
+Both `badgesmith tests ingest` and `badgesmith badge update` sign this canonical
+request. Their dry-run output may include the URL, payload, timestamp, and nonce, but
+never the signature or digest. Both commands require HTTPS; HTTP is accepted only for
+loopback hosts (`localhost`, `127.0.0.0/8`, or `::1`).
+
+### Upstream And Transport Modes
+
+`BADGESMITH_UPSTREAM_MODE` is an explicit `Live` or `Mock` contract. Missing values
+default to `Live`.
+
+- `Live` requires HTTPS for configured NuGet and GitHub upstream URLs. The Aspire
+  AppHost also requires `tools/organization-pat-mapping.json` and fails before startup
+  when it is missing.
+- `Mock` is accepted only by builds compiled with `ENABLE_LOCALSTACK`. Both
+  `HTTP_NUGET_BASE_URL` and `HTTP_GITHUB_BASE_URL` are required and may use HTTP for
+  test-owned WireMock endpoints. The contract fixture owns deterministic secret seeding.
+- Production CDK sets `Live` explicitly, and production builds reject `Mock` even if an
+  environment variable is misconfigured.
+
+Client commands that upload HMAC-authenticated test data do not inherit upstream mode.
+Their BadgeSmith API base URL always requires HTTPS, with HTTP allowed only for loopback
+development endpoints.
+
+The stored `url_html` value is the click target behind the public test-result redirect.
+It may point to dorny, Allure, ReportPortal, or another white-label HTTPS report host;
+it is not restricted to the GitHub workflow origin. Choosing that target is an explicit
+capability of an organization-authorized HMAC ingester. Both stored result URLs must be
+absolute HTTPS URLs without embedded credentials.
 
 **Security Features:**
 
@@ -191,14 +249,25 @@ Package badge endpoints are **unauthenticated** but include:
 
 ## 🛠️ **Development Tooling**
 
-### **Scripts Directory**
+### **`badgesmith` CLI**
 
-**`scripts/`** contains development and testing tooling:
+**`tools/badgesmith.cs`** is the file-based .NET CLI that owns BadgeSmith-specific
+build, test, ingestion, badge-update, and secret-seed workflows:
 
-- **`build-lambda.sh/.ps1`**: Multi-platform Docker builds for Lambda deployment
-- **`test-ingestion.sh/.ps1`**: HMAC authentication testing with real API calls
-- **`k6-perf-test.js`**: Load testing with realistic traffic patterns
-- **`sample-test-payload.json`**: Example test result payload
+- **`lambda build`**: Multi-arch Docker builds for Lambda deployment (ZIP and container)
+- **`tests run`**: Per-target-framework `dotnet test` execution with TRX output
+- **`tests ingest`**: HMAC-authenticated test result ingestion against a running API
+- **`badge update`**: GitHub Actions test result posting used by the `update-test-badge` workflow
+- **`secrets seed`**: Seeds GitHub org secret mappings into DynamoDB and Secrets Manager
+
+See `tools/README.md` for full option reference and secret mapping setup.
+
+### **`scripts/`**
+
+**`scripts/`** holds the remaining load-testing fixtures:
+
+- **`k6-perf-test.js`**: HTTP load testing with realistic traffic patterns
+- **`sample-test-payload.json`**: Example test result payload for `tests ingest`
 
 ## 🏗️ **Code Organization**
 
@@ -238,12 +307,22 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 
 ### **AWS CDK Integration**
 
-**`build/`** directory contains **CDK infrastructure**:
+**`build/`** contains shared constructs and two separate .NET CDK app entrypoints:
 
-- **Shared constructs**: Common infrastructure patterns
-- **Environment-agnostic**: Same code for local and production
-- **Type-safe**: .NET CDK with compile-time validation
-- **Aspire integration**: CDK stacks can be deployed from Aspire host
+| Purpose | App project | CDK working directory | Native stack ID |
+| --- | --- | --- | --- |
+| Production | `build/BadgeSmith.CDK/BadgeSmith.CDK.csproj` | `build` | `BadgeSmithStack` |
+| Local performance | `build/BadgeSmith.CDK.LocalPerformance/BadgeSmith.CDK.LocalPerformance.csproj` | `build/BadgeSmith.CDK.LocalPerformance` | `BadgeSmithPerformanceStack` |
+
+The production app constructs only the production stack. Production deployment remains
+approval-gated, must target `BadgeSmithStack` explicitly, and must never use `--all`.
+The local-performance app constructs only LocalStack benchmarking infrastructure and is
+never deployed to AWS.
+
+The deferred `badgesmith perf baseline` command will consume the local-performance app
+as its infrastructure boundary when that command is implemented. See the
+[BadgeSmith CDK app guide](build/BadgeSmith.CDK/README.md) for the exact build and safe
+synthesis commands for each app.
 
 ### **Local Development**
 
@@ -251,6 +330,9 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 
 - **LocalStack integration**: AWS service emulation
 - **Lambda emulation**: Local function execution
+- **Contract tests**: Aspire Testing starts `src/BadgeSmith.Host` and calls `APIGatewayEmulator` over HTTP; the test suite does not use Lambda RIE.
+
+**Local benchmark execution** uses Docker, LocalStack, CDK, and k6. Production keeps API Gateway HTTP v2, but the local performance stack exposes a Lambda Function URL fallback because LocalStack Community 4.6 does not deploy API Gateway v2 CloudFormation resources in this workflow.
 
 ## 🚀 **Deployment Strategy**
 
@@ -262,9 +344,9 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 2. **Lambda image**: Minimal runtime for container deployment
 3. **Zip export**: Artifact generation for .zip deployment
 
-### **Build Scripts**
+### **Build Tooling**
 
-**`build-lambda.sh/.ps1`** provide **cross-platform build automation**:
+**`tools/badgesmith.cs lambda build`** provides **cross-platform build automation**:
 
 - **Multi-architecture**: x64 and ARM64 support
 - **Build targets**: ZIP artifacts and container images
@@ -288,21 +370,24 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 
 ## 🔄 **CI/CD Integration**
 
-### **Reusable Workflows**
+### **CI Composite Actions**
 
-**`.github/workflows/`** contains **reusable GitHub Actions**:
+**`.github/workflows/`** contains two composite actions with different scopes:
 
-- **`run-dotnet-tests/`**: Multi-framework test execution
-- **`update-test-badge/`**: HMAC-authenticated badge updates
+- **`run-dotnet-tests/`**: Repository-local multi-framework test execution
+- **`update-test-badge/`**: Remotely reusable HMAC-authenticated badge updates
 - **Cross-platform support**: Windows, Linux, macOS
 
-### **Self-Hosting Validation**
+### **Hosted Validation**
 
-BadgeSmith **validates itself** through CI/CD integration:
+Eligible pull requests run the Release build, the full test suite, and the hosted ARM64
+Lambda ZIP build. Live test-result publication is intentionally narrower:
 
-- **Real authentication**: HMAC signatures generated and validated
-- **Live API calls**: Test results posted to production API
-- **End-to-end verification**: Complete pipeline tested on every commit
+- **Pull requests**: Build, tests, and ARM64 artifact validation without production
+  mutation
+- **Master pushes**: The same checks plus a best-effort authenticated badge update
+- **Production CDK synth/deploy**: Separate approval-gated deployment workflow, not part
+  of the ordinary PR CI pipeline
 
 ---
 

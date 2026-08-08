@@ -54,6 +54,9 @@ Generated\ Files/
 tests/**/[Tt]est[Rr]esults/
 **/bin/**/[Tt]est[Rr]esults/
 **/obj/**/[Tt]est[Rr]esults/
+# Exception: source code for the TestResults feature tests is not test output
+!tests/BadgeSmith.Api.Tests/Features/TestResults/
+!tests/BadgeSmith.Api.Tests/Features/TestResults/**
 [Bb]uild[Ll]og.*
 *.trx
 
@@ -438,8 +441,17 @@ cdk.out
 .mcp.json
 opencode.jsonc
 
+.opencode/.gitignore
 .opencode/agents/
+.opencode/bun.lock
+.opencode/node_modules/
+.opencode/package-lock.json
+.opencode/package.json
+.opencode/skill/
 .opencode/skills/subagent-model-routing/
 
 # Editor / local harness config (machine-specific; may contain local MCP ports and personal settings)
 .vscode/
+external/
+
+.playwright-mcp

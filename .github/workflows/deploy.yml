@@ -36,7 +36,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ${{ inputs.build_lambda && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.build_lambda && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     environment: ${{ inputs.environment }}
     permissions:
       id-token: write   # Required for OIDC authentication
@@ -45,27 +45,27 @@ jobs:
     env:
       NUGET_PACKAGES: ${{ format('{0}/.nuget/packages', github.workspace) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: github-actions-badge-smith-deploy
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: "Cache NuGet packages"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ format('{0}/.nuget/packages', github.workspace) }}
           key: nuget-${{ hashFiles('**/Directory.Packages.props') }}-${{ hashFiles('**/*.csproj') }}-${{ hashFiles('**/packages.lock.json') }}
@@ -73,20 +73,20 @@ jobs:
               nuget-
 
       - name: Install AWS CDK
-        run: npm install -g aws-cdk
+        run: npm install --global aws-cdk@2.1135.1
 
       - name: Set up Docker Buildx
         if: inputs.build_lambda
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Lambda ZIP for ARM64
         if: inputs.build_lambda
         run: |
-          ./scripts/build-lambda.sh --target zip --rid linux-arm64 --clean --verbose
+          "${{ github.workspace }}/tools/badgesmith.cs" lambda build --target zip --rid linux-arm64 --clean --verbose
 
       - name: Download Lambda artifact
         if: ${{ !inputs.build_lambda }}
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: ci-cd.yml
@@ -102,21 +102,21 @@ jobs:
 
       - name: CDK synth
         working-directory: build
-        run: cdk synth --all
+        run: cdk synth BadgeSmithStack
 
       - name: CDK diff
         if: inputs.show_diff
         working-directory: build
         run: |
           echo "🔍 CDK Diff - Infrastructure changes:"
-          cdk diff --all || true
+          cdk diff BadgeSmithStack || true
         continue-on-error: true
 
       - name: CDK deploy
         working-directory: build
         run: |
           echo "🚀 Deploying BadgeSmith to ${{ inputs.environment }}..."
-          cdk deploy --all --require-approval never
+          cdk deploy BadgeSmithStack --require-approval never
 
       - name: Get deployment outputs
         working-directory: build

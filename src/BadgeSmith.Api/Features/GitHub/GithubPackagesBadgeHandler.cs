@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core;
@@ -152,3 +154,5 @@ internal class GithubPackagesBadgeHandler : IGithubPackagesBadgeHandler
         return true;
     }
 }
+
+#pragma warning restore CA1873

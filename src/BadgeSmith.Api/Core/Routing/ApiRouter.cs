@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
+using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing.Contracts;
 using Microsoft.Extensions.Logging;
@@ -63,7 +65,9 @@ internal class ApiRouter : IApiRouter
             activity?.SetStatus(ActivityStatusCode.Error);
             activity?.AddException(ex);
             _logger.LogError(ex, "An error occurred while handling API route");
-            return Helpers.ResponseHelper.InternalServerError($"Unhandled error: {ex.Message}");
+            return Helpers.ResponseHelper.InternalServerError("An error occurred processing the request");
         }
     }
 }
+
+#pragma warning restore CA1873

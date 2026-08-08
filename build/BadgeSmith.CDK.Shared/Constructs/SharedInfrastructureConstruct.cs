@@ -1,5 +1,3 @@
-#pragma warning disable CA1711, MA0051, MA0056
-
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using Constructs;

@@ -4,7 +4,6 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
 [![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange.svg)](https://aws.amazon.com/lambda/)
 [![Native AOT](https://img.shields.io/badge/Native-AOT-blue.svg)](https://docs.microsoft.com/en-us/dotnet/core/deploying/native-aot/)
-[![Test Results (Linux)](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.localstackfor.net%2Fbadges%2Ftests%2Flinux%2Flocalstack-dotnet%2Fbadge-smith%2Fmaster)](https://api.localstackfor.net/redirect/test-results/linux/localstack-dotnet/badge-smith/master)
 
 > **Badge service** for .NET packages and CI/CD test results with secure authentication and performance optimizations.
 
@@ -13,12 +12,6 @@
 **Successor to [localstack-nuget-badge-lambda](https://github.com/localstack-dotnet/localstack-nuget-badge-lambda)** with 5-10x performance improvements and security features.
 
 ## 🚀 **Live Examples**
-
-### **This Repository**
-
-BadgeSmith badges itself using its own API:
-
-[![Test Results (Linux)](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.localstackfor.net%2Fbadges%2Ftests%2Flinux%2Flocalstack-dotnet%2Fbadge-smith%2Fmaster)](https://api.localstackfor.net/redirect/test-results/linux/localstack-dotnet/badge-smith/master)
 
 ### **LocalStack.NET Client Examples**
 
@@ -32,10 +25,17 @@ BadgeSmith badges itself using its own API:
 
 ### **🔒 Secure Authentication**
 
-- **HMAC-SHA256 authentication** with replay protection for test ingestion
-- **AWS Secrets Manager** integration for credential management
-- **Nonce-based replay prevention** using DynamoDB
-- **Organization-level access control** with token type separation
+- **Canonical HMAC-SHA256 authentication** binds the method, logical ingestion route,
+  timestamp, nonce, and exact request body
+- **Organization-scoped `TestData` secrets** are isolated from package credentials
+- **Timestamp validation** accepts requests up to five minutes old with at most one
+  minute of future clock skew
+- **Nonce-based replay prevention** atomically marks the nonce only after fixed-time
+  signature verification succeeds
+
+Canonical request construction is a hard-cut contract. See
+**[ARCHITECTURE.md](ARCHITECTURE.md#canonical-hmac-authentication)** for the exact field
+order, normalization, escaping, and signature envelope.
 
 ### **⚡ Performance Optimizations**
 
@@ -84,9 +84,6 @@ https://api.localstackfor.net/badges/packages/nuget/Newtonsoft.Json
 
 # GitHub package with version filtering
 https://api.localstackfor.net/badges/packages/github/localstack-dotnet/localstack.client?version=(1.0,2.0)
-
-# Test results for this repository
-https://api.localstackfor.net/badges/tests/linux/localstack-dotnet/badge-smith/master
 ```
 
 ## 🏗️ **Architecture**
@@ -115,49 +112,62 @@ For detailed architectural decisions, performance considerations, data design, a
 ```markdown
 <!-- Add to your README.md -->
 ![NuGet](https://img.shields.io/endpoint?url=https://api.localstackfor.net/badges/packages/nuget/YourPackage)
-![Tests](https://img.shields.io/endpoint?url=https://api.localstackfor.net/badges/tests/linux/your-org/your-repo/main)
+[![Tests](https://img.shields.io/endpoint?url=https://api.localstackfor.net/badges/tests/linux/your-org/your-repo/main)](https://api.localstackfor.net/redirect/test-results/linux/your-org/your-repo/main)
 ```
 
 ### **Self-Hosting**
 
 ```bash
-# Clone and deploy
+# Clone and compile the production CDK app (does not deploy)
 git clone https://github.com/localstack-dotnet/badge-smith.git
-cd badge-smith/build
-dotnet run --project BadgeSmith.CDK
+cd badge-smith
+dotnet build build/BadgeSmith.CDK/BadgeSmith.CDK.csproj -c Release
 ```
+
+BadgeSmith has separate production and LocalStack-only performance CDK apps. Production
+CDK commands run from `build` and target `BadgeSmithStack`; local-performance commands
+run from `build/BadgeSmith.CDK.LocalPerformance` and target
+`BadgeSmithPerformanceStack`. See the [CDK app guide](build/BadgeSmith.CDK/README.md)
+for the required Lambda artifacts and safe synthesis commands. Production deployment is
+approval-gated and must never use `--all`; the local-performance app is not deployed to
+AWS.
 
 ### **Local Development**
 
 ```bash
-# Start with .NET Aspire + LocalStack
-dotnet run --project src/BadgeSmith.Host
+# Live upstream mode requires local Package and TestData secrets.
+cp tools/organization-pat-mapping.json.dist tools/organization-pat-mapping.json
+# Edit the copied file, then start .NET Aspire + LocalStack.
+aspire start --apphost src/BadgeSmith.Host/BadgeSmith.Host.csproj --non-interactive
+```
+
+The AppHost defaults to `BADGESMITH_UPSTREAM_MODE=Live`. Contract tests explicitly use
+`Mock`, route both package upstreams to WireMock, and own their fake secret seeding.
+
+### **Tooling**
+
+The `badgesmith` file-based CLI (`tools/badgesmith.cs`) owns Lambda builds,
+test runs, test-result ingestion, badge updates, and secret seeding. See
+[`tools/README.md`](tools/README.md) for the full command reference.
+
+```bash
+# Local AOT/LocalStack validation
+./tools/badgesmith.cs lambda build --target zip --rid linux-x64 --clean
+
+# Production artifact; requires an ARM64-capable builder and is validated in hosted CI
+./tools/badgesmith.cs lambda build --target zip --rid linux-arm64 --clean
 ```
 
 ## 🔄 **CI/CD Integration**
 
 ### **GitHub Actions**
 
-Copy the reusable workflows to your repository:
+The remotely reusable badge action posts test results to a BadgeSmith deployment. See the
+[action guide](.github/workflows/update-test-badge/README.md) for the canonical input
+list and supported major action tag.
 
-```bash
-cp -r .github/workflows/run-dotnet-tests/ your-repo/.github/workflows/
-cp -r .github/workflows/update-test-badge/ your-repo/.github/workflows/
-```
-
-Then use in your workflow:
-
-```yaml
-- name: Update test badge
-  uses: ./.github/workflows/update-test-badge
-  with:
-    platform: 'Linux'
-    test_passed: '${{ steps.test-results.outputs.passed }}'
-    test_failed: '${{ steps.test-results.outputs.failed }}'
-    test_skipped: '${{ steps.test-results.outputs.skipped }}'
-    hmac_secret: '${{ secrets.TESTDATASECRET }}'
-    api_domain: 'api.localstackfor.net'
-```
+The repository-local `run-dotnet-tests` action is an internal BadgeSmith workflow
+helper, not a portable test-runner contract.
 
 ## 🏢 **LocalStack.NET Organization**
 
@@ -191,8 +201,9 @@ BadgeSmith demonstrates current .NET development practices:
 
 ### **Reusable CDK Patterns**
 
-- Environment-agnostic infrastructure design
-- Shared constructs between local and production for deployment consistency
+- Separate production and LocalStack-only performance app entrypoints
+- Native stack selection with `BadgeSmithStack` and `BadgeSmithPerformanceStack`
+- Shared constructs across the two app boundaries
 - Type-safe infrastructure with .NET CDK
 
 ## 🤝 **Contributing**

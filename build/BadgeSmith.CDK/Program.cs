@@ -4,12 +4,7 @@ using static BadgeSmith.Constants;
 
 var app = new App();
 
-// Get environment from CDK context or CLI
-var env = new Amazon.CDK.Environment
-{
-    Account = app.Node.TryGetContext("account") as string ?? System.Environment.GetEnvironmentVariable("CDK_DEFAULT_ACCOUNT"),
-    Region = app.Node.TryGetContext("region") as string ?? System.Environment.GetEnvironmentVariable("CDK_DEFAULT_REGION"),
-};
+var env = CreateEnvironment(app);
 
 _ = new ProductionStack(app, ProductionStackId, new StackProps
 {
@@ -18,3 +13,23 @@ _ = new ProductionStack(app, ProductionStackId, new StackProps
 });
 
 app.Synth();
+
+static Amazon.CDK.Environment CreateEnvironment(App app)
+{
+    return new Amazon.CDK.Environment
+    {
+        Account = GetRequiredEnvironmentValue(app, "account", "CDK_DEFAULT_ACCOUNT"),
+        Region = GetRequiredEnvironmentValue(app, "region", "CDK_DEFAULT_REGION"),
+    };
+}
+
+static string GetRequiredEnvironmentValue(App app, string contextKey, string environmentVariable)
+{
+    var value = app.Node.TryGetContext(contextKey) as string
+                ?? System.Environment.GetEnvironmentVariable(environmentVariable);
+
+    return !string.IsNullOrWhiteSpace(value)
+        ? value
+        : throw new InvalidOperationException(
+            $"CDK environment value '{contextKey}' is required. Set CDK context '{contextKey}' or {environmentVariable}.");
+}

@@ -1,4 +1,4 @@
-#pragma warning disable CA1711, MA0051
+#pragma warning disable MA0051 // Keeping related table definitions together makes their shared policy visible.
 
 using Amazon.CDK;
 using Amazon.CDK.AWS.DynamoDB;
@@ -123,3 +123,5 @@ public class DynamoDbTablesConstruct : Construct
 
     public Table OrgSecretsTable { get; }
 }
+
+#pragma warning restore MA0051

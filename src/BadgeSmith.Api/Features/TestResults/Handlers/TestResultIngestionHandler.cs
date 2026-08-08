@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
+using System.Diagnostics;
 using System.Text.Json;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing;
@@ -195,15 +197,12 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
             payload = JsonSerializer.Deserialize(requestBody, LambdaFunctionJsonSerializerContext.Default.TestResultPayload)!;
             return true;
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            errorResponse = ResponseHelper.BadRequest($"Invalid JSON payload: {ex.Message}");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            errorResponse = ResponseHelper.InternalServerError($"Failed to parse payload: {ex.Message}");
+            errorResponse = ResponseHelper.BadRequest("Invalid JSON payload");
             return false;
         }
     }
 }
+
+#pragma warning restore CA1873

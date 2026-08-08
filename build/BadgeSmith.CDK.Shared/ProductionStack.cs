@@ -1,4 +1,4 @@
-#pragma warning disable CA1711, MA0051
+#pragma warning disable CA1711 // AWS CDK stack types intentionally use the Stack suffix.
 
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
@@ -9,7 +9,6 @@ using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
-using Amazon.CDK.AwsApigatewayv2Integrations;
 using BadgeSmith.CDK.Shared.Constructs;
 using Constructs;
 using Function = Amazon.CDK.AWS.Lambda.Function;
@@ -42,7 +41,8 @@ public sealed class ProductionStack : Stack
 
         BadgeSmithFunction = BadgeSmithFunctionConstruct.BadgeSmithFunction;
 
-        ApiGateway = CreateApiGateway();
+        var httpApiConstruct = new BadgeSmithHttpApiConstruct(this, ApiGatewayRoleId, BadgeSmithFunction);
+        ApiGateway = httpApiConstruct.ApiGateway;
 
         var logGroup = new LogGroup(this, "HttpApiAccessLogs", new LogGroupProps
         {
@@ -85,18 +85,6 @@ public sealed class ProductionStack : Stack
     /// </summary>
     private ICertificate ApiLocalStackCertificate =>
         Certificate.FromCertificateArn(this, ApiCertificateId, "arn:aws:acm:us-east-1:377140207735:certificate/227f14fe-92b1-442c-bb80-ae4032e742fe");
-
-    private HttpApi CreateApiGateway()
-    {
-        var lambdaIntegration = new HttpLambdaIntegration(HttpLambdaIntegrationId, BadgeSmithFunction);
-
-        return new HttpApi(this, ApiGatewayRoleId, new HttpApiProps
-        {
-            ApiName = ApiGatewayName,
-            Description = "BadgeSmith API Gateway for badge endpoints",
-            DefaultIntegration = lambdaIntegration,
-        });
-    }
 
     private Distribution CreateCloudFrontDistribution()
     {
@@ -215,3 +203,5 @@ public sealed class ProductionStack : Stack
 
     public Distribution CloudFrontDistribution { get; }
 }
+
+#pragma warning restore CA1711

@@ -1,4 +1,4 @@
-#pragma warning disable CA1812,CA1852,CA1515
+#pragma warning disable CA1812, CA1852, CA1515 // BenchmarkDotNet requires public, non-sealed types instantiated by generated code.
 
 using System.Buffers;
 using BadgeSmith.Api.Core.Routing;
@@ -20,7 +20,7 @@ public class BufferAllocationBenchmarks
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void RouteValues_Set_2Parameters_FixedArray()
+    public void RouteValues_Set_Should_Measure_Fixed_Array_When_2_Parameters()
     {
         var buffer = new (string, int, int)[8]; // Current strategy
         var values = new RouteValues(TestPath.AsSpan(), buffer.AsSpan());
@@ -31,7 +31,7 @@ public class BufferAllocationBenchmarks
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void RouteValues_Set_4Parameters_FixedArray()
+    public void RouteValues_Set_Should_Measure_Fixed_Array_When_4_Parameters()
     {
         var buffer = new (string, int, int)[8]; // Current strategy
         var values = new RouteValues(TestPath.AsSpan(), buffer.AsSpan());
@@ -43,7 +43,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteValues_Set_8Parameters_FixedArray()
+    public void RouteValues_Set_Should_Measure_Fixed_Array_When_8_Parameters()
     {
         var buffer = new (string, int, int)[8]; // Current strategy - will fill exactly
         var values = new RouteValues(TestPath.AsSpan(), buffer.AsSpan());
@@ -55,7 +55,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteValues_Set_2Parameters_ArrayPool()
+    public void RouteValues_Set_Should_Measure_ArrayPool_When_2_Parameters()
     {
         var buffer = ArrayPool<(string, int, int)>.Shared.Rent(8);
         try
@@ -72,7 +72,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteValues_ParameterExtraction_String()
+    public void RouteValues_Should_Measure_Parameter_Extraction_When_Using_String()
     {
         var buffer = new (string, int, int)[8];
         var values = new RouteValues(TestPath.AsSpan(), buffer.AsSpan());
@@ -87,7 +87,7 @@ public class BufferAllocationBenchmarks
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void RouteValues_ParameterExtraction_Span()
+    public void RouteValues_Should_Measure_Parameter_Extraction_When_Using_Span()
     {
         var buffer = new (string, int, int)[8];
         var values = new RouteValues(TestPath.AsSpan(), buffer.AsSpan());
@@ -101,7 +101,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteResolver_TryResolve_Current()
+    public void RouteResolver_TryResolve_Should_Measure_Current_Implementation()
     {
         // Simulate the current RouteResolver.TryResolve an allocation pattern
         var routes = new[]
@@ -116,7 +116,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteResolver_GetAllowedMethods_Current()
+    public void RouteResolver_GetAllowedMethods_Should_Measure_Current_Implementation()
     {
         // Simulate the current RouteResolver.GetAllowedMethods allocation pattern
         var routes = new[]
@@ -131,7 +131,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteValues_Dictionary_Conversion()
+    public void RouteValues_Should_Measure_Dictionary_Conversion()
     {
         var buffer = new (string, int, int)[8];
         var values = new RouteValues(TestPath.AsSpan(), buffer.AsSpan());
@@ -146,7 +146,7 @@ public class BufferAllocationBenchmarks
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void RouteResolver_TryResolve_Optimized()
+    public void RouteResolver_TryResolve_Should_Measure_Optimized_Implementation()
     {
         // Test the optimized version with buffer sharing - same logic but tests our fix
         var routes = new[]
@@ -161,7 +161,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteResolver_MultiRoute_GetAllowedMethods()
+    public void RouteResolver_GetAllowedMethods_Should_Measure_Multi_Route_Case()
     {
         // Test with multiple routes to see real-world buffer reuse impact
         var routes = new[]
@@ -179,7 +179,7 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteResolver_MultiRoute_TryResolve()
+    public void RouteResolver_TryResolve_Should_Measure_Multi_Route_Case()
     {
         // Test TryResolve with multiple routes
         var routes = new[]
@@ -197,7 +197,7 @@ public class BufferAllocationBenchmarks
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void BufferAllocation_Isolated_Current()
+    public void BufferAllocation_Should_Measure_Isolated_Current_Implementation()
     {
         // Test JUST the buffer allocation (current approach - per route)
         for (var i = 0; i < 3; i++) // Simulate 3 route checks
@@ -210,7 +210,7 @@ public class BufferAllocationBenchmarks
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void BufferAllocation_Isolated_Optimized()
+    public void BufferAllocation_Should_Measure_Isolated_Optimized_Implementation()
     {
         // Test JUST the buffer allocation (optimized approach - shared)
         var paramBuffer = new (string, int, int)[8]; // SHARED buffer
@@ -221,3 +221,5 @@ public class BufferAllocationBenchmarks
         }
     }
 }
+
+#pragma warning restore CA1812, CA1852, CA1515

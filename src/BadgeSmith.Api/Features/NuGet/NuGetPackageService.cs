@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Net;
 using System.Text.Json;
 using BadgeSmith.Api.Core;
@@ -108,3 +110,5 @@ internal class NuGetPackageService : INuGetPackageService
             );
     }
 }
+
+#pragma warning restore CA1873

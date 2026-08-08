@@ -1,3 +1,5 @@
+#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
+
 using System.Globalization;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
@@ -70,7 +72,7 @@ internal sealed class TestResultsService : ITestResultsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to store test result {RunId} for {Owner}/{Repo}", entity.RunId, entity.Owner, entity.Repo);
-            return new Error($"Failed to store test result: {ex.Message}");
+            return new Error("Failed to store test result");
         }
     }
 
@@ -90,7 +92,7 @@ internal sealed class TestResultsService : ITestResultsService
 
         _logger.LogDebug("Querying latest test result for {Owner}/{Repo} on {Platform}/{Branch}", ownerNormalized, repoNormalized, platformNormalized, branchNormalized);
 
-        var gsi1Pk = $"LATEST#{owner}#{repo}#{platform}#{branch}";
+        var gsi1Pk = $"LATEST#{ownerNormalized}#{repoNormalized}#{platformNormalized}#{branchNormalized}";
 
         var queryRequest = new QueryRequest
         {
@@ -158,19 +160,27 @@ internal sealed class TestResultsService : ITestResultsService
         }
 
         // Validate URLs
-        if (!Uri.TryCreate(payload.UrlHtml, UriKind.Absolute, out _))
+        if (!IsValidHttpsUrl(payload.UrlHtml))
         {
-            error = new InvalidTestPayload("Invalid url_html format");
+            error = new InvalidTestPayload("url_html must be an absolute HTTPS URL without credentials");
             return false;
         }
 
-        if (!Uri.TryCreate(payload.WorkflowRunUrl, UriKind.Absolute, out _))
+        if (!IsValidHttpsUrl(payload.WorkflowRunUrl))
         {
-            error = new InvalidTestPayload("Invalid workflow_run_url format");
+            error = new InvalidTestPayload("workflow_run_url must be an absolute HTTPS URL without credentials");
             return false;
         }
 
         return true;
+    }
+
+    private static bool IsValidHttpsUrl(string value)
+    {
+        return Uri.TryCreate(value, UriKind.Absolute, out var uri)
+               && uri.Scheme == Uri.UriSchemeHttps
+               && !string.IsNullOrWhiteSpace(uri.Host)
+               && string.IsNullOrEmpty(uri.UserInfo);
     }
 
     private static PutItemRequest MapToDynamoDbItem(TestResultEntity entity, string tableName)
@@ -244,3 +254,5 @@ internal sealed class TestResultsService : ITestResultsService
         );
     }
 }
+
+#pragma warning restore CA1873

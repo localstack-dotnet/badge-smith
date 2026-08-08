@@ -1,0 +1,23 @@
+<Project>
+  <Import Project="..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <PackAsTool>false</PackAsTool>
+    <PublishAot>false</PublishAot>
+    <!-- File-based dotnet apps default the root namespace to the entry file name (badgesmith).
+         Override so the BadgeSmith.Tools.* folder structure satisfies IDE0130. -->
+    <RootNamespace>BadgeSmith.Tools</RootNamespace>
+    <!-- File-based tools intentionally turn GenerateDocumentationFile off; the IDE0005 emitter
+         cannot run without it (https://github.com/dotnet/roslyn/issues/41640) and reports a
+         build-breaking "EnableGenerateDocumentationFile" diagnostic, so the whole rule is
+         suppressed here. No real IDE0005 violations are being hidden. -->
+    <!-- slopwatch-ignore: SW005 IDE0005 cannot be evaluated when GenerateDocumentationFile=false for file-based apps -->
+    <NoWarn>$(NoWarn);IDE0005</NoWarn>
+    <!-- Spectre.Console.Cli and Microsoft.Extensions.DependencyInjection instantiate command,
+         settings, and service types through reflection, which CA1812 cannot observe. -->
+    <!-- slopwatch-ignore: SW005 CA1812 cannot observe Spectre.Console.Cli and DI activation -->
+    <NoWarn>$(NoWarn);CA1812</NoWarn>
+  </PropertyGroup>
+</Project>

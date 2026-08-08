@@ -1,0 +1,18 @@
+{
+  "secrets": [
+    {
+      "org_name": "<org-name>",
+      "name": "package",
+      "secret": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "type": "Package",
+      "description": "Example GitHub Packages PAT"
+    },
+    {
+      "org_name": "<org-name>",
+      "name": "testdata",
+      "secret": "your-hmac-secret-here",
+      "type": "TestData",
+      "description": "Example HMAC secret for test result ingestion"
+    }
+  ]
+}
