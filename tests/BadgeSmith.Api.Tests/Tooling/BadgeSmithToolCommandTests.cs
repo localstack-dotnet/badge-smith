@@ -72,8 +72,13 @@ public sealed class BadgeSmithToolCommandTests
     {
         const string payload =
             "{\"platform\":\"Linux\",\"passed\":1,\"failed\":0,\"skipped\":0,\"total\":1,\"url_html\":\"https://example.com/run\",\"timestamp\":\"2026-01-01T00:00:00Z\",\"commit\":\"abc123\",\"run_id\":\"1\",\"workflow_run_url\":\"https://example.com/workflow\"}";
-        var result = await RunToolAsync("tests", "ingest", "--base-url", "https://example.com", "--owner", "LocalStack-DotNet", "--repo", "BadgeSmith", "--platform", "Linux",
-            "--branch", "feature/tools", "--secret", "test-secret", "--payload", payload, "--dry-run");
+        var result = await RunToolAsync(
+            new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                ["BADGESMITH_HMAC_SECRET"] = "test-secret",
+            },
+            "tests", "ingest", "--base-url", "https://example.com", "--owner", "LocalStack-DotNet", "--repo", "BadgeSmith", "--platform", "Linux",
+            "--branch", "feature/tools", "--payload", payload, "--dry-run");
 
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("DRY RUN", result.Output, StringComparison.OrdinalIgnoreCase);
@@ -86,11 +91,41 @@ public sealed class BadgeSmithToolCommandTests
     [Fact]
     public async Task TestsIngest_Should_Return_Non_Zero_When_Payload_And_Payload_File_Missing()
     {
-        var result = await RunToolAsync("tests", "ingest", "--base-url", "https://example.com", "--owner", "LocalStack-DotNet", "--repo", "BadgeSmith", "--platform", "Linux",
-            "--branch", "Main", "--secret", "test-secret", "--dry-run");
+        var result = await RunToolAsync(
+            new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                ["BADGESMITH_HMAC_SECRET"] = "test-secret",
+            },
+            "tests", "ingest", "--base-url", "https://example.com", "--owner", "LocalStack-DotNet", "--repo", "BadgeSmith", "--platform", "Linux",
+            "--branch", "Main", "--dry-run");
 
         Assert.NotEqual(0, result.ExitCode);
         Assert.Contains("payload", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task TestsIngest_Should_Return_Validation_When_Hmac_Environment_Variable_Is_Missing()
+    {
+        const string payload = "{\"platform\":\"Linux\",\"passed\":1,\"failed\":0,\"skipped\":0,\"total\":1}";
+        var result = await RunToolAsync(
+            new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                ["BADGESMITH_HMAC_SECRET"] = null,
+            },
+            "tests", "ingest", "--base-url", "https://example.com", "--owner", "LocalStack-DotNet", "--repo", "BadgeSmith", "--platform", "Linux",
+            "--branch", "Main", "--payload", payload, "--dry-run");
+
+        Assert.Equal(ToolExitCodes.ValidationFailure, result.ExitCode);
+        Assert.Contains("BADGESMITH_HMAC_SECRET", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TestsIngest_Should_Not_Expose_Secret_Command_Option()
+    {
+        var result = await RunToolAsync("tests", "ingest", "--help");
+
+        Assert.Equal(ToolExitCodes.Success, result.ExitCode);
+        Assert.DoesNotContain("--secret", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -106,7 +141,7 @@ public sealed class BadgeSmithToolCommandTests
             "--test-passed", "2",
             "--test-failed", "0",
             "--test-skipped", "1",
-            "--test-url-html", "https://example.com/tests",
+            "--test-url-html", "https://reports.example.com/badge-smith/runs/42",
             "--commit-sha", "abc123",
             "--run-id", "42",
             "--repository", "localstack-dotnet/badge-smith",

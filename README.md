@@ -112,7 +112,7 @@ For detailed architectural decisions, performance considerations, data design, a
 ```markdown
 <!-- Add to your README.md -->
 ![NuGet](https://img.shields.io/endpoint?url=https://api.localstackfor.net/badges/packages/nuget/YourPackage)
-![Tests](https://img.shields.io/endpoint?url=https://api.localstackfor.net/badges/tests/linux/your-org/your-repo/main)
+[![Tests](https://img.shields.io/endpoint?url=https://api.localstackfor.net/badges/tests/linux/your-org/your-repo/main)](https://api.localstackfor.net/redirect/test-results/linux/your-org/your-repo/main)
 ```
 
 ### **Self-Hosting**

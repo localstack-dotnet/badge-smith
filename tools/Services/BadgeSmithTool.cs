@@ -62,7 +62,7 @@ internal static class BadgeSmithTool
                     .WithExample("tests", "run", "--project-path", "tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj", "--results-dir", "test-results");
                 tests.AddCommand<TestIngestCommand>("ingest")
                     .WithDescription("Post a test result payload to BadgeSmith.")
-                    .WithExample("tests", "ingest", "--base-url", "https://api.example.com", "--owner", "localstack-dotnet", "--repo", "badge-smith", "--platform", "linux", "--branch", "main", "--secret", "secret", "--payload-file", "payload.json", "--dry-run");
+                    .WithExample("tests", "ingest", "--base-url", "https://api.example.com", "--owner", "localstack-dotnet", "--repo", "badge-smith", "--platform", "linux", "--branch", "main", "--payload-file", "payload.json", "--dry-run");
             });
             config.AddBranch("secrets", secrets =>
             {

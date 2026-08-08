@@ -52,6 +52,9 @@ ingestion route, trimmed timestamp and nonce, and exact request body. The result
 [ARCHITECTURE.md](../ARCHITECTURE.md#canonical-hmac-authentication) for the exact field
 order, normalization, escaping, timestamp policy, and nonce behavior.
 
+Both commands read the shared secret from `BADGESMITH_HMAC_SECRET`; neither accepts
+the secret as a command argument.
+
 For either command, `--dry-run` may print the URL, payload, timestamp, and nonce, but it
 does not print the signature or digest.
 
@@ -114,11 +117,12 @@ The base URL must use HTTPS; HTTP is accepted only for loopback hosts (`localhos
 `127.0.0.0/8`, or `::1`) used during local development.
 
 ```bash
+export BADGESMITH_HMAC_SECRET="$HMAC_SECRET"
+
 ./tools/badgesmith.cs tests ingest \
   --base-url http://localhost:9474 \
   --owner localstack-dotnet --repo localstack.client \
   --platform linux --branch main \
-  --secret "$HMAC_SECRET" \
   --payload-file scripts/sample-test-payload.json --verbose
 
 # Inline payload, no network call:
@@ -126,7 +130,6 @@ The base URL must use HTTPS; HTTP is accepted only for loopback hosts (`localhos
   --base-url http://localhost:9474 \
   --owner localstack-dotnet --repo localstack.client \
   --platform linux --branch main \
-  --secret "$HMAC_SECRET" \
   --payload '{"platform":"Linux","passed":190,"failed":0,"skipped":0,"total":190}' \
   --dry-run
 ```

@@ -160,19 +160,27 @@ internal sealed class TestResultsService : ITestResultsService
         }
 
         // Validate URLs
-        if (!Uri.TryCreate(payload.UrlHtml, UriKind.Absolute, out _))
+        if (!IsValidHttpsUrl(payload.UrlHtml))
         {
-            error = new InvalidTestPayload("Invalid url_html format");
+            error = new InvalidTestPayload("url_html must be an absolute HTTPS URL without credentials");
             return false;
         }
 
-        if (!Uri.TryCreate(payload.WorkflowRunUrl, UriKind.Absolute, out _))
+        if (!IsValidHttpsUrl(payload.WorkflowRunUrl))
         {
-            error = new InvalidTestPayload("Invalid workflow_run_url format");
+            error = new InvalidTestPayload("workflow_run_url must be an absolute HTTPS URL without credentials");
             return false;
         }
 
         return true;
+    }
+
+    private static bool IsValidHttpsUrl(string value)
+    {
+        return Uri.TryCreate(value, UriKind.Absolute, out var uri)
+               && uri.Scheme == Uri.UriSchemeHttps
+               && !string.IsNullOrWhiteSpace(uri.Host)
+               && string.IsNullOrEmpty(uri.UserInfo);
     }
 
     private static PutItemRequest MapToDynamoDbItem(TestResultEntity entity, string tableName)

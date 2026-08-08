@@ -1,5 +1,5 @@
 using BadgeSmith.Tools.Infrastructure;
-using BadgeSmith.Tools.Services;
+using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
@@ -9,14 +9,20 @@ namespace BadgeSmith.Tools.Commands;
 
 internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
 {
+    private const string HmacSecretConfigurationKey = "BADGESMITH_HMAC_SECRET";
+
     private readonly IAnsiConsole _console;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfiguration _configuration;
 
-    public TestIngestCommand(IHttpClientFactory httpClientFactory, IAnsiConsole console, IToolLogger logger)
+    public TestIngestCommand(
+        IHttpClientFactory httpClientFactory,
+        IAnsiConsole console,
+        IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _console = console ?? throw new ArgumentNullException(nameof(console));
-        ArgumentNullException.ThrowIfNull(logger);
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     protected override async Task<int> ExecuteAsync(CommandContext context, TestIngestSettings settings, CancellationToken cancellationToken)
@@ -32,9 +38,16 @@ internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
         var platform = settings.Platform.ToLowerInvariant();
         var branch = settings.Branch;
         var url = urls.BuildIngestUrl(platform, owner, repo, branch);
+        var hmacSecret = _configuration[HmacSecretConfigurationKey];
+        if (string.IsNullOrWhiteSpace(hmacSecret))
+        {
+            _console.MarkupLine($"[red]{HmacSecretConfigurationKey} is required.[/]");
+            return ToolExitCodes.ValidationFailure;
+        }
+
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
         var nonce = Guid.NewGuid().ToString("N");
-        var signature = HmacSigner.CreateSignature(owner, repo, platform, branch, timestamp, nonce, payloadJson, settings.Secret);
+        var signature = HmacSigner.CreateSignature(owner, repo, platform, branch, timestamp, nonce, payloadJson, hmacSecret);
 
         if (settings.DryRun)
         {
@@ -98,10 +111,6 @@ internal sealed class TestIngestSettings : CommandSettings
     [Description("Git branch name.")]
     public string Branch { get; init; } = "unknown";
 
-    [CommandOption("--secret")]
-    [Description("HMAC shared secret.")]
-    public string Secret { get; init; } = "";
-
     [CommandOption("--payload-file")]
     [Description("Path to a JSON payload file.")]
     public string? PayloadFile { get; init; }
@@ -148,11 +157,6 @@ internal sealed class TestIngestSettings : CommandSettings
         if (string.IsNullOrWhiteSpace(Branch))
         {
             return ValidationResult.Error("--branch is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(Secret))
-        {
-            return ValidationResult.Error("--secret is required.");
         }
 
         var hasPayloadFile = !string.IsNullOrWhiteSpace(PayloadFile);

@@ -16,7 +16,7 @@ inputs:
     description: 'Number of skipped tests'
     required: true
   test_url_html:
-    description: 'URL to test results page'
+    description: 'Optional HTTPS test-report URL; defaults to the current workflow run'
     required: false
     default: ''
   commit_sha:

@@ -36,6 +36,10 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
         var platform = settings.Platform.ToLowerInvariant();
         var branch = GitHubActions.ResolveBranch(settings.Branch);
         var total = settings.TestPassed + settings.TestFailed + settings.TestSkipped;
+        var workflowRunUrl = $"{settings.ServerUrl.TrimEnd('/')}/{Uri.EscapeDataString(repositoryParts[0])}/{Uri.EscapeDataString(repositoryParts[1])}/actions/runs/{Uri.EscapeDataString(settings.RunId)}";
+        var testUrlHtml = string.IsNullOrWhiteSpace(settings.TestUrlHtml)
+            ? workflowRunUrl
+            : settings.TestUrlHtml.Trim();
         var hmacSecret = _configuration[HmacSecretConfigurationKey];
         if (string.IsNullOrWhiteSpace(hmacSecret))
         {
@@ -49,11 +53,11 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
             Failed: settings.TestFailed,
             Skipped: settings.TestSkipped,
             Total: total,
-            UrlHtml: settings.TestUrlHtml ?? "",
+            UrlHtml: testUrlHtml,
             Timestamp: DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture),
             Commit: settings.CommitSha,
             RunId: settings.RunId,
-            WorkflowRunUrl: $"{settings.ServerUrl.TrimEnd('/')}/{settings.Repository}/actions/runs/{settings.RunId}");
+            WorkflowRunUrl: workflowRunUrl);
 
         var payloadJson = JsonSerializer.Serialize(payload, ToolJsonSerializerContext.Default.TestResultPayload);
         var url = urls.BuildIngestUrl(platform, owner, repo, branch);
@@ -75,7 +79,6 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
             return ToolExitCodes.Success;
         }
 
-        var client = _httpClientFactory.CreateClient("badgesmith-api");
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url))
         {
             Content = new StringContent(payloadJson, System.Text.Encoding.UTF8, "application/json"),
@@ -84,19 +87,67 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
         request.Headers.Add("X-Nonce", nonce);
         request.Headers.Add("X-Signature", signature);
 
-        var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await PostBadgeUpdateAsync(
+            request, url, badgeUrl, redirectUrl, settings, cancellationToken).ConfigureAwait(false);
+    }
 
-        if (response.IsSuccessStatusCode)
+    private async Task<int> PostBadgeUpdateAsync(
+        HttpRequestMessage request,
+        string url,
+        string badgeUrl,
+        string redirectUrl,
+        BadgeUpdateSettings settings,
+        CancellationToken cancellationToken)
+    {
+        var client = _httpClientFactory.CreateClient("badgesmith-api");
+        HttpResponseMessage response;
+        try
         {
-            _console.MarkupLine($"[green]Successfully posted to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
-            await WriteStepSummaryAsync(badgeUrl, redirectUrl, settings.Platform, cancellationToken).ConfigureAwait(false);
-            return ToolExitCodes.Success;
+            response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+        catch (HttpRequestException ex)
+        {
+            return await HandleTransportFailureAsync(
+                ex.Message, settings, badgeUrl, redirectUrl, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            return await HandleTransportFailureAsync(
+                ex.Message, settings, badgeUrl, redirectUrl, cancellationToken).ConfigureAwait(false);
         }
 
-        var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        _console.MarkupLine($"[yellow]Failed to post to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
-        await _console.Profile.Out.Writer.WriteLineAsync(errorBody).ConfigureAwait(false);
+        using (response)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                _console.MarkupLine($"[green]Successfully posted to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
+                await WriteStepSummaryAsync(badgeUrl, redirectUrl, settings.Platform, cancellationToken).ConfigureAwait(false);
+                return ToolExitCodes.Success;
+            }
 
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            _console.MarkupLine($"[yellow]Failed to post to {Markup.Escape(url)} (HTTP {(int)response.StatusCode})[/]");
+            await _console.Profile.Out.Writer.WriteLineAsync(errorBody).ConfigureAwait(false);
+
+            if (settings.FailOnError)
+            {
+                return ToolExitCodes.NetworkFailure;
+            }
+        }
+
+        _console.MarkupLine("[yellow]Badge update failure does not fail CI by default. Use --fail-on-error to opt into non-zero exit.[/]");
+        await WriteStepSummaryAsync(badgeUrl, redirectUrl, settings.Platform, cancellationToken).ConfigureAwait(false);
+        return ToolExitCodes.Success;
+    }
+
+    private async Task<int> HandleTransportFailureAsync(
+        string message,
+        BadgeUpdateSettings settings,
+        string badgeUrl,
+        string redirectUrl,
+        CancellationToken cancellationToken)
+    {
+        _console.MarkupLine($"[yellow]Failed to post test results: {Markup.Escape(message)}[/]");
         if (settings.FailOnError)
         {
             return ToolExitCodes.NetworkFailure;
@@ -208,8 +259,40 @@ internal sealed class BadgeUpdateSettings : CommandSettings
             return ValidationResult.Error("--server-url is required.");
         }
 
+        if (!TryValidateHttpsUrl(ServerUrl, allowQueryOrFragment: false, out var serverUrlError))
+        {
+            return ValidationResult.Error($"--server-url {serverUrlError}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(TestUrlHtml)
+            && !TryValidateHttpsUrl(TestUrlHtml, allowQueryOrFragment: true, out var testUrlError))
+        {
+            return ValidationResult.Error($"--test-url-html {testUrlError}");
+        }
+
         return Repository.Split('/', StringSplitOptions.RemoveEmptyEntries).Length == 2
             ? ValidationResult.Success()
             : ValidationResult.Error("--repository must be in owner/repo format.");
+    }
+
+    private static bool TryValidateHttpsUrl(
+        string value,
+        bool allowQueryOrFragment,
+        out string error)
+    {
+        if (!Uri.TryCreate(value.Trim(), UriKind.Absolute, out var parsedUri)
+            || parsedUri.Scheme != Uri.UriSchemeHttps
+            || string.IsNullOrWhiteSpace(parsedUri.Host)
+            || !string.IsNullOrEmpty(parsedUri.UserInfo)
+            || (!allowQueryOrFragment && (!string.IsNullOrEmpty(parsedUri.Query) || !string.IsNullOrEmpty(parsedUri.Fragment))))
+        {
+            error = allowQueryOrFragment
+                ? "must be an absolute HTTPS URL without credentials."
+                : "must be an absolute HTTPS URL without credentials, query, or fragment.";
+            return false;
+        }
+
+        error = "";
+        return true;
     }
 }

@@ -206,6 +206,12 @@ Client commands that upload HMAC-authenticated test data do not inherit upstream
 Their BadgeSmith API base URL always requires HTTPS, with HTTP allowed only for loopback
 development endpoints.
 
+The stored `url_html` value is the click target behind the public test-result redirect.
+It may point to dorny, Allure, ReportPortal, or another white-label HTTPS report host;
+it is not restricted to the GitHub workflow origin. Choosing that target is an explicit
+capability of an organization-authorized HMAC ingester. Both stored result URLs must be
+absolute HTTPS URLs without embedded credentials.
+
 **Security Features:**
 
 - **Organization isolation**: Each organization has separate secrets

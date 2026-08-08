@@ -32,11 +32,16 @@ internal sealed class OrgSecretSeeder
             return ToolExitCodes.Success;
         }
 
+        var normalizedSecrets = new NormalizedSecret[config.Secrets.Length];
+        for (var i = 0; i < config.Secrets.Length; i++)
+        {
+            normalizedSecrets[i] = Normalize(config.Secrets[i]);
+        }
+
         if (dryRun)
         {
-            foreach (var secret in config.Secrets)
+            foreach (var normalized in normalizedSecrets)
             {
-                var normalized = Normalize(secret);
                 _console.MarkupLine("[yellow]DRY RUN: org secret would be seeded.[/]");
                 _console.WriteLine($"PK: ORG#{normalized.OrgName}");
                 _console.WriteLine($"SK: CONST#GITHUB#{normalized.Type}");
@@ -51,10 +56,9 @@ internal sealed class OrgSecretSeeder
             throw new InvalidOperationException("AWS clients are required when --dry-run is not set.");
         }
 
-        foreach (var secret in config.Secrets)
+        foreach (var normalized in normalizedSecrets)
         {
-            var normalized = Normalize(secret);
-            await CreateOrUpdateSecretAsync(secretsManager, normalized.SecretName, secret.Secret, cancellationToken).ConfigureAwait(false);
+            await CreateOrUpdateSecretAsync(secretsManager, normalized.SecretName, normalized.Value, cancellationToken).ConfigureAwait(false);
             await PutMappingAsync(dynamoDb, tableName, normalized.OrgName, normalized.Type, normalized.SecretName, cancellationToken).ConfigureAwait(false);
             _console.MarkupLine($"[green]Seeded org mapping for {Markup.Escape(normalized.OrgName)} / {Markup.Escape(normalized.Type)}.[/]");
         }
@@ -96,10 +100,35 @@ internal sealed class OrgSecretSeeder
             throw new InvalidOperationException($"Secret entry '{secret.Name}' is missing type.");
         }
 
-        var orgName = secret.OrgName.ToLowerInvariant();
-        var type = secret.Type.ToLowerInvariant();
-        var keyName = secret.Name.ToLowerInvariant();
-        return new NormalizedSecret(orgName, type, $"badgesmith/github/{orgName}/{keyName}");
+        var orgName = secret.OrgName.Trim().ToLowerInvariant();
+        var type = secret.Type.Trim().ToLowerInvariant();
+        var keyName = secret.Name.Trim().ToLowerInvariant();
+        var secretName = $"badgesmith/github/{orgName}/{keyName}";
+        if (!IsValidSecretName(secretName))
+        {
+            throw new InvalidOperationException(
+                $"Secret entry '{secret.Name}' produces an invalid AWS Secrets Manager name.");
+        }
+
+        return new NormalizedSecret(orgName, type, secretName, secret.Secret);
+    }
+
+    private static bool IsValidSecretName(ReadOnlySpan<char> value)
+    {
+        if (value.Length is < 1 or > 512)
+        {
+            return false;
+        }
+
+        foreach (var character in value)
+        {
+            if (!char.IsAsciiLetterOrDigit(character) && character is not ('/' or '_' or '+' or '=' or '.' or '@' or '-'))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static async Task CreateOrUpdateSecretAsync(IAmazonSecretsManager secretsManager, string secretName, string value, CancellationToken cancellationToken)
@@ -137,7 +166,7 @@ internal sealed class OrgSecretSeeder
         }, cancellationToken);
     }
 
-    private sealed record NormalizedSecret(string OrgName, string Type, string SecretName);
+    private sealed record NormalizedSecret(string OrgName, string Type, string SecretName, string Value);
 }
 
 internal sealed record SecretConfig([property: JsonPropertyName("secrets")] SecretInfo[] Secrets);

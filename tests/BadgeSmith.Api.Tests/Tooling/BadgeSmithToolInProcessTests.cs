@@ -60,7 +60,7 @@ public sealed class BadgeSmithToolInProcessTests
             "--test-passed", "2",
             "--test-failed", "0",
             "--test-skipped", "1",
-            "--test-url-html", "https://example.com/tests",
+            "--test-url-html", "https://reports.example.com/badge-smith/runs/42",
             "--commit-sha", "abc123",
             "--run-id", "42",
             "--repository", "localstack-dotnet/badge-smith",
@@ -76,9 +76,98 @@ public sealed class BadgeSmithToolInProcessTests
         Assert.Contains("DRY RUN", console.Output, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("https://api.example.com/prefix/tests/results/linux/localstack-dotnet/badge-smith/feature%2Ftools", console.Output, StringComparison.Ordinal);
         Assert.Contains("https://api.example.com/prefix/badges/tests/linux/localstack-dotnet/badge-smith/feature%2Ftools", console.Output, StringComparison.Ordinal);
+        Assert.Contains("\"url_html\": \"https://reports.example.com/badge-smith/runs/42\"", console.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("test-secret", console.Output, StringComparison.Ordinal);
         Assert.DoesNotContain("X-Signature", console.Output, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("sha256=", console.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task BadgeUpdate_Should_Use_Workflow_Run_Url_When_Test_Report_Url_Is_Not_Set()
+    {
+        using var console = new TestConsole();
+        console.Width(240);
+
+        var exitCode = await BadgeSmithTool.RunAsync([
+            "badge", "update",
+            "--platform", "Linux",
+            "--test-passed", "2",
+            "--test-failed", "0",
+            "--test-skipped", "1",
+            "--commit-sha", "abc123",
+            "--run-id", "42",
+            "--repository", "localstack-dotnet/badge-smith",
+            "--server-url", "https://github.com",
+            "--base-url", "https://api.example.com",
+            "--branch", "main",
+            "--dry-run",
+        ], builder => builder.Configuration.AddInMemoryCollection([
+            new KeyValuePair<string, string?>("BADGESMITH_HMAC_SECRET", "test-secret"),
+        ]), console);
+
+        Assert.Equal(ToolExitCodes.Success, exitCode);
+        Assert.Contains(
+            "\"url_html\": \"https://github.com/localstack-dotnet/badge-smith/actions/runs/42\"",
+            console.Output,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "\"workflow_run_url\": \"https://github.com/localstack-dotnet/badge-smith/actions/runs/42\"",
+            console.Output,
+            StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(false, ToolExitCodes.Success)]
+    [InlineData(true, ToolExitCodes.NetworkFailure)]
+    public async Task BadgeUpdate_Should_Apply_Fail_On_Error_Policy_When_Transport_Fails(
+        bool failOnError,
+        int expectedExitCode)
+    {
+        using var console = new TestConsole();
+        console.Width(240);
+        var arguments = new List<string>
+        {
+            "badge",
+            "update",
+            "--platform",
+            "Linux",
+            "--test-passed",
+            "1",
+            "--test-failed",
+            "0",
+            "--test-skipped",
+            "0",
+            "--commit-sha",
+            "abc123",
+            "--run-id",
+            "42",
+            "--repository",
+            "localstack-dotnet/badge-smith",
+            "--server-url",
+            "https://github.com",
+            "--base-url",
+            "https://api.example.com",
+            "--branch",
+            "main",
+        };
+        if (failOnError)
+        {
+            arguments.Add("--fail-on-error");
+        }
+
+        var exitCode = await BadgeSmithTool.RunAsync(
+            [.. arguments],
+            builder =>
+            {
+                builder.Configuration.AddInMemoryCollection([
+                    new KeyValuePair<string, string?>("BADGESMITH_HMAC_SECRET", "test-secret"),
+                ]);
+                builder.Services.AddSingleton<IHttpClientFactory, FailingHttpClientFactory>();
+            },
+            console);
+
+        Assert.Equal(expectedExitCode, exitCode);
+        Assert.Contains("network unavailable", console.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -95,10 +184,11 @@ public sealed class BadgeSmithToolInProcessTests
             "--repo", "BadgeSmith",
             "--platform", "Linux",
             "--branch", "feature/tools",
-            "--secret", "test-secret",
             "--payload", payload,
             "--dry-run",
-        ], console: console);
+        ], builder => builder.Configuration.AddInMemoryCollection([
+            new KeyValuePair<string, string?>("BADGESMITH_HMAC_SECRET", "test-secret"),
+        ]), console);
 
         Assert.Equal(ToolExitCodes.Success, exitCode);
         Assert.Contains("DRY RUN", console.Output, StringComparison.OrdinalIgnoreCase);
@@ -188,7 +278,7 @@ public sealed class BadgeSmithToolInProcessTests
         var invalidSettings = new[]
         {
             CreateTestIngestSettings(baseUrl: ""), CreateTestIngestSettings(owner: ""), CreateTestIngestSettings(repo: ""), CreateTestIngestSettings(platform: ""),
-            CreateTestIngestSettings(branch: ""), CreateTestIngestSettings(secret: ""),
+            CreateTestIngestSettings(branch: ""),
         };
 
         foreach (var settings in invalidSettings)
@@ -262,6 +352,27 @@ public sealed class BadgeSmithToolInProcessTests
     public void BadgeUpdateSettings_Should_Accept_Secure_Or_Loopback_Base_Url(string baseUrl)
     {
         var result = CreateBadgeUpdateSettings(baseUrl: baseUrl).Validate();
+
+        Assert.True(result.Successful, result.Message);
+    }
+
+    [Theory]
+    [InlineData("http://example.com/tests")]
+    [InlineData("javascript:alert(1)")]
+    [InlineData("https://user:password@example.com/tests")]
+    public void BadgeUpdateSettings_Should_Reject_Test_Report_Url_When_Url_Is_Insecure(string testUrlHtml)
+    {
+        var result = CreateBadgeUpdateSettings(testUrlHtml: testUrlHtml).Validate();
+
+        Assert.False(result.Successful);
+        Assert.NotNull(result.Message);
+        Assert.Contains("--test-url-html", result.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BadgeUpdateSettings_Should_Accept_Test_Report_Url_When_Https_Origin_Differs_From_Server()
+    {
+        var result = CreateBadgeUpdateSettings(testUrlHtml: "https://checks.example.com/tests").Validate();
 
         Assert.True(result.Successful, result.Message);
     }
@@ -361,7 +472,8 @@ public sealed class BadgeSmithToolInProcessTests
         string commitSha = "abc123",
         string runId = "42",
         string repository = "localstack-dotnet/badge-smith",
-        string serverUrl = "https://github.com")
+        string serverUrl = "https://github.com",
+        string? testUrlHtml = null)
     {
         return new BadgeUpdateSettings
         {
@@ -371,6 +483,7 @@ public sealed class BadgeSmithToolInProcessTests
             RunId = runId,
             Repository = repository,
             ServerUrl = serverUrl,
+            TestUrlHtml = testUrlHtml,
         };
     }
 
@@ -380,7 +493,6 @@ public sealed class BadgeSmithToolInProcessTests
         string repo = "badge-smith",
         string platform = "linux",
         string branch = "main",
-        string secret = "test-secret",
         string? payload = "{}",
         string? payloadFile = null)
     {
@@ -391,7 +503,6 @@ public sealed class BadgeSmithToolInProcessTests
             Repo = repo,
             Platform = platform,
             Branch = branch,
-            Secret = secret,
             Payload = payload,
             PayloadFile = payloadFile,
         };
@@ -420,6 +531,31 @@ public sealed class BadgeSmithToolInProcessTests
         public ToolAwsClientScope Create(EffectiveAwsOptions options)
         {
             throw new InvalidOperationException("AWS clients should not be created during dry-run.");
+        }
+    }
+
+    private sealed class FailingHttpClientFactory : IHttpClientFactory, IDisposable
+    {
+        private readonly HttpClient _client = new(new FailingHttpMessageHandler(), disposeHandler: true);
+
+        public HttpClient CreateClient(string name)
+        {
+            return _client;
+        }
+
+        public void Dispose()
+        {
+            _client.Dispose();
+        }
+    }
+
+    private sealed class FailingHttpMessageHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromException<HttpResponseMessage>(new HttpRequestException("network unavailable"));
         }
     }
 }

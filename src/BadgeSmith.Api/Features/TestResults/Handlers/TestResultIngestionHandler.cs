@@ -202,11 +202,6 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
             errorResponse = ResponseHelper.BadRequest("Invalid JSON payload");
             return false;
         }
-        catch (Exception)
-        {
-            errorResponse = ResponseHelper.InternalServerError("Failed to parse payload");
-            return false;
-        }
     }
 }
 
