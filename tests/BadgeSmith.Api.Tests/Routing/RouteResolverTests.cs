@@ -298,12 +298,11 @@ public sealed class RouteResolverTests
     }
 
     [Theory]
-    [MemberData(nameof(GetRealWorldRoutingScenarios))]
-    public void TryResolve_Should_Handle_Real_World_Scenarios(string method, string path, bool expectedMatch, string? expectedRouteName,
+    [MemberData(nameof(GetProductionRoutingScenarios))]
+    public void TryResolve_Should_Handle_Production_Route_Scenarios(string method, string path, bool expectedMatch, string? expectedRouteName,
         IDictionary<string, string>? expectedParameters)
     {
-        var routes = CreateTestRoutes();
-        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
+        var resolver = RouteTestBuilder.CreateRouteResolver(RouteTable.Routes);
 
         var result = resolver.TryResolve(method, path, out var match);
 
@@ -331,7 +330,7 @@ public sealed class RouteResolverTests
         "Design",
         "MA0051:Method is too long",
         Justification = "Keeping the routing scenarios in one MemberData source makes the route matrix auditable.")]
-    public static IEnumerable<object?[]> GetRealWorldRoutingScenarios()
+    public static IEnumerable<object?[]> GetProductionRoutingScenarios()
     {
         // Valid scenarios with parameters
         yield return
@@ -377,15 +376,34 @@ public sealed class RouteResolverTests
             },
         ];
 
-        // Exact pattern scenarios
         yield return
         [
-            "GET", "/health", true, "Health", new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
+            "POST", "/tests/results/linux/localstack-dotnet/badge-smith/feature%2Froute-contract", true, "TestIngestion",
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["platform"] = "linux",
+                ["owner"] = "localstack-dotnet",
+                ["repo"] = "badge-smith",
+                ["branch"] = "feature/route-contract"
+            },
         ];
 
         yield return
         [
-            "POST", "/tests/results", true, "TestIngestion", new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
+            "GET", "/redirect/test-results/windows/localstack-dotnet/badge-smith/main", true, "BadgeRedirect",
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["platform"] = "windows",
+                ["owner"] = "localstack-dotnet",
+                ["repo"] = "badge-smith",
+                ["branch"] = "main"
+            },
+        ];
+
+        // Exact pattern scenarios
+        yield return
+        [
+            "GET", "/health", true, "Health", new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
         ];
 
         // HEAD normalization scenarios
@@ -422,7 +440,12 @@ public sealed class RouteResolverTests
 
         yield return
         [
-            "DELETE", "/tests/results", false, null, null,
+            "DELETE", "/tests/results/linux/owner/repo/main", false, null, null,
+        ];
+
+        yield return
+        [
+            "POST", "/tests/results", false, null, null,
         ];
 
         yield return

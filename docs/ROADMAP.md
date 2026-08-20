@@ -15,6 +15,7 @@ workstreams may link a temporary plan; new ideas land in Inbox / Untriaged until
 | W1.7 — closeout and platform refresh | done | — | Completed the stable central-package refresh, removed MessagePack, and finished the tooling and Wave 1 correctness work. See the [dated closeout evidence](research/2026-07-09-iteration0-wave1-closeout.md); `Directory.Packages.props` owns current versions. |
 | PR #5 merge-readiness remediation | superseded by second pass | — | Implemented in `34fe5f7`: restored Native AOT serializer compatibility, hardened malformed HMAC handling and white-label URLs, secured reusable workflow inputs, and corrected Aspire source ownership. Hosted checks passed, but the subsequent whole-PR review found merge-blocking HMAC and CDK issues tracked by the second-pass workstream below. |
 | PR #5 second-pass review remediation | done | — | Hard-cut HMAC, secure transport, LocalStack client alignment, separate CDK apps, and review hardening merged as `2b147de`; see the [closeout evidence](research/2026-08-08-pr5-second-pass-closeout.md) for commits, CI runs, deployment observations, tags, and smoke checks. |
+| Wave 2 — test safety net | done | — | Direct coverage now protects `NuGetVersionService` range/prerelease selection and failures; `ResponseHelper` ETag, conditional request, and cache-header behavior; and the production `RouteTable.Routes` inventory and resolver parameter matrix. HMAC, nonce, `ApiRouter`, `TestResultsService`, and ingestion coverage had already landed; the original [gap inventory](research/2026-07-02-code-review-findings.md#4-test-suite-gaps) is historical evidence. |
 
 ## Process Notes
 
@@ -29,12 +30,6 @@ invocations and hide API behavior.
 Scoped work waiting to start. Promote an item into Status & Plan Mapping and link its
 detailed plan when it becomes active.
 
-- **Wave 2 — test safety net** (next planned engineering wave): Add coverage for
-  `ResponseHelper`, the real `RouteTable`, and `NuGetVersionService`; align resolver tests
-  with production routes. HMAC, nonce, `ApiRouter`, `TestResultsService`, and ingestion
-  coverage has already landed. The original gap inventory remains
-  [historical evidence](research/2026-07-02-code-review-findings.md#4-test-suite-gaps),
-  not the current work list.
 - **Wave 3 — hygiene**: Revalidate candidate DRY refactors (bootstrap, route-param
   extraction, and package services) and dead-code cleanup against the current tree before
   promotion. The original opportunities are
