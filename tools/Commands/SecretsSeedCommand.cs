@@ -1,9 +1,9 @@
-using BadgeSmith.Tools.Infrastructure;
+using System.ComponentModel;
 using BadgeSmith.Tools.Configuration;
+using BadgeSmith.Tools.Infrastructure;
 using BadgeSmith.Tools.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.ComponentModel;
 
 namespace BadgeSmith.Tools.Commands;
 

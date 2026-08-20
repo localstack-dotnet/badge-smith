@@ -147,27 +147,12 @@ Search by the exact behavior under review:
 
 These are starting points, not a fixed checklist. Add or remove searches based on the concrete task.
 
-## Official Aspire Skills Cross-Check
+## Runtime Tooling Cross-Check
 
-Official Microsoft Aspire skills are useful for Aspire CLI and distributed application workflows, but they may describe newer Aspire versions than this repository uses. If official guidance conflicts with verified package source, prefer verified package source and call out the version mismatch.
-
-Use official skills when available for:
-
-| Task | Skill |
-| --- | --- |
-| AppHost lifecycle | `aspire` or `aspire-orchestration` |
-| Logs, dashboard, traces | `aspire-monitoring` |
-| AppHost scaffold/resource graph work | `aspireify` |
-| New skeleton creation | `aspire-init` |
-| Publish/deploy/destroy | `aspire-deployment`, approval-gated |
-
-Installed local skills can supplement this one:
-
-| Task | Skill |
-| --- | --- |
-| Explicit configuration and env vars | `aspire-configuration` |
-| Playground ServiceDefaults | `aspire-service-defaults` |
-| `DistributedApplicationTestingBuilder` patterns | `aspire-integration-testing`, adapted to this repo's test framework |
+Runtime-discovered Aspire tooling can help start, inspect, and debug AppHosts, but it may describe a
+newer Aspire version than this repository consumes. It does not replace package-matched source
+verification. When runtime guidance conflicts with verified upstream source, prefer the verified
+source and report the version mismatch.
 
 ## Common Mistakes
 

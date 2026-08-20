@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1873 // Logger mocks use expression trees that trigger logging analyzer.
+#pragma warning disable CA1873 // Logger mocks use expression trees that trigger logging analyzer.
 
 using Microsoft.Extensions.Logging;
 using Moq;

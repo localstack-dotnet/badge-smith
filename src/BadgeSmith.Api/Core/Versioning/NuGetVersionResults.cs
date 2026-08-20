@@ -1,4 +1,4 @@
-﻿using NuGet.Versioning;
+using NuGet.Versioning;
 using OneOf;
 
 namespace BadgeSmith.Api.Core.Versioning;

@@ -1,4 +1,4 @@
-﻿using BadgeSmith.Api.Core.Routing.Contracts;
+using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Patterns;
 
 namespace BadgeSmith.Api.Core.Routing;

@@ -4,8 +4,6 @@
     <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    <!-- slopwatch-ignore: SW005 pre-existing test-project NoWarn entries; CA1812 needed for linked Spectre.Console.Cli command types -->
-    <NoWarn>$(NoWarn);CA1515;CA1034;CA1707;MA0110;MA0009;CA1062;CA1024;CA1812</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.Core" />
@@ -31,8 +29,6 @@
     <ProjectReference Include="..\..\src\BadgeSmith.Host\BadgeSmith.Host.csproj" />
   </ItemGroup>
   <!-- Linked tool source compiled in-process for boundary tests. -->
-  <!-- CA1812 (linked source): command and settings types are instantiated via Spectre.Console.Cli reflection;
-       suppressed project-wide above alongside existing test-project NoWarn entries. -->
   <ItemGroup>
     <Compile Include="..\..\tools\Commands\**\*.cs" Link="Tooling\Linked\Commands\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\tools\Configuration\**\*.cs" Link="Tooling\Linked\Configuration\%(RecursiveDir)%(Filename)%(Extension)" />

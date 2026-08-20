@@ -2,7 +2,8 @@
 
 Date: 2026-07-06
 
-Temporary research note for W1.5 file-based tooling migration.
+Historical research note for the completed W1.5 file-based tooling migration. Current
+command behavior lives in `tools/README.md` and source.
 
 ## Sources
 

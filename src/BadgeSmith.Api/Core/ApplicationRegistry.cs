@@ -1,4 +1,4 @@
-﻿using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2;
 using Amazon.SecretsManager;
 using BadgeSmith.Api.Core.Caching;
 using BadgeSmith.Api.Core.Http;

@@ -1,4 +1,4 @@
-﻿namespace BadgeSmith.Api.Core;
+namespace BadgeSmith.Api.Core;
 
 internal abstract record Failure(string Reason);
 

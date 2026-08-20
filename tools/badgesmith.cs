@@ -1,9 +1,5 @@
 #!/usr/bin/env -S dotnet --
 #:property TargetFramework=net10.0
-#:property PublishAot=false
-#:property PackAsTool=false
-#:property GenerateDocumentationFile=true
-#:property NoWarn=IDE0130;CA1812
 #:package Spectre.Console.Cli
 #:package CliWrap
 #:package AWSSDK.DynamoDBv2

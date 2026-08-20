@@ -1,8 +1,8 @@
-using BadgeSmith.Api.Tests.Testing;
-using BadgeSmith.Api.Tests.Testing.Infrastructure;
+using System.Globalization;
 using Amazon.DynamoDBv2.Model;
 using Amazon.SecretsManager.Model;
-using System.Globalization;
+using BadgeSmith.Api.Tests.Testing;
+using BadgeSmith.Api.Tests.Testing.Infrastructure;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Functional;

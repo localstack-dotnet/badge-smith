@@ -6,8 +6,8 @@ using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.Lambda;
 using BadgeSmith.CDK.Shared.Constructs;
 using Constructs;
-using Function = Amazon.CDK.AWS.Lambda.Function;
 using static BadgeSmith.Constants;
+using Function = Amazon.CDK.AWS.Lambda.Function;
 
 namespace BadgeSmith.CDK.Shared;
 

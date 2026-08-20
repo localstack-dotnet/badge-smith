@@ -1,4 +1,4 @@
-﻿using Amazon.CDK;
+using Amazon.CDK;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;

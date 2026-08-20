@@ -1,4 +1,4 @@
-﻿namespace BadgeSmith.Api.Core.Versioning.Contracts;
+namespace BadgeSmith.Api.Core.Versioning.Contracts;
 
 internal interface INuGetVersionService
 {

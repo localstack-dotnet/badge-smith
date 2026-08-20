@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <OutputType>Exe</OutputType>
-    <!-- slopwatch-ignore: SW005 benchmark names follow repository naming and BenchmarkDotNet owns console output -->
-    <NoWarn>$(NoWarn);CA1707;CA1303</NoWarn>
     <Optimize>true</Optimize>
   </PropertyGroup>
 

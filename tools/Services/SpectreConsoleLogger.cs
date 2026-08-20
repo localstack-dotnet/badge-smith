@@ -1,5 +1,5 @@
-using Spectre.Console;
 using System.Globalization;
+using Spectre.Console;
 
 namespace BadgeSmith.Tools.Services;
 

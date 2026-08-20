@@ -1,4 +1,4 @@
-﻿using BadgeSmith.Api.Core.Routing.Contracts;
+using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Cors;
 using BadgeSmith.Api.Tests.Testing;
 using Microsoft.Extensions.Logging;

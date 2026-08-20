@@ -1,4 +1,4 @@
-﻿using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Core.Routing.Helpers;
 using Microsoft.Extensions.Logging;

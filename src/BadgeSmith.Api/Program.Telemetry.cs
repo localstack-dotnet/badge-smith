@@ -1,4 +1,4 @@
-﻿#if ENABLE_TELEMETRY
+#if ENABLE_TELEMETRY
 #pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
 
 using System.Diagnostics;

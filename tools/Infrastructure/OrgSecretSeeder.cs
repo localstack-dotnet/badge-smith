@@ -1,10 +1,10 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Spectre.Console;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace BadgeSmith.Tools.Infrastructure;
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using BadgeSmith.Api.Core.Security;
 using BadgeSmith.Api.Core.Security.Contracts;
 using BadgeSmith.Api.Tests.Testing;
@@ -5,7 +6,6 @@ using BadgeSmith.Api.Tests.Testing.Infrastructure;
 using BadgeSmith.Protocol;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Globalization;
 using Xunit;
 
 namespace BadgeSmith.Api.Tests.Security;

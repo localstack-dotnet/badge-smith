@@ -1,4 +1,4 @@
-﻿namespace BadgeSmith.Api.Core.Routing.Contracts;
+namespace BadgeSmith.Api.Core.Routing.Contracts;
 
 internal interface IRouteResolver
 {

@@ -1,4 +1,4 @@
-﻿using Amazon.CDK;
+using Amazon.CDK;
 using Amazon.CDK.AWS.IAM;
 using Constructs;
 using static BadgeSmith.Constants;

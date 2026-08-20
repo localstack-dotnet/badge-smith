@@ -1,10 +1,10 @@
-using BadgeSmith.Tools.Infrastructure;
-using Spectre.Console;
-using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json;
+using BadgeSmith.Tools.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Spectre.Console;
+using Spectre.Console.Cli;
 
 namespace BadgeSmith.Tools.Commands;
 

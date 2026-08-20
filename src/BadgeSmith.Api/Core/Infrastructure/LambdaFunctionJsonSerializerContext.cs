@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Features;
 using BadgeSmith.Api.Features.GitHub;

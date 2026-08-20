@@ -1,6 +1,17 @@
-; Top-most http://editorconfig.org/ file
+# =============================================================================
+# BadgeSmith editor and analyzer policy
+# =============================================================================
+# Enabled analyzer families are declared in Directory.Build.props. Error and
+# warning diagnostics fail the build, while suggestions are IDE guidance. All
+# path-specific exceptions stay after the global C# policy so a narrow section
+# cannot capture later global rules.
+# =============================================================================
+# Top-most http://editorconfig.org/ file
 root = true
 
+# =============================================================================
+# FILE TYPE SETTINGS
+# =============================================================================
 [*]
 insert_final_newline = true
 indent_style = space
@@ -11,11 +22,7 @@ max_line_length = 180
 [*.cs]
 indent_size = 4
 
-[*.{xml,config,*proj,nuspec,props,resx,targets,yml,tasks}]
-indent_size = 2
-
-# Xml config files
-[*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
+[*.{xml,config,*proj,nuspec,props,resx,targets,ruleset,vsixmanifest,vsct,yml,tasks}]
 indent_size = 2
 
 [*.json]
@@ -27,15 +34,16 @@ indent_size = 4
 [*.sh]
 indent_size = 4
 
-[*.{cs,vb}]
+# =============================================================================
+# GLOBAL C# POLICY
+# =============================================================================
+[*.cs]
 
 # Roslynator Configuration
 dotnet_analyzer_diagnostic.category-roslynator.severity = error
 roslynator_analyzers.enabled_by_default = true
 roslynator_refactorings.enabled = true
 roslynator_compiler_diagnostic_fixes.enabled = true
-
-#dotnet_analyzer_diagnostic.category-style.severity = error
 
 # CA1865-CA1867: Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char
 dotnet_diagnostic.CA1865.severity = error
@@ -564,7 +572,8 @@ dotnet_diagnostic.CA1064.severity = error
 dotnet_diagnostic.CA1032.severity = error
 
 # CA1027: Mark enums with FlagsAttribute
-dotnet_diagnostic.CA1027.severity = error
+# Inferring flags semantics from enum values is too opinionated for a build gate.
+dotnet_diagnostic.CA1027.severity = none
 
 # CA2217: Do not mark enums with FlagsAttribute
 dotnet_diagnostic.CA2217.severity = error
@@ -587,6 +596,16 @@ dotnet_diagnostic.CA1868.severity = error
 # CA1870: Use a cached 'SearchValues' instance
 dotnet_diagnostic.CA1870.severity = error
 
+# CA1871: Do not pass a nullable struct to ArgumentNullException.ThrowIfNull
+dotnet_diagnostic.CA1871.severity = error
+
+# CA1872: Prefer allocation-friendly hexadecimal conversion APIs
+dotnet_diagnostic.CA1872.severity = error
+
+# CA1873: Avoid potentially expensive logging
+# Existing intentional sites carry file-scoped pragmas pending LoggerMessage migration.
+dotnet_diagnostic.CA1873.severity = error
+
 # CA1031: CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = none
 
@@ -599,8 +618,9 @@ dotnet_diagnostic.IDE0240.severity = error
 # Nullable directive is unnecessary (IDE0241)
 dotnet_diagnostic.IDE0241.severity = error
 
-#CA1819: Properties should not return arrays
-dotnet_diagnostic.CA1819.severity = error
+# CA1819: Properties should not return arrays
+# Arrays remain valid for wire-shaped and source-generated serialization contracts.
+dotnet_diagnostic.CA1819.severity = suggestion
 
 #IDE0120: Simplify LINQ expression (IDE0120)
 dotnet_diagnostic.IDE0120.severity = error
@@ -608,9 +628,9 @@ dotnet_diagnostic.IDE0120.severity = error
 #IDE0065: 'using' directive placement (IDE0065)
 dotnet_diagnostic.IDE0065.severity = error
 
-[*.cs]
+# C#-specific preferences continue in the same global scope.
 
-# force file scoped namespaces
+# Force file-scoped namespaces
 csharp_style_namespace_declarations = file_scoped:error
 
 # CA1012: Abstract types should not have public constructors
@@ -649,17 +669,9 @@ dotnet_diagnostic.CA1055.severity = suggestion
 # S4457: Split this method into two, one handling parameters check and the other handling the asynchronous code.
 dotnet_diagnostic.S4457.severity = suggestion
 
-# AsyncFixer01: Unnecessary async/await usage
-dotnet_diagnostic.AsyncFixer01.severity = suggestion
-
-# AsyncFixer02: Long-running or blocking operations inside an async method
-dotnet_diagnostic.AsyncFixer02.severity = error
-
+# Microsoft.VisualStudio.Threading -------------------------------------------
 # VSTHRD103: Call async methods when in an async method
 dotnet_diagnostic.VSTHRD103.severity = error
-
-# AsyncFixer03: Fire & forget async void methods
-dotnet_diagnostic.AsyncFixer03.severity = error
 
 # VSTHRD100: Avoid async void methods
 dotnet_diagnostic.VSTHRD100.severity = error
@@ -670,23 +682,14 @@ dotnet_diagnostic.VSTHRD101.severity = error
 # VSTHRD107: Await Task within using expression
 dotnet_diagnostic.VSTHRD107.severity = error
 
-# AsyncFixer04: Fire & forget async call inside a using block
-dotnet_diagnostic.AsyncFixer04.severity = error
-
 # VSTHRD110: Observe result of async calls
 dotnet_diagnostic.VSTHRD110.severity = error
 
 # VSTHRD002: Avoid problematic synchronous waits
 dotnet_diagnostic.VSTHRD002.severity = error
 
-# AsyncifyInvocation: Use Task Async
-dotnet_diagnostic.AsyncifyInvocation.severity = error
-
-# AsyncifyVariable: Use Task Async
-dotnet_diagnostic.AsyncifyVariable.severity = error
-
-# VSTHRD111: Use ConfigureAwait(bool)
-dotnet_diagnostic.VSTHRD111.severity = error
+# VSTHRD111: ConfigureAwait is not required for this net10 Lambda/tool/test matrix
+dotnet_diagnostic.VSTHRD111.severity = none
 
 # VSTHRD114: Avoid returning a null Task
 dotnet_diagnostic.VSTHRD114.severity = error
@@ -694,13 +697,7 @@ dotnet_diagnostic.VSTHRD114.severity = error
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = suggestion
 
-#AsyncFixer05: Downcasting from a nested task to an outer task.
-dotnet_diagnostic.AsyncFixer05.severity = error
-
-#CA1819: Properties should not return arrays
-dotnet_diagnostic.CA1819.severity = suggestion
-
-# Sonar --------------------------------------------------
+# SonarAnalyzer ---------------------------------------------------------------
 # S125: Sections of code should not be commented out
 dotnet_diagnostic.S125.severity = suggestion
 
@@ -710,7 +707,9 @@ dotnet_diagnostic.S2094.severity = suggestion
 # Unnecessary bit operations should not be performed
 dotnet_diagnostic.S2437.severity = warning
 
-# MA -----------------------------------------------------
+# Meziantou.Analyzer ----------------------------------------------------------
+# MA0051: Method is too long
+dotnet_diagnostic.MA0051.severity = error
 MA0051.maximum_lines_per_method = 80
 MA0051.maximum_statements_per_method = 60
 MA0011.exclude_tostring_methods = true
@@ -747,11 +746,8 @@ dotnet_diagnostic.MA0105.severity = error
 dotnet_diagnostic.MA0106.severity = error
 # MA0110 - Use the Regex source generator
 dotnet_diagnostic.MA0110.severity = error
-#MA0053 - Sealed Class
-dotnet_diagnostic.MA0053.severity = error
-MA0053.public_class_should_be_sealed = true
-MA0053.class_with_virtual_member_should_be_sealed = true
-MA0053.exceptions_should_be_sealed = true
+# MA0053: Sealing is valuable but requires a dedicated API/CDK/test audit.
+dotnet_diagnostic.MA0053.severity = none
 #MA0067 - Use Guid.Empty
 dotnet_diagnostic.MA0067.severity = error
 # MA0102 - Make member readonly
@@ -760,11 +756,16 @@ dotnet_diagnostic.MA0102.severity = error
 dotnet_diagnostic.MA0111.severity = error
 # MA0152 - Use Unwrap instead of using await twice
 dotnet_diagnostic.MA0152.severity = error
+# MA0183 - The format string should use placeholders
+dotnet_diagnostic.MA0183.severity = error
+# MA0195 - Do not use static fields before they are initialized
+dotnet_diagnostic.MA0195.severity = error
+# MA0202 - Conditional compilation branches should not contain identical code
+dotnet_diagnostic.MA0202.severity = error
 # MA0048 - File name must match type name
 dotnet_diagnostic.MA0048.severity = suggestion
-# MA0053 - Make class sealed
-dotnet_diagnostic.MA0053.severity = none
 
+# Roslynator ------------------------------------------------------------------
 dotnet_diagnostic.RCS1214.severity = error
 
 # Code Metric
@@ -772,15 +773,12 @@ dotnet_diagnostic.CA1501.severity = error
 dotnet_diagnostic.CA1502.severity = error
 dotnet_diagnostic.CA1505.severity = error
 #dotnet_diagnostic.CA1506.severity = error
-dotnet_diagnostic.CA1507.severity = error
 #CA1508: Avoid dead conditional code
 dotnet_diagnostic.CA1508.severity = error
 #CA1514: Avoid redundant length argument
 dotnet_diagnostic.CA1514.severity = error
 #CA1509: Override equals and operator equals on value types
 dotnet_diagnostic.CA1815.severity = none
-#CA1027: Mark enums with FlagsAttribute
-dotnet_diagnostic.CA1027.severity = none
 #CA1716: Identifiers should not match keywords
 dotnet_diagnostic.CA1716.severity = none
 
@@ -792,5 +790,52 @@ dotnet_diagnostic.S3925.severity = none
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = none
 
-# VSTHRD111: Add .ConfigureAwait(bool) to your await expression
-dotnet_diagnostic.VSTHRD111.severity = none
+# =============================================================================
+# SCOPED ARBITRATIONS - KEEP AFTER ALL GLOBAL C# POLICY
+# =============================================================================
+
+# xUnit exposes public framework entry points and data arguments, while test
+# names intentionally use underscores throughout the test project.
+[tests/BadgeSmith.Api.Tests/**.cs]
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.CA1707.severity = none
+
+# Benchmark names intentionally use underscores, and BenchmarkDotNet owns the
+# fixed operator-facing console output.
+[tests/BadgeSmith.Api.Performance.Tests/**.cs]
+dotnet_diagnostic.CA1303.severity = none
+dotnet_diagnostic.CA1707.severity = none
+
+# These tests build dynamic Regex instances from fixed test data; source
+# generation is unavailable and production-style timeouts add no safety.
+[tests/BadgeSmith.Api.Tests/Routing/Patterns/RegexPatternTests.cs]
+dotnet_diagnostic.MA0009.severity = none
+dotnet_diagnostic.MA0110.severity = none
+
+# xUnit MemberData providers are methods by framework contract.
+[tests/BadgeSmith.Api.Tests/Routing/{RouteResolverTests.cs,RouteValuesTests.cs}]
+dotnet_diagnostic.CA1024.severity = none
+
+[tests/BadgeSmith.Api.Tests/Routing/Patterns/{ExactPatternTests.cs,RegexPatternTests.cs,TemplatePatternTests.cs}]
+dotnet_diagnostic.CA1024.severity = none
+
+# These in-process failure doubles are activated by the test host through their
+# interface contracts rather than direct construction.
+[tests/BadgeSmith.Api.Tests/Tooling/BadgeSmithToolInProcessTests.cs]
+dotnet_diagnostic.CA1812.severity = none
+
+# Spectre.Console.Cli and Microsoft.Extensions.DependencyInjection activate
+# command, settings, and service types indirectly.
+[tools/**.cs]
+dotnet_diagnostic.CA1812.severity = none
+
+# BadgeSmithTool intentionally provides the root tool namespace from the
+# Services folder.
+[tools/Services/BadgeSmithTool.cs]
+dotnet_diagnostic.IDE0130.severity = none
+
+# The SDK synthesizes Program for the fixed file-based entry name.
+[tools/badgesmith.cs]
+dotnet_diagnostic.IDE0130.severity = none
+dotnet_diagnostic.MA0048.severity = none

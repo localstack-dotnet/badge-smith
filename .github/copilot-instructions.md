@@ -2,7 +2,7 @@
 
 The canonical agent contract for GitHub Copilot and other LLM assistants lives in [AGENTS.md](../AGENTS.md).
 
-Read [AGENTS.md](../AGENTS.md) first. Harness-specific adapter mechanics (capability
-mapping, LSP wiring, skill discovery) live in [docs/agents/README.md](../docs/agents/README.md).
+Read [AGENTS.md](../AGENTS.md) first. Native capability inventories and local setup are discovered
+from the running environment rather than pinned in this repository.
 
 This file intentionally stays as a relay only.

@@ -1,4 +1,4 @@
-﻿namespace BadgeSmith.Api.Core.Routing;
+namespace BadgeSmith.Api.Core.Routing;
 
 internal readonly ref struct RouteMatch(RouteDescriptor descriptor, RouteValues values)
 {

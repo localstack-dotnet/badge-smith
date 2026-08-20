@@ -11,9 +11,9 @@ using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
 using BadgeSmith.CDK.Shared.Constructs;
 using Constructs;
-using Function = Amazon.CDK.AWS.Lambda.Function;
 using static BadgeSmith.Constants;
 using Distribution = Amazon.CDK.AWS.CloudFront.Distribution;
+using Function = Amazon.CDK.AWS.Lambda.Function;
 
 namespace BadgeSmith.CDK.Shared;
 

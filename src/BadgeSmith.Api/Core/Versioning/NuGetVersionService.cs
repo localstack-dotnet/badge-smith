@@ -1,4 +1,4 @@
-﻿using BadgeSmith.Api.Core.Versioning.Contracts;
+using BadgeSmith.Api.Core.Versioning.Contracts;
 using NuGet.Versioning;
 
 namespace BadgeSmith.Api.Core.Versioning;

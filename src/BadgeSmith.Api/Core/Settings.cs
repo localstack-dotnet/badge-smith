@@ -1,4 +1,4 @@
-﻿using static System.Environment;
+using static System.Environment;
 using static BadgeSmith.Constants;
 
 namespace BadgeSmith.Api.Core;

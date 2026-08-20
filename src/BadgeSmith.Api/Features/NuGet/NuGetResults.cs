@@ -1,4 +1,4 @@
-﻿using BadgeSmith.Api.Core;
+using BadgeSmith.Api.Core;
 using BadgeSmith.Api.Core.Versioning;
 using OneOf;
 

@@ -1,4 +1,4 @@
-﻿namespace BadgeSmith.Api.Core.Routing.Cors;
+namespace BadgeSmith.Api.Core.Routing.Cors;
 
 /// <summary>
 /// CORS configuration options for AWS Lambda API Gateway routing.

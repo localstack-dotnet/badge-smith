@@ -58,29 +58,13 @@ deferrals or known carry-forward items at the end of each sub-section.
 This is the longest section. Don't pad it; do not omit anything load-bearing for the
 next agent.
 
-### `## Onboarding Snapshot` *(optional — drop if the previous pickup already covered it well and nothing shifted)*
+### `## Onboarding Delta` *(optional)*
 
-Quick re-orientation. Brief stack reminder and the locked-decisions list. **Most of this
-is durable across pickups** — copy from the previous pickup and adjust where things
-shifted.
-
-Durable stack facts for this repo:
-
-- **Product:** BadgeSmith — a Shields.io-compatible badge service for NuGet/GitHub
-  packages and CI/CD test results, shipped as a **.NET 10 Native AOT AWS Lambda
-  application** deployed via **AWS CDK** (API Gateway HTTP v2 + CloudFront, DynamoDB,
-  Secrets Manager). It consumes `LocalStack.Aspire.Hosting` for local dev only.
-- **Tooling:** .NET SDK per `global.json` (net10.0); **xUnit v3 + Moq on VSTest**;
-  BenchmarkDotNet for perf tests; Central Package Management (`Directory.Packages.props`);
-  strict analyzers + warnings-as-errors via shared MSBuild.
-- **Architecture invariants:** Native AOT (`PublishAot`), no DI (`ApplicationRegistry` +
-  `Lazy<T>`), no configuration framework (environment variables), System.Text.Json
-  source generation (`LambdaFunctionJsonSerializerContext`), OneOf result pattern,
-  custom span-based routing.
-- **Source layout:** `src/BadgeSmith.Api` (Lambda), `src/BadgeSmith.Host` (Aspire
-  AppHost), `src/shared`, `build/` (CDK), `tests/BadgeSmith.Api.Tests` (unit and
-  Aspire/LocalStack functional contracts), `tests/BadgeSmith.Api.Performance.Tests`,
-  `tools/` (CLI and secret seeding), `docs/`.
+Record only durable orientation that changed during the session and is not yet obvious
+from current canon. Link `AGENTS.md`, `docs/README.md`, and the relevant architecture or
+operational guide instead of copying the standing stack, approval, AOT, test-runner, or
+composition rules. In particular, do not collapse the Lambda's `ApplicationRegistry`
+model and the CLI's intentional `HostApplicationBuilder` DI model into one repo-wide rule.
 
 ### `## Current State You Should Assume Until Verified`
 
@@ -102,54 +86,37 @@ Always verifiable, always specific. Vague status entries are worse than absent o
 
 - **Name + classification** — e.g. "lightweight, well-scoped" / "multi-session arc" /
   "optional"
-- **Pre-flight steps** — what to read / verify before starting (incl. which capability
-  to invoke)
+- **Pre-flight steps** — what to read or verify before starting, including any
+  project-owned guidance that applies
 - **Specific files / sections to touch** — concrete paths
 - **Acceptance criteria** — what "done" looks like
 
 End with: "Talk to Deniz before committing to which one." Default to working on the
-current branch; do not branch unless there is a concrete reason. No commit without
-explicit "go / apply / proceed / başla / yap" (AGENTS.md approval gate).
+current branch; do not branch unless there is a concrete reason. Link the `AGENTS.md`
+approval gate instead of restating it.
 
 ### `## Mandatory Grounding (read in this order)`
 
 A numbered read order. Adjust per scope, but the canonical core stays:
 
-1. `AGENTS.md` — canonical repository contract: communication style, approval gate,
-   Native AOT/Lambda constraints, capability routing (`CLAUDE.md` and
-   `.github/copilot-instructions.md` are relay-only).
-2. `README.md` + `ARCHITECTURE.md` — product behavior, endpoints, and design decisions.
-3. `docs/ROADMAP.md` — backlog, **Status & Plan Mapping table** (progress tracker),
-   and the **Inbox / Untriaged** capture spot.
-4. `docs/plans/{{active-workstream-plan}}` — the live plan for the workstream in flight.
-5. `docs/agents/README.md` (harness guide + capability mapping) +
-   `docs/agents/KNOWN_ISSUES.md` (triage hints).
-6. The relevant `src/` / `tests/` / `build/` files for the scope.
+1. `AGENTS.md` — canonical always-on contract; relays cannot override it.
+2. `docs/README.md` — document authority, lifecycle, and lossless relocation.
+3. `README.md` + relevant `ARCHITECTURE.md` sections — product behavior and current design.
+4. `docs/ROADMAP.md` — current status, backlog, and Inbox / Untriaged.
+5. `docs/plans/{{active-workstream-plan}}` — only when a workstream is actively in flight.
+6. `docs/agents/README.md` + `docs/agents/KNOWN_ISSUES.md` — agent-integration boundaries and unique triage hints.
+7. `docs/engineering/coding-style.md` for hand-written C#; use
+   `docs/agents/deviation-protocol.md` if current sources disagree.
+8. The relevant `src/`, `tests/`, `build/`, workflow, or configuration files.
 
 Skip entries the next session does not need; do not pad with everything.
 
-### `## Locked Policy Recap`
+### `## Scope-Specific Guardrails` *(optional)*
 
-Curated invariants list. Most carry over verbatim from session to session. This section
-is for the **most-likely-to-be-tempting-to-violate** rules in the upcoming work, not a
-full mirror of `AGENTS.md`.
-
-- No commit without explicit "go / apply / proceed / başla / yap". Conventional Commits
-  (`feat|fix|docs|test|refactor|build|ci|chore`); **no AI attribution trailers**.
-- Do not start a feature, refactor production code, change build/CI, change CDK infra,
-  or run CDK deploy / Lambda publish / release without approval. Docs-only edits, link
-  fixes, and read-only discovery are allowed.
-- Package versions live in `Directory.Packages.props` (Central Package Management) —
-  **never hand-edit versions into individual `.csproj` files**.
-- Strict analyzers + warnings-as-errors are on. Run `slopwatch analyze --fail-on warning`
-  after LLM-authored code/test changes when available.
-- Native AOT discipline: no reflection patterns, register JSON types in the
-  source-gen context, treat trim/AOT warnings as blocking, `DateTime.UtcNow` only.
-- Tests are xUnit v3 on VSTest — plain `dotnet test` / `--filter`, not TUnit.
-- `AGENTS.md` is canonical; `CLAUDE.md` and `.github/copilot-instructions.md` stay
-  relay-only. `aspire-source-navigation` is the only custom project skill and is exposed
-  through OpenCode only; its canonical guide and the curated roster live under
-  `docs/agents/`.
+Link the relevant `AGENTS.md` or canonical section and list only two or three rules that
+are unusually tempting to violate in the recommended next increment. Do not copy the
+approval gate, package policy, AOT constraints, test framework, Slopwatch command, or
+agent-integration rules into every pickup. Omit this section when the links are sufficient.
 
 ### `## Final Steering Note`
 
@@ -166,11 +133,11 @@ a hard mandate. End short, specific, motivating.
 | Opening paragraph | Session-specific — rewrite |
 | First Principle | Stable |
 | What Just Happened | Session-specific — rewrite |
-| Onboarding Snapshot | Mostly stable; adjust per shift |
+| Onboarding Delta | Session-specific; include only real durable change |
 | Current State | Session-specific — rewrite |
 | Recommended Next Step | Session-specific — rewrite |
 | Mandatory Grounding | Stable; adjust if doc topology shifts |
-| Locked Policy Recap | Stable; source from `AGENTS.md` |
+| Scope-Specific Guardrails | Optional; links plus upcoming-work risks only |
 | Final Steering Note | Session-specific — rewrite |
 
 When the doc topology shifts (new plan doc, renamed roadmap section, retired doc), update

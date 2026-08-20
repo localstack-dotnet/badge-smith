@@ -51,8 +51,10 @@ BadgeSmith prioritizes **cold start performance** and **deployment efficiency**:
 **Implementation Choices:**
 
 - **No ASP.NET Core Host**: Direct Lambda runtime integration
-- **No Dependency Injection**: Centralized `ApplicationRegistry` for service management
-- **No Configuration Framework**: Environment variables with direct access
+- **Lambda-only composition**: `ApplicationRegistry` replaces dependency injection in
+  `src/BadgeSmith.Api`; the separate CLI intentionally uses normal .NET DI
+- **Lambda-only configuration**: the Lambda reads required environment variables
+  directly; tooling may use `IConfiguration`
 - **Source Generators**: JSON serialization without reflection
 
 ### **Conditional Compilation Flags**
@@ -62,14 +64,17 @@ BadgeSmith prioritizes **cold start performance** and **deployment efficiency**:
 <EnableLocalStack>true</EnableLocalStack>    <!-- Development: LocalStack integration -->
 ```
 
-**Production Optimization**: Both flags are **disabled during Docker builds** to:
+**Production optimization**: ordinary builds default both properties to `true`, while
+the production Docker publish passes `-p:EnableTelemetry=false` and
+`-p:EnableLocalStack=false` to:
 
 - Remove telemetry dependencies from deployment package
 - Exclude LocalStack client libraries
 - Reduce final binary size
 - Improve cold start performance
 
-Controlled via build arguments in `Dockerfile` and the `tools/badgesmith.cs lambda build` command.
+The `Dockerfile` owns those publish properties. `tools/badgesmith.cs lambda build` drives
+the Docker targets but does not independently redefine the compilation flags.
 
 ## 📊 **Data Architecture**
 
@@ -256,15 +261,8 @@ quotas are not treated as an application rate-limit contract.
 ### **`badgesmith` CLI**
 
 **`tools/badgesmith.cs`** is the file-based .NET CLI that owns BadgeSmith-specific
-build, test, ingestion, badge-update, and secret-seed workflows:
-
-- **`lambda build`**: Multi-arch Docker builds for Lambda deployment (ZIP and container)
-- **`tests run`**: Per-target-framework `dotnet test` execution with TRX output
-- **`tests ingest`**: HMAC-authenticated test result ingestion against a running API
-- **`badge update`**: GitHub Actions test result posting used by the `update-test-badge` workflow
-- **`secrets seed`**: Seeds GitHub org secret mappings into DynamoDB and Secrets Manager
-
-See `tools/README.md` for full option reference and secret mapping setup.
+Lambda builds, test execution and ingestion, badge updates, and secret seeding. Exact
+commands, defaults, dry-run behavior, and secret mapping live in `tools/README.md`.
 
 ### **`scripts/`**
 
@@ -291,6 +289,13 @@ src/BadgeSmith.Api/
     └── HealthCheck/        # System health monitoring
 ```
 
+Shared source is compiled into consumers rather than exposed through a project reference.
+`BadgeSmith.Api` links `Constants.cs`, `BadgeSmithApiActivitySource.cs`, and
+`HmacCanonicalRequest.cs`; the Host and CDK projects link `Constants.cs`; and the file-based CLI
+includes the HMAC helper. Before changing `src/shared/`, search project-file `Compile Include`
+paths for `shared` or `SharedDir` and file-app directives for `#:include`, then validate every
+consumer.
+
 **Benefits:**
 
 - **Feature isolation**: Changes to one feature don't affect others
@@ -311,22 +316,16 @@ BadgeSmith uses **OneOf result types** instead of exceptions for predictable err
 
 ### **AWS CDK Integration**
 
-**`build/`** contains shared constructs and two separate .NET CDK app entrypoints:
-
-| Purpose | App project | CDK working directory | Native stack ID |
-| --- | --- | --- | --- |
-| Production | `build/BadgeSmith.CDK/BadgeSmith.CDK.csproj` | `build` | `BadgeSmithStack` |
-| Local performance | `build/BadgeSmith.CDK.LocalPerformance/BadgeSmith.CDK.LocalPerformance.csproj` | `build/BadgeSmith.CDK.LocalPerformance` | `BadgeSmithPerformanceStack` |
-
-The production app constructs only the production stack. Production deployment remains
-approval-gated, must target `BadgeSmithStack` explicitly, and must never use `--all`.
-The local-performance app constructs only LocalStack benchmarking infrastructure and is
-never deployed to AWS.
+**`build/`** contains shared constructs and two separate .NET CDK app entrypoints. The
+production app constructs only `BadgeSmithStack`; the local-performance app constructs
+only `BadgeSmithPerformanceStack` and is never deployed to AWS. Their project paths,
+working directories, artifacts, context, and safe commands live in the matching READMEs
+under `build/`.
 
 The deferred `badgesmith perf baseline` command will consume the local-performance app
-as its infrastructure boundary when that command is implemented. See the
-[BadgeSmith CDK app guide](build/BadgeSmith.CDK/README.md) for the exact build and safe
-synthesis commands for each app.
+as its infrastructure boundary when implemented. See the
+[production](build/BadgeSmith.CDK/README.md) and
+[local-performance](build/BadgeSmith.CDK.LocalPerformance/README.md) guides.
 
 ### **Local Development**
 
@@ -354,7 +353,7 @@ synthesis commands for each app.
 
 - **Multi-architecture**: x64 and ARM64 support
 - **Build targets**: ZIP artifacts and container images
-- **Production optimization**: Conditional compilation flags
+- **Docker-backed publish**: Drives the Docker targets that own production conditional compilation flags
 
 ## 📈 **Performance Characteristics**
 
@@ -420,6 +419,9 @@ historical evidence but does not by itself establish pass/fail for these goals.
 - **`update-test-badge/`**: Remotely reusable HMAC-authenticated badge updates
 - **Cross-platform support**: Windows, Linux, macOS
 
+The action definitions own exact inputs and execution; the reusable action's consumer
+guide lives beside its `action.yml`.
+
 ### **Hosted Validation**
 
 Eligible pull requests run the Release build, the full test suite, and the hosted ARM64
@@ -428,8 +430,10 @@ Lambda ZIP build. Live test-result publication is intentionally narrower:
 - **Pull requests**: Build, tests, and ARM64 artifact validation without production
   mutation
 - **Master pushes**: The same checks plus a best-effort authenticated badge update
-- **Production CDK synth/deploy**: Separate approval-gated deployment workflow, not part
-  of the ordinary PR CI pipeline
+- **Production CDK synth/deploy**: Separate approval-gated deployment workflow, not part of ordinary PR CI
+
+Workflow files are the source of truth for triggers, runner images, action versions, and
+deployment steps.
 
 ---
 

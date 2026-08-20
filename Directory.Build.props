@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <DefaultTargetFramework>net10.0</DefaultTargetFramework>
-    <LangVersion>14</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Authors>LocalStack.NET, Deniz İrgin</Authors>
@@ -30,13 +30,11 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <ReportAnalyzer>true</ReportAnalyzer>
-    <AnalysisLevel>latest</AnalysisLevel>
+    <!-- Pin the analyzer wave so SDK roll-forward cannot introduce new build gates silently. -->
+    <AnalysisLevel>10.0</AnalysisLevel>
     <AnalysisMode>All</AnalysisMode>
     <Features>strict</Features>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <NoWarn>$(NoWarn)</NoWarn>
-    <NoError>$(NoError)</NoError>
-
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
     <SharedDir>$(RepoRoot)src\shared</SharedDir>
 
@@ -78,10 +76,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Roslynator.Analyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

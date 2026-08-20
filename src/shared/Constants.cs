@@ -1,4 +1,4 @@
-﻿namespace BadgeSmith;
+namespace BadgeSmith;
 
 internal static class Constants
 {

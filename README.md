@@ -131,13 +131,11 @@ cd badge-smith
 dotnet build build/BadgeSmith.CDK/BadgeSmith.CDK.csproj -c Release
 ```
 
-BadgeSmith has separate production and LocalStack-only performance CDK apps. Production
-CDK commands run from `build` and target `BadgeSmithStack`; local-performance commands
-run from `build/BadgeSmith.CDK.LocalPerformance` and target
-`BadgeSmithPerformanceStack`. See the [CDK app guide](build/BadgeSmith.CDK/README.md)
-for the required Lambda artifacts and safe synthesis commands. Production deployment is
-approval-gated and must never use `--all`; the local-performance app is not deployed to
-AWS.
+BadgeSmith has separate production and LocalStack-only performance CDK apps. See the
+[production CDK guide](build/BadgeSmith.CDK/README.md) and
+[local-performance guide](build/BadgeSmith.CDK.LocalPerformance/README.md) for their
+artifacts, working directories, stack IDs, and safe commands. The local-performance app
+is never deployed to AWS.
 
 ### **Local Development**
 
@@ -220,6 +218,11 @@ Contributions are welcome! The codebase includes:
 - Static analysis with multiple analyzers
 - Zero warnings policy for code quality
 - Native AOT compatibility throughout
+
+The [documentation guide](docs/README.md) explains where current architecture,
+operational instructions, roadmap state, decisions, and dated evidence belong.
+Hand-written C# follows the repository's
+[decomposition and composition guidance](docs/engineering/coding-style.md).
 
 ## 📄 **License**
 

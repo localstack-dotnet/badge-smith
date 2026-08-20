@@ -1,9 +1,9 @@
+using System.ComponentModel;
+using System.Globalization;
 using BadgeSmith.Tools.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.ComponentModel;
-using System.Globalization;
 
 namespace BadgeSmith.Tools.Commands;
 

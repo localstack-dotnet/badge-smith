@@ -18,8 +18,11 @@ Contract tests start `src/BadgeSmith.Host` through Aspire Testing and call `APIG
 
 `APIGatewayEmulator` is started with invariant/C culture in `src/BadgeSmith.Host` so header normalization matches API Gateway HTTP API v2. This prevents Turkish-culture lowercasing from converting `If-None-Match` to `ıf-none-match` and keeps the 304 contract tests executable locally.
 
-## Benchmark Tests
+## Performance Harnesses
 
-k6 benchmark scripts are not contract tests. Local benchmark runs target LocalStack and seed DynamoDB plus Secrets Manager before invoking package routes.
+BenchmarkDotNet microbenchmarks live in `tests/BadgeSmith.Api.Performance.Tests`. The k6
+scenario under `scripts/` is an HTTP load harness, not a test category or contract test.
+Local k6 runs target LocalStack and seed DynamoDB plus Secrets Manager before invoking
+package routes.
 
 LocalStack Community 4.6 does not deploy API Gateway v2 resources through CloudFormation in this workflow, so the local CDK performance stack exposes a Lambda Function URL fallback. The production stack still uses API Gateway HTTP v2.

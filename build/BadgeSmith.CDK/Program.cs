@@ -1,4 +1,4 @@
-﻿using Amazon.CDK;
+using Amazon.CDK;
 using BadgeSmith.CDK.Shared;
 using static BadgeSmith.Constants;
 

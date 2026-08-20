@@ -1,4 +1,4 @@
-﻿#if !ENABLE_LOCALSTACK
+#if !ENABLE_LOCALSTACK
 using Amazon.Runtime;
 
 namespace BadgeSmith.Api.Core;
