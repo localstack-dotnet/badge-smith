@@ -11,8 +11,9 @@ because the apps use different environments and Lambda ZIP architectures.
 - Lambda ZIP default: `../../artifacts/badge-lambda-linux-x64.zip`
 - Upstream mode: explicit `Live`
 
-The deployment workflow is the source of truth for pinned Node.js and AWS CDK CLI
-versions. Use matching local CLI versions instead of duplicating them here.
+The production deployment workflow owns its pinned Node.js and AWS CDK CLI versions. This local
+workflow additionally requires `cdklocal`, which the repository does not currently pin. Record the
+local CLI versions with any published measurement so the environment remains reproducible.
 
 Build and synthesize the local infrastructure:
 

@@ -267,18 +267,15 @@ directly — it is not wrapped by the `badgesmith` CLI. Install k6 from
 
 ```bash
 # Quick smoke test
-k6 run --duration 2m --vus 10 scripts/k6-perf-test.js
+k6 run -e K6_API_URL=https://your-target.example.com --duration 2m --vus 10 scripts/k6-perf-test.js
 
 # Standard load test
-k6 run --duration 5m --vus 50 scripts/k6-perf-test.js
-
-# Override the target endpoint
-K6_API_URL=https://your-api-gateway-url.amazonaws.com k6 run scripts/k6-perf-test.js
+k6 run -e K6_API_URL=https://your-target.example.com --duration 5m --vus 50 scripts/k6-perf-test.js
 ```
 
 The `badgesmith perf baseline` command — LocalStack seed + k6 invocation
 orchestration — remains deferred. When implemented, it will consume the dedicated
 LocalStack-only `BadgeSmith.CDK.LocalPerformance` app as its infrastructure boundary;
 the app is never deployed to AWS. See the
-[CDK app guide](../build/BadgeSmith.CDK/README.md) for the current manual build and
+[local-performance CDK guide](../build/BadgeSmith.CDK.LocalPerformance/README.md) for the current manual build and
 synthesis workflow, and `docs/ROADMAP.md` (Inbox / Untriaged) for the planned command.

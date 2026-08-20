@@ -13,6 +13,8 @@ The test project uses xUnit v3 on VSTest.
 ## Contract Tests
 
 Contract tests start `src/BadgeSmith.Host` through Aspire Testing and call `APIGatewayEmulator` over HTTP. They do not use Lambda RIE or the Lambda invocation endpoint.
+LocalStack-backed tests require Docker; see the current [agent triage notes](../../docs/agents/KNOWN_ISSUES.md)
+for seeding and startup details.
 
 ### Emulator Culture
 
@@ -22,7 +24,11 @@ Contract tests start `src/BadgeSmith.Host` through Aspire Testing and call `APIG
 
 BenchmarkDotNet microbenchmarks live in `tests/BadgeSmith.Api.Performance.Tests`. The k6
 scenario under `scripts/` is an HTTP load harness, not a test category or contract test.
-Local k6 runs target LocalStack and seed DynamoDB plus Secrets Manager before invoking
-package routes.
+It sends requests directly to `K6_API_URL` (or the script's default endpoint); it does not
+provision infrastructure or seed DynamoDB and Secrets Manager.
 
-LocalStack Community 4.6 does not deploy API Gateway v2 resources through CloudFormation in this workflow, so the local CDK performance stack exposes a Lambda Function URL fallback. The production stack still uses API Gateway HTTP v2.
+The local-performance CDK stack defines API Gateway resources and a Lambda Function URL. The
+Function URL is the compatibility fallback for the LocalStack benchmark workflow; production uses
+API Gateway HTTP v2. See the
+[local-performance guide](../../build/BadgeSmith.CDK.LocalPerformance/README.md) for infrastructure
+commands and the [tooling guide](../../tools/README.md#performance-testing-k6) for direct k6 usage.

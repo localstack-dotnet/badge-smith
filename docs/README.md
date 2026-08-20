@@ -9,7 +9,7 @@ defines those owners and the lifecycle of each document class.
 | Home | Audience | Owns | Lifecycle |
 | --- | --- | --- | --- |
 | [`AGENTS.md`](../AGENTS.md) | All coding agents | Always-on safety, approval, source pointers, and task routing | Living policy; changes are approval-gated |
-| [`README.md`](../README.md) | Users and contributors | Product purpose, public endpoints, examples, and first-run paths | Living public surface |
+| [`README.md`](../README.md) | Users and contributors | Product purpose, positioning, public endpoints, examples, showcase, and first-run paths | Living public surface |
 | [`ARCHITECTURE.md`](../ARCHITECTURE.md) | Maintainers and contributors | Current technical design, security contracts, topology, and performance measurement policy | Living current architecture |
 | `docs/README.md` | Maintainers and agents | Documentation ownership, lifecycle, and relocation rules | Living documentation policy |
 | [`docs/engineering/coding-style.md`](engineering/coding-style.md) | C# contributors and agents | Decomposition and composition rules analyzers cannot express | Living engineering policy |
@@ -45,6 +45,10 @@ If two current canonical sources disagree, do not choose one silently. Follow
 
 A repeated fact is acceptable when another audience needs enough context to act, but only one place
 owns the full current rule. A relay should summarize, link, and avoid copying volatile values.
+
+The public README may intentionally repeat concise technical summaries for positioning and
+usability. Do not remove product story, proof points, live examples, showcase content, or
+contributor-facing context merely because detailed technical facts are canonical elsewhere.
 
 Examples:
 
@@ -89,7 +93,9 @@ Typo or link-only edits do not change historical dates.
 - Update documentation in the same change as behavior, topology, endpoints, or workflow contracts.
 - Prefer the existing natural owner over creating a new file.
 - Keep current rules actionable and concise; retain detailed evidence in dated research.
-- Code may be cited from documentation. Code comments and XML docs must remain self-contained and
-  must not cite repository plans, ADRs, or documentation paths.
+- Documentation-only changes do not require build or test unless they alter commands or technical
+  claims that need mechanical validation; always validate affected links.
+- Documentation may cite code. Code comments and XML docs follow the self-contained
+  [code-documentation rules](engineering/coding-style.md#code-documentation).
 - Do not create an ADR unless the decision is hard to reverse, surprising without context, and has a
   real trade-off. If any leg is missing, use current architecture, engineering guidance, or research.

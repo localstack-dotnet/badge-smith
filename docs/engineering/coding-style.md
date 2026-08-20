@@ -74,10 +74,18 @@ types are not silently changed without reviewing their construction and extensio
   buckets by type kind.
 - A test project should mirror the production area it verifies so source and test paths remain
   predictable.
+- Test names use `Subject_Should_Expected_Behavior_When_Condition`. Keep code identifiers intact,
+  underscore other words, put `Should` immediately after the subject, and end conditions with
+  `When...`.
 - Split classes and folders when real cohesion or navigation pressure appears, not in anticipation
   of hypothetical growth.
 - Test through public or internal contracts. The urge to test a private method is extraction
   feedback, not a reason to use reflection.
+
+## Code Documentation
+
+Code comments and XML documentation must explain the status quo without depending on movable
+repository prose. Do not cite plans, ADRs, specifications, or documentation paths from code.
 
 ## Enforcement
 

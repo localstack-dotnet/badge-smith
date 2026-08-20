@@ -16,8 +16,8 @@ runtime-discovered tools when they help, but do not infer permission, architectu
 policy from their presence. Missing optional tooling is not a reason to invent an identifier,
 install a substitute without an explicit request, or weaken a required check.
 
-Changes to `AGENTS.md`, approval gates, repository routing, discovery relays, or this integration
-policy require explicit approval even when the edit is Markdown-only.
+Changes to repository policy, approval gates, repository routing, discovery relays, or this
+integration policy require explicit approval even when the edit is Markdown-only.
 
 ## Repository Files
 

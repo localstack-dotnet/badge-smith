@@ -82,6 +82,9 @@ the Docker targets but does not independently redefine the compilation flags.
 
 BadgeSmith uses **three DynamoDB tables** with optimized access patterns:
 
+DynamoDB and Secrets Manager are deliberate architecture boundaries. BadgeSmith does not use a
+relational store; do not introduce Entity Framework or SQL persistence patterns.
+
 #### **1. Organization Secrets Table**
 
 **Purpose**: Maps GitHub organizations to their authentication secrets
@@ -335,7 +338,10 @@ as its infrastructure boundary when implemented. See the
 - **Lambda emulation**: Local function execution
 - **Contract tests**: Aspire Testing starts `src/BadgeSmith.Host` and calls `APIGatewayEmulator` over HTTP; the test suite does not use Lambda RIE.
 
-**Local benchmark execution** uses Docker, LocalStack, CDK, and k6. Production keeps API Gateway HTTP v2, but the local performance stack exposes a Lambda Function URL fallback because LocalStack Community 4.6 does not deploy API Gateway v2 CloudFormation resources in this workflow.
+**Local benchmark infrastructure** uses Docker, LocalStack, and CDK. Production keeps API Gateway
+HTTP v2, while the local-performance stack also exposes a Lambda Function URL for compatibility
+with the LocalStack workflow. The observed limitation that introduced this fallback is preserved in
+the dated [Iteration 0 and Wave 1 closeout evidence](docs/research/2026-07-09-iteration0-wave1-closeout.md).
 
 ## 🚀 **Deployment Strategy**
 
