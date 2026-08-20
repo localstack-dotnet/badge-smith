@@ -16,6 +16,7 @@ workstreams may link a temporary plan; new ideas land in Inbox / Untriaged until
 | PR #5 merge-readiness remediation | superseded by second pass | — | Implemented in `34fe5f7`: restored Native AOT serializer compatibility, hardened malformed HMAC handling and white-label URLs, secured reusable workflow inputs, and corrected Aspire source ownership. Hosted checks passed, but the subsequent whole-PR review found merge-blocking HMAC and CDK issues tracked by the second-pass workstream below. |
 | PR #5 second-pass review remediation | done | — | Hard-cut HMAC, secure transport, LocalStack client alignment, separate CDK apps, and review hardening merged as `2b147de`; see the [closeout evidence](research/2026-08-08-pr5-second-pass-closeout.md) for commits, CI runs, deployment observations, tags, and smoke checks. |
 | Wave 2 — test safety net | done | — | Direct coverage now protects `NuGetVersionService` range/prerelease selection and failures; `ResponseHelper` ETag, conditional request, and cache-header behavior; and the production `RouteTable.Routes` inventory and resolver parameter matrix. HMAC, nonce, `ApiRouter`, `TestResultsService`, and ingestion coverage had already landed; the original [gap inventory](research/2026-07-02-code-review-findings.md#4-test-suite-gaps) is historical evidence. |
+| Wave 3 — hygiene | ready; implementation approval-gated | [specification](plans/2026-08-20-wave3-hygiene.md) | Five bounded production/design items plus a cross-layer CDK cache-policy safety net. `RegexPattern` is retained as a future routing capability; test logger helpers remain deferred to logging hygiene. |
 
 ## Process Notes
 
@@ -30,14 +31,11 @@ invocations and hide API behavior.
 Scoped work waiting to start. Promote an item into Status & Plan Mapping and link its
 detailed plan when it becomes active.
 
-- **Wave 3 — hygiene**: Revalidate candidate DRY refactors (bootstrap, route-param
-  extraction, and package services) and dead-code cleanup against the current tree before
-  promotion. The original opportunities are
-  [historical evidence](research/2026-07-02-code-review-findings.md#3-refactoring-opportunities-duplication--design)
-  rather than the current work list.
 - **Logging hygiene — source-generated logging migration** (2026-07-02): Replace
   temporary `CA1873` pragmas with `LoggerMessageAttribute` source-generated logging,
-  then remove the suppressions and keep the zero-warning build contract.
+  then remove the suppressions and keep the zero-warning build contract. Retain the existing test
+  logger helpers until this work decides whether structured logging is a verified test contract and
+  standardizes the corresponding assertion support; they are not a Wave 3 dead-code cleanup target.
 - **Production delivery hardening** (captured 2026-08-08): Pin deploy artifacts to a
   successful workflow run, head SHA, and verified digest; stop masking genuine CDK diff
   errors; add automated post-deploy health and badge smoke checks; configure production
