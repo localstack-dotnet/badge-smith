@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadgeSmith.Host", "src\Badg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadgeSmith.CDK.LocalPerformance", "build\BadgeSmith.CDK.LocalPerformance\BadgeSmith.CDK.LocalPerformance.csproj", "{42734231-9C92-42C8-A482-B08FA2C7E987}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadgeSmith.CDK.Tests", "tests\BadgeSmith.CDK.Tests\BadgeSmith.CDK.Tests.csproj", "{733A6FDB-73EF-4CF5-871B-701E375CE0FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{42734231-9C92-42C8-A482-B08FA2C7E987}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42734231-9C92-42C8-A482-B08FA2C7E987}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42734231-9C92-42C8-A482-B08FA2C7E987}.Release|Any CPU.Build.0 = Release|Any CPU
+		{733A6FDB-73EF-4CF5-871B-701E375CE0FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{733A6FDB-73EF-4CF5-871B-701E375CE0FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{733A6FDB-73EF-4CF5-871B-701E375CE0FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{733A6FDB-73EF-4CF5-871B-701E375CE0FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,5 +75,6 @@ Global
 		{BE430EDD-22E5-4F95-A80D-089E1327735D} = {8D4B8CC2-BC23-41FA-84E7-ECACDC79E9F4}
 		{100AC8DB-2F97-4AAA-836C-8450E303178F} = {8D4B8CC2-BC23-41FA-84E7-ECACDC79E9F4}
 		{42734231-9C92-42C8-A482-B08FA2C7E987} = {AE134941-6C89-40C3-92DD-7F43C2469DC8}
+		{733A6FDB-73EF-4CF5-871B-701E375CE0FE} = {A170FF5C-846B-451D-BBD1-F0CDECAA193A}
 	EndGlobalSection
 EndGlobal

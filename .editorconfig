@@ -795,8 +795,13 @@ dotnet_diagnostic.CS1591.severity = none
 # =============================================================================
 
 # xUnit exposes public framework entry points and data arguments, while test
-# names intentionally use underscores throughout the test project.
+# names intentionally use underscores throughout the test projects.
 [tests/BadgeSmith.Api.Tests/**.cs]
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.CA1707.severity = none
+
+[tests/BadgeSmith.CDK.Tests/**.cs]
 dotnet_diagnostic.CA1062.severity = none
 dotnet_diagnostic.CA1515.severity = none
 dotnet_diagnostic.CA1707.severity = none

@@ -21,6 +21,7 @@ defines those owners and the lifecycle of each document class.
 | [`tools/README.md`](../tools/README.md) | CLI users | BadgeSmith CLI commands, defaults, secret handling, and performance-tool invocation | Living operational reference |
 | [`build/**/README.md`](../build/) | Infrastructure operators | Per-app CDK boundaries, working directories, artifacts, and safe commands | Living operational reference |
 | [`tests/BadgeSmith.Api.Tests/README.md`](../tests/BadgeSmith.Api.Tests/README.md) | Test maintainers | Test categories and Aspire/LocalStack contract topology | Living test reference |
+| [`tests/BadgeSmith.CDK.Tests/README.md`](../tests/BadgeSmith.CDK.Tests/README.md) | Infrastructure test maintainers | In-process CDK assertion scope, requirements, and execution | Living test reference |
 | [`.github/workflows/update-test-badge/README.md`](../.github/workflows/update-test-badge/README.md) | External action consumers | Reusable action usage and consumer-facing behavior | Living action reference; `action.yml` owns exact inputs |
 
 Agent relay and discovery files point at canon and do not own independent policy or native-tool

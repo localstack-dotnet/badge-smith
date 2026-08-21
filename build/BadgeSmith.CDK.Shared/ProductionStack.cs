@@ -3,8 +3,6 @@
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CertificateManager;
-using Amazon.CDK.AWS.CloudFront;
-using Amazon.CDK.AWS.CloudFront.Origins;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.Route53;
@@ -64,7 +62,8 @@ public sealed class ProductionStack : Stack
                      + " \"host\":\"$context.domainName\" }",
         };
 
-        CloudFrontDistribution = CreateCloudFrontDistribution();
+        var apiGatewayDomain = Fn.Select(2, Fn.Split("/", ApiGateway.ApiEndpoint));
+        CloudFrontDistribution = BadgeSmithCloudFrontFactory.Create(this, apiGatewayDomain, ApiLocalStackCertificate);
 
         CreateCustomDomainRecord();
 
@@ -85,64 +84,6 @@ public sealed class ProductionStack : Stack
     /// </summary>
     private ICertificate ApiLocalStackCertificate =>
         Certificate.FromCertificateArn(this, ApiCertificateId, "arn:aws:acm:us-east-1:377140207735:certificate/227f14fe-92b1-442c-bb80-ae4032e742fe");
-
-    private Distribution CreateCloudFrontDistribution()
-    {
-        var apiGatewayDomain = Fn.Select(2, Fn.Split("/", ApiGateway.ApiEndpoint));
-
-        var apiOrigin = new HttpOrigin(apiGatewayDomain, new HttpOriginProps
-        {
-            ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
-        });
-
-        // Create origin-controlled cache policy - Lambda controls TTL via Cache-Control headers
-        var originControlledCachePolicy = new CachePolicy(this, CloudFrontCachePolicyId, new CachePolicyProps
-        {
-            CachePolicyName = CloudFrontCachePolicyName,
-            Comment = "Origin-controlled caching with Lambda-driven TTL decisions",
-
-            DefaultTtl = Duration.Seconds(0), // No cache if origin doesn't specify
-            MinTtl = Duration.Seconds(0), // Allow immediate expiration (no-cache)
-            MaxTtl = Duration.Hours(24), // Cap runaway TTLs at 24 hours
-
-            HeaderBehavior = CacheHeaderBehavior.None(),
-
-            // Badge URLs vary by query parameters (e.g., version filters)
-            QueryStringBehavior = CacheQueryStringBehavior.All(),
-
-            // No cookies needed for badge API
-            CookieBehavior = CacheCookieBehavior.None(),
-
-            // Enable compression
-            EnableAcceptEncodingGzip = true,
-            EnableAcceptEncodingBrotli = true,
-        });
-
-        return new Distribution(this, CloudFrontDistributionId, new DistributionProps
-        {
-            Comment = "BadgeSmith API with origin-controlled caching and security",
-
-            DomainNames = [ApiLocalStackForNetDomain],
-            Certificate = ApiLocalStackCertificate,
-
-            DefaultBehavior = new BehaviorOptions
-            {
-                Origin = apiOrigin,
-                ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-                CachePolicy = originControlledCachePolicy,
-                OriginRequestPolicy = OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-                AllowedMethods = AllowedMethods.ALLOW_ALL,
-                CachedMethods = CachedMethods.CACHE_GET_HEAD_OPTIONS,
-                Compress = true,
-            },
-
-            PriceClass = PriceClass.PRICE_CLASS_100,
-            EnableIpv6 = true,
-            HttpVersion = HttpVersion.HTTP2_AND_3,
-
-            MinimumProtocolVersion = SecurityPolicyProtocol.TLS_V1_2_2021,
-        });
-    }
 
     public ARecord CreateCustomDomainRecord()
     {

@@ -34,6 +34,11 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
       - name: "Cache NuGet packages"
         uses: actions/cache@v6
         with:
@@ -55,6 +60,15 @@ jobs:
           results-dir: 'test-results'
           configuration: 'Release'
 
+      - name: Run CDK contract tests
+        if: success() || failure()
+        run: >-
+          dotnet test tests/BadgeSmith.CDK.Tests/BadgeSmith.CDK.Tests.csproj
+          --configuration Release
+          --no-build
+          --logger "trx;LogFileName=cdk-tests.trx"
+          --results-directory cdk-test-results
+
       - name: Publish Test Results
         id: test-results
         uses: dorny/test-reporter@v3
@@ -62,6 +76,17 @@ jobs:
         with:
           name: 'Test Results (Linux)'
           path: 'test-results/**/*.trx'
+          reporter: 'dotnet-trx'
+          path-replace-backslashes: true
+          fail-on-error: true
+          max-annotations: 50
+
+      - name: Publish CDK Test Results
+        uses: dorny/test-reporter@v3
+        if: success() || failure()
+        with:
+          name: 'CDK Test Results (Linux)'
+          path: 'cdk-test-results/**/*.trx'
           reporter: 'dotnet-trx'
           path-replace-backslashes: true
           fail-on-error: true
