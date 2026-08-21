@@ -24,16 +24,52 @@ Client → CloudFront → API Gateway → Lambda → DynamoDB
 
 ### **Cache Strategy**
 
-BadgeSmith implements **multi-layer caching** with an origin-controlled CloudFront cache
-policy:
+BadgeSmith caching is **origin-controlled**: the CloudFront policy bounds what *can* be cached,
+and Lambda response headers decide what *is* cached per request. This section owns the invariant
+meaning; exact CDK property values live in
+[`build/BadgeSmith.CDK.Shared/ProductionStack.cs`](build/BadgeSmith.CDK.Shared/ProductionStack.cs)
+and [`BadgeSmithCloudFrontFactory`](build/BadgeSmith.CDK.Shared/BadgeSmithCloudFrontFactory.cs).
 
-1. **CloudFront Edge Cache**: A custom policy bounds TTL while Lambda response headers
-   select endpoint-specific cache lifetimes
-2. **Lambda Memory Cache**: In-memory caching with TTL
-3. **Conditional Requests**: ETag support for bandwidth optimization
+#### **Cache Layers**
 
-Cache headers are **managed by the Lambda function** within the minimum and maximum TTL
-bounds enforced by the CloudFront policy.
+| Layer | Resource | Owner of validators/TTL | Purpose |
+| --- | --- | --- | --- |
+| CloudFront edge | Custom `CachePolicy` | Lambda `Cache-Control` selects freshness inside policy bounds | Global low-latency delivery |
+| Client/browser | `max-age` directive | Lambda per endpoint | Client-side reuse window |
+| Conditional requests | Strong ETag (SHA-256 over body, quoted uppercase hex) + `If-None-Match` / `Last-Modified` | `ResponseHelper.OkCached` | 304 bandwidth savings |
+| Upstream validator store | `UpstreamCacheEntry` in provider `IAppCache` (15 min TTL) | Provider ETag / `Last-Modified` replay | Skips re-fetch/re-parse; every badge request still **revalidates** upstream — it is a validator store, not a freshness cache |
+
+`s-maxage` belongs to **CloudFront**; `max-age` belongs to the **browser**. Direct API Gateway
+traffic bypasses both edge layers and exercises only conditional-request and client caching.
+
+#### **Load-Bearing Zero-TTL Invariants**
+
+The production cache policy pins `MinTTL=0` and `DefaultTTL=0` with `MaxTTL=86400`. For 2xx/3xx
+responses these zeros mean: an origin response **without** `Cache-Control` must not be cached at
+the edge, and `no-store`/`no-cache` responses must expire immediately. These values gate the
+origin-controlled model; changing them converts silence into implicit caching.
+
+#### **Error-Response Edge Caching**
+
+CloudFront's **Error Caching Minimum TTL** (10 s AWS default; not expressed in our template)
+caches status codes 404/414/500/501/502/503/504 at the edge regardless of `DefaultTTL=0` and even
+without origin `Cache-Control`. Codes 400/403/405/412/415 are cached only when the origin sends
+`max-age`/`s-maxage`. Code 401 is in neither list. `ProductionStack` intentionally sets no
+`CustomErrorResponses`; the CDK test suite asserts that absence so drift is caught before deploy.
+
+#### **Redirect Cache Intent**
+
+Every redirect declares explicit cache intent through the typed API: `RedirectCached` emits the
+policy's precomputed `Cache-Control`, `RedirectNoStore` emits exactly `Cache-Control: no-store`
+(no `Pragma`, no `Expires`). Unspecified-intent redirects are not representable, and non-3xx
+statuses cannot reach a redirect helper. The public test-result redirect remains `302` under the
+single named preset `BadgeResponsePolicy.PublicCache` (600/300/1200/3600 seconds).
+
+#### **Cache-Key Review Rules**
+
+The cache key includes **all query strings** (badge version filters vary by query), **no headers**,
+and **no cookies**. Because `OPTIONS` preflight shares the same key shape, adding header-dependent
+behavior requires revisiting CORS preflight correctness first.
 
 ## 🎯 **Core Design Decisions**
 

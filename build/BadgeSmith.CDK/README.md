@@ -9,6 +9,12 @@ The deployment workflow is the source of truth for pinned Node.js and AWS CDK CL
 versions. Use the same versions for local synth and diff checks instead of duplicating
 version numbers in documentation.
 
+The CloudFront cache/transport contract (zero-TTL invariants, error-caching behavior,
+cache-key rules) is owned by [`ARCHITECTURE.md`](../../ARCHITECTURE.md#cache-strategy);
+the exact property values live in `BadgeSmithCloudFrontFactory` and `ProductionStack` under
+`build/BadgeSmith.CDK.Shared/`, and the in-process assertions that lock them live in
+[`tests/BadgeSmith.CDK.Tests`](../../tests/BadgeSmith.CDK.Tests/README.md).
+
 - Project: `build/BadgeSmith.CDK/BadgeSmith.CDK.csproj`
 - CDK working directory: `build`
 - CDK config: `build/cdk.json`
