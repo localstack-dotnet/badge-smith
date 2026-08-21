@@ -111,8 +111,9 @@ Production CloudFront remains origin-controlled:
 - Error responses follow a different rule: CloudFront's Error Caching Minimum TTL (default 10
   seconds; a distribution setting, not part of the cache policy) caches 404/414/500/501/502/503/504
   for max(10 s, origin `max-age`/`s-maxage`) even without origin `Cache-Control`, and caches
-  400/403/405/412/415 only when the origin sends `max-age`/`s-maxage`. BadgeSmith error responses
-  carry no `Cache-Control`, so they are edge-cached for 10 seconds; `ProductionStack` sets no
+  400/403/405/412/415 only when the origin sends `max-age`/`s-maxage`. Statuses in neither list
+  (for example 401) are not cached. BadgeSmith 404 and 500 responses carry no `Cache-Control`, so
+  they are edge-cached for 10 seconds; 400, 401, and 403 are not. `ProductionStack` sets no
   `ErrorResponses`. This wave documents and asserts that default; it does not change it.
 - The maximum TTL remains bounded; `ProductionStack.cs` owns the exact cap.
 - Path and all query strings form the representation key.
@@ -190,8 +191,15 @@ before `TraceAsync` would tag the wrong activity or no activity.
 Do not merge the files into a preprocessor-heavy single entry point. Do not make the processor depend
 on OpenTelemetry types.
 
-Allocation delta: the `Program` logger is created once at initialization instead of on every
-request; the `CancellationTokenSource` and `BeginScope` remain per request as today.
+`LambdaRequestProcessor` carries the same narrow file-scoped `#pragma warning disable CA1873` with the
+same "replace with LoggerMessage source-generated logging" comment as the current entry points.
+Source-generated logging remains the separate logging-hygiene workstream and must not be pulled into
+this wave to make the processor build.
+
+Allocation delta: the `ILogger<Program>` wrapper that `CreateLogger<T>()` allocates on every request
+today (`Logger<T>`; the underlying category logger is already cached by the factory) is created once
+at initialization. The `CancellationTokenSource`, `BeginScope`, and logging argument arrays remain per
+request as today. Measure the delta; do not claim more than that one small object.
 
 ### Tests
 
@@ -417,16 +425,21 @@ Allocation delta per upstream call: the boxed tuple (one heap object) is replace
 ### Tests
 
 Drift guard: one scenario matrix executed against both services. Build it as a shared test helper
-(a stub `HttpMessageHandler` that records requests and scripts responses, plus a real
-`MemoryAppCache`) and a shared `[Theory]` data set applied to `NuGetPackageService` and
-`GitHubPackageService` separately:
+(a stub `HttpMessageHandler` that records requests and scripts responses, plus a recording
+`IAppCache` double that captures every `Set` key, entry, and TTL and serves scripted `TryGetValue`
+results; a real `MemoryAppCache` cannot prove a TTL refresh without sleeping or the obsolete clock
+seam) and a shared `[Theory]` data set applied to `NuGetPackageService` and `GitHubPackageService`
+separately:
 
 - First 200 response sends no validators and writes the cache.
 - Cached ETag produces `If-None-Match` verbatim, including a weak `W/` validator.
 - Cached Last-Modified produces `If-Modified-Since`.
 - 304 with cache reuses the payload.
-- 304 with cache writes merged validators and refreshes the cache TTL.
-- 304 without cache returns the `Error` result and the handler emits the safe 500 body.
+- 304 with cache writes the merged entry back with the 15-minute TTL, asserted on the recorded `Set`.
+- 304 without cache returns the `Error` result; through the handler this is HTTP 500,
+  `Content-Type: application/json; charset=utf-8`, body
+  `{"message":"Received 304 Not Modified without a cached entry"}` (the `ErrorResponse` path with
+  null `error_details` omitted, not the catch-all text).
 - Response ETag overrides cached ETag when present.
 - Last-Modified precedence is content header, response `Date`, then cached value.
 - 4xx/5xx status is not cached and its body is not read.
@@ -446,7 +459,9 @@ the existing `TestHelpers` folder.
 
 Allocation: add a `--type=providers` suite to `tests/BadgeSmith.Api.Performance.Tests` that runs
 `GetLatestVersionAsync` for both services against a stub handler with `[MemoryDiagnoser]` (cold
-cache 200 path and warm cache 304 path). Record the numbers in the closeout; this is not a CI gate.
+cache 200 path and warm cache 304 path). Register `providers` in `Program.GetBenchmarkType`; the
+harness parses only `--type=`, and the diagnoser is attribute-driven. Record the numbers in the
+closeout; this is not a CI gate.
 
 ### Acceptance Criteria
 
@@ -456,8 +471,9 @@ cache 200 path and warm cache 304 path). Record the numbers in the closeout; thi
   in each service; no shared base class or fetch collaborator exists.
 - The shared scenario matrix passes against both services.
 - Tuple cache entries are gone; `UpstreamCacheEntry` is the only upstream cache-entry shape.
-- Responses sent to BadgeSmith clients are unchanged; only requests sent upstream change (escaping,
-  verbatim weak ETags).
+- Responses sent to BadgeSmith clients are unchanged except the GitHub generic failure label listed
+  under Intentional Behavior Changes; requests sent upstream change only in escaping and verbatim
+  weak ETags.
 
 ## Work Item 4: Typed Response Cache and Redirect API
 
@@ -510,7 +526,10 @@ so an uninitialized status cannot reach the wire.
 Do not include 300 Multiple Choices (separate choice representation), 304 Not Modified (conditional
 caching), or deprecated 305/reserved 306.
 
-`PublicCachePolicy` is an immutable `sealed record class` expressed with `TimeSpan` values:
+`PublicCachePolicy` is an immutable `sealed class` with a validating constructor and get-only
+properties, expressed with `TimeSpan` values. It is deliberately not a record: positional or `init`
+members would let `policy with { SharedMaxAge = ... }` bypass constructor validation, and a preset
+consumed by reference needs no value equality:
 
 - Shared maximum age (`s-maxage`).
 - Client maximum age (`max-age`).
@@ -568,7 +587,8 @@ The convenience overloads use `Found`; the explicit overloads preserve every sup
 status. Do not expose a plain redirect with unspecified cache intent.
 
 `OkCached` requires a `PublicCachePolicy` so public cache-control composition exists once. Remove the
-hidden nullable/default policy path; every cached response selects a preset explicitly.
+hidden nullable/default policy path; every cached response selects a preset explicitly. `OkCached`
+and `RedirectCached` guard a null policy with `ArgumentNullException.ThrowIfNull`.
 
 Move `OkHealthWithNoCache` out of `ResponseHelper`: `HealthCheckHandler` composes
 `ResponseHelper.Ok(response, LambdaFunctionJsonSerializerContext.Default.HealthCheckResponse, ...)`
@@ -585,10 +605,20 @@ Remove:
 ### Strong ETag Computation
 
 `ComputeStrongEtag` keeps its contract (SHA-256 over the UTF-8 body, uppercase hex, quoted) and drops
-to one allocation: encode into a `stackalloc` or pooled UTF-8 buffer sized by
-`Encoding.UTF8.GetByteCount`, hash with `SHA256.HashData(ReadOnlySpan<byte>, Span<byte>)` into a stack
-buffer, and build the quoted hex with `string.Create(66, ...)` and `Convert.TryToHexString`. Existing
-ETag tests must pass unchanged.
+to one allocation on the common path:
+
+- Size the UTF-8 buffer with `Encoding.UTF8.GetByteCount`. Up to a fixed 512-byte threshold use
+  `stackalloc`; above it rent from `ArrayPool<byte>.Shared` and return it in `finally`. Badge,
+  health, and error payloads are far below the threshold, but `OkCached<T>` is generic, so the
+  pooled path is mandatory, not optional.
+- Hash with `SHA256.HashData(ReadOnlySpan<byte>, Span<byte>)` into a `stackalloc byte[32]`.
+- Build the quoted hex with `string.Create(66, hash, ...)`, passing the 32-byte hash span as the
+  state (`string.Create`'s `TState` allows ref structs on .NET 9+) and writing `"` +
+  `Convert.TryToHexString` into `span[1..65]` + `"`; never re-encode or re-hash inside the callback.
+- The single-allocation guarantee (the returned ETag string) holds for the stack path and the warmed
+  pool path; a cold pool rent may allocate once.
+
+Existing ETag tests must pass unchanged.
 
 ### Header Contract
 
@@ -810,9 +840,10 @@ Distribution behavior:
 
 Distribution error caching:
 
-- No `CustomErrorResponses` are configured, so CloudFront's default Error Caching Minimum TTL (10
-  seconds) applies to cacheable 4xx/5xx. The assertion records the current default so a future
-  change is deliberate.
+- `CustomErrorResponses` is absent (`Match.Absent()`), so CloudFront's service default Error Caching
+  Minimum TTL (10 seconds) applies to cacheable 4xx/5xx. The 10-second value is AWS behavior and does
+  not appear in the template; the test asserts only the absence so a future change is deliberate,
+  and canon records the default.
 
 Lambda/deployment contract where deterministically testable:
 
@@ -956,7 +987,7 @@ dotnet build src/BadgeSmith.Api/BadgeSmith.Api.csproj -c Release --no-restore \
 Record provider allocation numbers (not a gate):
 
 ```bash
-dotnet run --project tests/BadgeSmith.Api.Performance.Tests -c Release -- --type=providers --mode=memory
+dotnet run --project tests/BadgeSmith.Api.Performance.Tests -c Release -- --type=providers
 ```
 
 Run repository quality gates:
