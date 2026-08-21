@@ -26,6 +26,7 @@ internal static class Program
         {
             "buffer" => typeof(BufferAllocationBenchmarks),
             "routing" => typeof(RoutingBenchmarks),
+            "providers" => typeof(ProviderBenchmarks),
             _ => typeof(BufferAllocationBenchmarks), // Default to buffer benchmarks
         };
     }
@@ -35,24 +36,19 @@ internal static class Program
         Console.WriteLine("BadgeSmith Performance Benchmarks");
         Console.WriteLine();
         Console.WriteLine("Usage:");
-        Console.WriteLine("  dotnet run --configuration Release -- [options]");
+        Console.WriteLine("  dotnet run --configuration Release -- --type=<suite>");
         Console.WriteLine();
         Console.WriteLine("Options:");
-        Console.WriteLine("  --type=<buffer|routing>     Choose benchmark suite (default: buffer)");
-        Console.WriteLine("  --category=<category>       Filter by benchmark category");
-        Console.WriteLine("  --mode=<dry|short|memory>   Benchmark execution mode");
+        Console.WriteLine("  --type=<buffer|routing|providers>  Choose benchmark suite (default: buffer)");
         Console.WriteLine();
         Console.WriteLine("Examples:");
-        Console.WriteLine("  # Quick buffer allocation tests");
-        Console.WriteLine("  dotnet run -c Release -- --type=buffer --category=Quick");
+        Console.WriteLine("  # Buffer allocation tests");
+        Console.WriteLine("  dotnet run -c Release -- --type=buffer");
         Console.WriteLine();
-        Console.WriteLine("  # All buffer benchmarks with memory focus");
-        Console.WriteLine("  dotnet run -c Release -- --type=buffer --mode=memory");
-        Console.WriteLine();
-        Console.WriteLine("  # Fast validation run");
-        Console.WriteLine("  dotnet run -c Release -- --type=buffer --mode=dry");
-        Console.WriteLine();
-        Console.WriteLine("  # Original routing benchmarks");
+        Console.WriteLine("  # Routing benchmarks");
         Console.WriteLine("  dotnet run -c Release -- --type=routing");
+        Console.WriteLine();
+        Console.WriteLine("  # Provider upstream fetch allocation profile");
+        Console.WriteLine("  dotnet run -c Release -- --type=providers");
     }
 }

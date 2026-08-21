@@ -3,9 +3,9 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Web;
 using BadgeSmith.Api.Core;
 using BadgeSmith.Api.Core.Caching;
+using BadgeSmith.Api.Core.Http;
 using BadgeSmith.Api.Core.Versioning.Contracts;
 using BadgeSmith.Api.Features.GitHub.Contracts;
 using Microsoft.Extensions.Logging;
@@ -51,9 +51,9 @@ internal sealed class GitHubPackageService : IGitHubPackageService
         _logger.LogInformation("Fetching GitHub package versions for {PackageId}", packageId);
         var orgNormalized = organization.ToLowerInvariant();
         var packageIdNormalized = packageId.ToLowerInvariant();
-        var url = new Uri($"orgs/{HttpUtility.UrlEncode(orgNormalized)}/packages/nuget/{HttpUtility.UrlEncode(packageIdNormalized)}/versions", UriKind.Relative);
+        var url = new Uri($"orgs/{Uri.EscapeDataString(orgNormalized)}/packages/nuget/{Uri.EscapeDataString(packageIdNormalized)}/versions", UriKind.Relative);
         var cacheKey = $"github_package:index:{orgNormalized}:{packageIdNormalized}";
-        var hasCache = _cache.TryGetValue<(string Payload, string? ETag, DateTimeOffset? LastModified)>(cacheKey, out var cached);
+        var hasCache = _cache.TryGetValue<UpstreamCacheEntry>(cacheKey, out var cached);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -61,12 +61,12 @@ internal sealed class GitHubPackageService : IGitHubPackageService
 
         if (hasCache)
         {
-            if (!string.IsNullOrWhiteSpace(cached.ETag))
+            if (!string.IsNullOrWhiteSpace(cached!.ETag))
             {
                 request.Headers.IfNoneMatch.ParseAdd(cached.ETag);
             }
 
-            if (cached.LastModified.HasValue)
+            if (cached!.LastModified.HasValue)
             {
                 request.Headers.IfModifiedSince = cached.LastModified.Value;
             }
@@ -82,9 +82,9 @@ internal sealed class GitHubPackageService : IGitHubPackageService
             case HttpStatusCode.NotModified when !hasCache:
                 return new Error("Received 304 Not Modified without a cached entry");
             case HttpStatusCode.NotModified when hasCache:
-                content = cached.Payload;
-                etag = response.Headers.ETag?.Tag ?? cached.ETag;
-                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date ?? cached.LastModified;
+                content = cached!.Payload;
+                etag = response.Headers.ETag?.ToString() ?? cached!.ETag;
+                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date ?? cached!.LastModified;
                 break;
             case HttpStatusCode.NotFound:
                 return new PackageNotFound($"Package '{packageId}' not found");
@@ -95,16 +95,16 @@ internal sealed class GitHubPackageService : IGitHubPackageService
             default:
                 if (!response.IsSuccessStatusCode)
                 {
-                    return new Error($"NuGet API error: {response.StatusCode}");
+                    return new Error($"GitHub API error: {response.StatusCode}");
                 }
 
                 content = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-                etag = response.Headers.ETag?.Tag;
+                etag = response.Headers.ETag?.ToString();
                 lastMod = response.Content.Headers.LastModified ?? response.Headers.Date;
                 break;
         }
 
-        _cache.Set(cacheKey, (content, etag, lastMod), CacheTtl);
+        _cache.Set(cacheKey, new UpstreamCacheEntry(content, etag, lastMod), CacheTtl);
         var githubPackageVersions = JsonSerializer.Deserialize(content, LambdaFunctionJsonSerializerContext.Default.IReadOnlyListGithubPackageVersion);
 
         if (githubPackageVersions == null || githubPackageVersions.Count == 0)

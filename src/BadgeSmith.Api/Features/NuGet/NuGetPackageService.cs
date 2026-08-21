@@ -4,6 +4,7 @@ using System.Net;
 using System.Text.Json;
 using BadgeSmith.Api.Core;
 using BadgeSmith.Api.Core.Caching;
+using BadgeSmith.Api.Core.Http;
 using BadgeSmith.Api.Core.Versioning.Contracts;
 using BadgeSmith.Api.Features.NuGet.Contracts;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ namespace BadgeSmith.Api.Features.NuGet;
 /// <summary>
 /// Service for retrieving NuGet package information using the NuGet v3 flat container API
 /// </summary>
-internal class NuGetPackageService : INuGetPackageService
+internal sealed class NuGetPackageService : INuGetPackageService
 {
     private readonly INuGetVersionService _nuGetVersionService;
     private readonly ILogger<NuGetPackageService> _logger;
@@ -25,10 +26,10 @@ internal class NuGetPackageService : INuGetPackageService
 
     public NuGetPackageService(INuGetVersionService nuGetVersionService, ILogger<NuGetPackageService> logger, HttpClient nugetClient, IAppCache cache)
     {
-        _nuGetVersionService = nuGetVersionService;
-        _logger = logger;
-        _nugetClient = nugetClient;
-        _cache = cache;
+        _nuGetVersionService = nuGetVersionService ?? throw new ArgumentNullException(nameof(nuGetVersionService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _nugetClient = nugetClient ?? throw new ArgumentNullException(nameof(nugetClient));
+        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
     public async Task<NuGetResults> GetLatestVersionAsync(
@@ -42,19 +43,19 @@ internal class NuGetPackageService : INuGetPackageService
 
         _logger.LogInformation("Fetching NuGet package versions for {PackageId}", packageId);
         var packageIdNormalized = packageId.ToLowerInvariant();
-        var url = new Uri($"v3-flatcontainer/{packageIdNormalized}/index.json", UriKind.Relative);
+        var url = new Uri($"v3-flatcontainer/{Uri.EscapeDataString(packageIdNormalized)}/index.json", UriKind.Relative);
         var cacheKey = $"nuget:index:{packageIdNormalized}";
-        var hasCache = _cache.TryGetValue<(string Payload, string? ETag, DateTimeOffset? LastModified)>(cacheKey, out var cached);
+        var hasCache = _cache.TryGetValue<UpstreamCacheEntry>(cacheKey, out var cached);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         if (hasCache)
         {
-            if (!string.IsNullOrWhiteSpace(cached.ETag))
+            if (!string.IsNullOrWhiteSpace(cached!.ETag))
             {
                 request.Headers.IfNoneMatch.ParseAdd(cached.ETag);
             }
 
-            if (cached.LastModified.HasValue)
+            if (cached!.LastModified.HasValue)
             {
                 request.Headers.IfModifiedSince = cached.LastModified.Value;
             }
@@ -72,9 +73,9 @@ internal class NuGetPackageService : INuGetPackageService
             case HttpStatusCode.NotModified when !hasCache:
                 return new Error("Received 304 Not Modified without a cached entry");
             case HttpStatusCode.NotModified when hasCache:
-                content = cached.Payload;
-                etag = response.Headers.ETag?.Tag ?? cached.ETag;
-                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date ?? cached.LastModified;
+                content = cached!.Payload;
+                etag = response.Headers.ETag?.ToString() ?? cached!.ETag;
+                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date ?? cached!.LastModified;
                 break;
             case HttpStatusCode.NotFound:
                 return new PackageNotFound($"Package '{packageId}' not found");
@@ -85,12 +86,12 @@ internal class NuGetPackageService : INuGetPackageService
                 }
 
                 content = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-                etag = response.Headers.ETag?.Tag;
+                etag = response.Headers.ETag?.ToString();
                 lastMod = response.Content.Headers.LastModified ?? response.Headers.Date;
                 break;
         }
 
-        _cache.Set(cacheKey, (content, etag, lastMod), CacheTtl);
+        _cache.Set(cacheKey, new UpstreamCacheEntry(content, etag, lastMod), CacheTtl);
 
         var indexResponse = JsonSerializer.Deserialize(content, LambdaFunctionJsonSerializerContext.Default.NuGetIndexResponse);
 
