@@ -63,7 +63,11 @@ public sealed class ProductionStack : Stack
         };
 
         var apiGatewayDomain = Fn.Select(2, Fn.Split("/", ApiGateway.ApiEndpoint));
-        CloudFrontDistribution = BadgeSmithCloudFrontFactory.Create(this, apiGatewayDomain, ApiLocalStackCertificate);
+
+        // ACM certificate for api.localstackfor.net; us-east-1 is required for CloudFront viewer certificates.
+        var apiCertificate = Certificate.FromCertificateArn(this, ApiCertificateId, "arn:aws:acm:us-east-1:377140207735:certificate/227f14fe-92b1-442c-bb80-ae4032e742fe");
+
+        CloudFrontDistribution = BadgeSmithCloudFrontFactory.Create(this, apiGatewayDomain, apiCertificate);
 
         CreateCustomDomainRecord();
 
@@ -73,23 +77,16 @@ public sealed class ProductionStack : Stack
         Tags.SetTag("stack", "badge-smith-production");
     }
 
-    private IHostedZone LocalStackDotnetHostedZone => HostedZone.FromLookup(this, LocalStackForNetZoneHostedZoneId, new HostedZoneProviderProps
+    private void CreateCustomDomainRecord()
     {
-        DomainName = "localstackfor.net",
-    });
-
-    /// <summary>
-    /// AWS Certificate Manager (ACM) SSL certificate for api.localstackfor.net domain.
-    /// Provides HTTPS encryption for the custom domain with DNS validation.
-    /// </summary>
-    private ICertificate ApiLocalStackCertificate =>
-        Certificate.FromCertificateArn(this, ApiCertificateId, "arn:aws:acm:us-east-1:377140207735:certificate/227f14fe-92b1-442c-bb80-ae4032e742fe");
-
-    public ARecord CreateCustomDomainRecord()
-    {
-        return new ARecord(this, ApiLocalStackARecordId, new ARecordProps
+        var hostedZone = HostedZone.FromLookup(this, LocalStackForNetZoneHostedZoneId, new HostedZoneProviderProps
         {
-            Zone = LocalStackDotnetHostedZone,
+            DomainName = "localstackfor.net",
+        });
+
+        _ = new ARecord(this, ApiLocalStackARecordId, new ARecordProps
+        {
+            Zone = hostedZone,
             RecordName = "api", // => api.localstackfor.net
             Target = RecordTarget.FromAlias(new CloudFrontTarget(CloudFrontDistribution)),
         });
