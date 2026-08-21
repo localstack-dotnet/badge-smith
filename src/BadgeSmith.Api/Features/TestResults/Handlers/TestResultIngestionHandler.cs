@@ -33,9 +33,10 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
 
         try
         {
-            if (!TryExtractRouteParameters(routeContext, out var routeParams, out var routeError))
+            var routeResult = TestResultRouteParameters.Extract(routeContext);
+            if (!routeResult.IsSuccess)
             {
-                return routeError!;
+                return ResponseHelper.BadRequest(routeResult.Failure.ToErrorResponse());
             }
 
             if (!TryParseTestPayload(routeContext.Request.Body, out var payload, out var parseError))
@@ -48,10 +49,18 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
                 return headerError!;
             }
 
-            var (owner, repo, platform, branch) = routeParams;
+            var parameters = routeResult.Parameters;
             var (signature, timestamp, nonce) = authHeaders;
 
-            var hmacAuthRequest = new HmacAuthContext(owner, repo, platform, branch, signature, timestamp, nonce, routeContext.Request.Body);
+            var hmacAuthRequest = new HmacAuthContext(
+                Owner: parameters.Owner,
+                Repo: parameters.Repo,
+                Platform: parameters.Platform,
+                Branch: parameters.Branch,
+                Signature: signature,
+                Timestamp: timestamp,
+                Nonce: nonce,
+                RequestBody: routeContext.Request.Body);
 
             _logger.LogInformation("Test result ingest request received");
 
@@ -71,31 +80,7 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
             var authenticatedRequest = authResult.AuthenticatedRequest!;
             _logger.LogInformation("Successfully authenticated test result ingestion for repository {RepoIdentifier}", authenticatedRequest.RepoIdentifier);
 
-            var testResultPayload = new StoreTestResultRequest(owner, repo, platform, branch, payload);
-            var storeResult = await _testResultsService.StoreTestResultAsync(testResultPayload, ct).ConfigureAwait(false);
-            if (!storeResult.IsSuccess)
-            {
-                return storeResult.Failure.Match(
-                    invalidPayload => ResponseHelper.BadRequest(invalidPayload.ToErrorResponse()),
-                    duplicate => ResponseHelper.Conflict(duplicate.ToErrorResponse()),
-                    error => ResponseHelper.InternalServerError(error.ToErrorResponse())
-                );
-            }
-
-            var storedResult = storeResult.TestResultStored!;
-            var response = new TestResultIngestionResponse(
-                TestResultId: storedResult.TestResultId,
-                Repository: authenticatedRequest.RepoIdentifier,
-                Timestamp: storedResult.StoredAt
-            );
-
-            _logger.LogInformation("Successfully stored test result {TestResultId} for {RepoIdentifier}",
-                storedResult.TestResultId, authenticatedRequest.RepoIdentifier);
-
-            return ResponseHelper.Created(
-                response,
-                LambdaFunctionJsonSerializerContext.Default.TestResultIngestionResponse,
-                () => ResponseHelper.NoCacheHeaders("application/json; charset=utf-8"));
+            return await StoreTestResultAsync(parameters, payload, authenticatedRequest.RepoIdentifier, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -109,40 +94,43 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
         }
     }
 
-    private static bool TryExtractRouteParameters(
-        RouteContext routeContext,
-        out (string Owner, string Repo, string Platform, string Branch) routeParams,
-        out APIGatewayHttpApiV2ProxyResponse? errorResponse)
+    private async Task<APIGatewayHttpApiV2ProxyResponse> StoreTestResultAsync(
+        TestResultRouteParameters parameters,
+        TestResultPayload? payload,
+        string repoIdentifier,
+        CancellationToken ct)
     {
-        routeParams = default;
-        errorResponse = null;
+        var testResultPayload = new StoreTestResultRequest(
+            Owner: parameters.Owner,
+            Repo: parameters.Repo,
+            Platform: parameters.Platform,
+            Branch: parameters.Branch,
+            Payload: payload);
 
-        if (!routeContext.TryGetRouteValue("owner", out var owner) || string.IsNullOrWhiteSpace(owner))
+        var storeResult = await _testResultsService.StoreTestResultAsync(testResultPayload, ct).ConfigureAwait(false);
+        if (!storeResult.IsSuccess)
         {
-            errorResponse = ResponseHelper.BadRequest("Owner parameter is required");
-            return false;
+            return storeResult.Failure.Match(
+                invalidPayload => ResponseHelper.BadRequest(invalidPayload.ToErrorResponse()),
+                duplicate => ResponseHelper.Conflict(duplicate.ToErrorResponse()),
+                error => ResponseHelper.InternalServerError(error.ToErrorResponse())
+            );
         }
 
-        if (!routeContext.TryGetRouteValue("repo", out var repo) || string.IsNullOrWhiteSpace(repo))
-        {
-            errorResponse = ResponseHelper.BadRequest("Repo parameter is required");
-            return false;
-        }
+        var storedResult = storeResult.TestResultStored!;
+        var response = new TestResultIngestionResponse(
+            TestResultId: storedResult.TestResultId,
+            Repository: repoIdentifier,
+            Timestamp: storedResult.StoredAt
+        );
 
-        if (!routeContext.TryGetRouteValue("platform", out var platform) || string.IsNullOrWhiteSpace(platform))
-        {
-            errorResponse = ResponseHelper.BadRequest("Platform parameter is required");
-            return false;
-        }
+        _logger.LogInformation("Successfully stored test result {TestResultId} for {RepoIdentifier}",
+            storedResult.TestResultId, repoIdentifier);
 
-        if (!routeContext.TryGetRouteValue("branch", out var branch) || string.IsNullOrWhiteSpace(branch))
-        {
-            errorResponse = ResponseHelper.BadRequest("Branch parameter is required");
-            return false;
-        }
-
-        routeParams = (owner, repo, platform, branch);
-        return true;
+        return ResponseHelper.Created(
+            response,
+            LambdaFunctionJsonSerializerContext.Default.TestResultIngestionResponse,
+            () => ResponseHelper.NoCacheHeaders("application/json; charset=utf-8"));
     }
 
     private static bool TryExtractAuthHeaders(

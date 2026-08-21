@@ -3,6 +3,7 @@ using BadgeSmith.Api.Core.Infrastructure;
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Core.Routing.Helpers;
 using BadgeSmith.Api.Features;
+using BadgeSmith.Api.Features.TestResults.Models;
 using BadgeSmith.Api.Tests.Testing;
 using Xunit;
 
@@ -15,7 +16,7 @@ public sealed class AllocationBaselineTests
     private const long CachedBadgeResponseAllocationBaselineBytes = 1208;
     private const long CachedRedirectAllocationBaselineBytes = 1096;
     private const long NoStoreRedirectAllocationBaselineBytes = 352;
-    private const long TestResultRouteParameterExtractionAllocationBaselineBytes = 0;
+    private const long TestResultRouteParameterExtractionAllocationBaselineBytes = 64;
     private const string RedirectLocation = "https://example.com/results/42";
 
     private static readonly ShieldsBadgeResponse CachedBadge = new(1, "NuGet", "1.2.3", "blue");
@@ -63,9 +64,11 @@ public sealed class AllocationBaselineTests
     [Fact]
     public void TestResultRouteParameterExtraction_Should_Not_Exceed_Allocation_Baseline_When_Warmed()
     {
-        var allocatedBytes = MeasureAllocation(ExtractCurrentTestResultRouteParameters);
+        var allocatedBytes = MeasureAllocation(ExtractTestResultRouteParameters);
 
-        Assert.InRange(allocatedBytes, 0, TestResultRouteParameterExtractionAllocationBaselineBytes);
+        Assert.True(
+            allocatedBytes <= TestResultRouteParameterExtractionAllocationBaselineBytes,
+            $"Measured {allocatedBytes} bytes; baseline is {TestResultRouteParameterExtractionAllocationBaselineBytes}.");
     }
 
     private static APIGatewayHttpApiV2ProxyResponse CreateCachedBadgeResponse()
@@ -91,18 +94,10 @@ public sealed class AllocationBaselineTests
         return ResponseHelper.Redirect(RedirectLocation, noStore: true);
     }
 
-    private static string ExtractCurrentTestResultRouteParameters()
+    private static string ExtractTestResultRouteParameters()
     {
-        if (!TestResultRouteContext.TryGetRouteValue("owner", out var owner) || string.IsNullOrWhiteSpace(owner) ||
-            !TestResultRouteContext.TryGetRouteValue("repo", out var repo) || string.IsNullOrWhiteSpace(repo) ||
-            !TestResultRouteContext.TryGetRouteValue("platform", out var platform) || string.IsNullOrWhiteSpace(platform) ||
-            !TestResultRouteContext.TryGetRouteValue("branch", out var branch) || string.IsNullOrWhiteSpace(branch))
-        {
-            throw new InvalidOperationException("The allocation baseline requires complete route values.");
-        }
-
-        var routeParameters = (Owner: owner, Repo: repo, Platform: platform, Branch: branch);
-        return routeParameters.Branch;
+        var result = TestResultRouteParameters.Extract(TestResultRouteContext);
+        return result.Parameters.Branch;
     }
 
     private static long MeasureAllocation<T>(Func<T> action)

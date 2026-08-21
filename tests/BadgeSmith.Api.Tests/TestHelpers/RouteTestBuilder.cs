@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Core.Routing.Contracts;
@@ -39,7 +40,7 @@ internal static class RouteTestBuilder
             Pattern: pattern);
     }
 
-    public static RouteResolver CreateRouteResolver(params RouteDescriptor[] routes) => new(routes);
+    public static RouteResolver CreateRouteResolver(params RouteDescriptor[] routes) => new(ImmutableArray.Create(routes));
 
     private sealed class MockRouteHandler : IRouteHandler
     {

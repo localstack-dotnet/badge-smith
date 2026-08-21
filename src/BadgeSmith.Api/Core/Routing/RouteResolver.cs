@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Patterns;
 
@@ -5,9 +6,9 @@ namespace BadgeSmith.Api.Core.Routing;
 
 internal sealed class RouteResolver : IRouteResolver
 {
-    private readonly RouteDescriptor[] _routes;
+    private readonly ImmutableArray<RouteDescriptor> _routes;
 
-    public RouteResolver(RouteDescriptor[] allRoutes)
+    public RouteResolver(ImmutableArray<RouteDescriptor> allRoutes)
     {
         _routes = allRoutes;
     }

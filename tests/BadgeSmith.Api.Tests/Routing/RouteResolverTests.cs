@@ -302,7 +302,7 @@ public sealed class RouteResolverTests
     public void TryResolve_Should_Handle_Production_Route_Scenarios(string method, string path, bool expectedMatch, string? expectedRouteName,
         IDictionary<string, string>? expectedParameters)
     {
-        var resolver = RouteTestBuilder.CreateRouteResolver(RouteTable.Routes);
+        var resolver = RouteTestBuilder.CreateRouteResolver(RouteTable.Routes.ToArray());
 
         var result = resolver.TryResolve(method, path, out var match);
 

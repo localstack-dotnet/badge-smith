@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Core.Routing.Contracts;
@@ -79,7 +80,7 @@ internal static class RouteTestBuilder
     /// </summary>
     /// <param name="routes">The routes to include in the resolver.</param>
     /// <returns>A RouteResolver instance.</returns>
-    public static RouteResolver CreateRouteResolver(params RouteDescriptor[] routes) => new(routes);
+    public static RouteResolver CreateRouteResolver(params RouteDescriptor[] routes) => new(ImmutableArray.Create(routes));
 
     /// <summary>
     /// Mock route handler for testing purposes.

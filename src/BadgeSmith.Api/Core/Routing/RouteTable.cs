@@ -1,10 +1,11 @@
+using System.Collections.Immutable;
 using BadgeSmith.Api.Core.Routing.Patterns;
 
 namespace BadgeSmith.Api.Core.Routing;
 
 internal static class RouteTable
 {
-    public static RouteDescriptor[] Routes { get; set; } =
+    public static ImmutableArray<RouteDescriptor> Routes { get; } =
     [
         new(
             Name: "Health",
