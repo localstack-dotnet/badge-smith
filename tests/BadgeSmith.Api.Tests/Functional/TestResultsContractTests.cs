@@ -292,7 +292,16 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
         Assert.Equal(302, redirect.StatusCode);
         Assert.NotNull(redirect.Headers);
         Assert.Equal(testCase.UrlHtml, redirect.Headers["Location"]);
-        Assert.Equal("public, s-maxage=600, max-age=300, stale-while-revalidate=1200, stale-if-error=3600", redirect.Headers["Cache-Control"]);
+
+        // HttpHeaders round-trips Cache-Control through CacheControlHeaderValue, which re-serializes
+        // directives in .NET's canonical order. Assert directive values; byte order is locked by
+        // PublicCachePolicyTests against the precomputed policy value.
+        var cacheControl = redirect.Headers["Cache-Control"];
+        Assert.Contains("public", cacheControl, StringComparison.Ordinal);
+        Assert.Contains("s-maxage=600", cacheControl, StringComparison.Ordinal);
+        Assert.Contains("max-age=300", cacheControl, StringComparison.Ordinal);
+        Assert.Contains("stale-while-revalidate=1200", cacheControl, StringComparison.Ordinal);
+        Assert.Contains("stale-if-error=3600", cacheControl, StringComparison.Ordinal);
     }
 
     private sealed record TestResultCase(
