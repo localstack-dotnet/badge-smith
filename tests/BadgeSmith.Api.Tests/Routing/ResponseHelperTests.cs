@@ -85,40 +85,57 @@ public sealed class ResponseHelperTests
         Assert.NotNull(response.Body);
     }
 
-    [Fact]
-    public void Redirect_Should_Compose_Public_CacheControl_When_Cache_Directives_Are_Provided()
+    [Theory]
+    [InlineData(HttpStatusCode.MovedPermanently)]
+    [InlineData(HttpStatusCode.Found)]
+    [InlineData(HttpStatusCode.SeeOther)]
+    [InlineData(HttpStatusCode.TemporaryRedirect)]
+    [InlineData(HttpStatusCode.PermanentRedirect)]
+    public void Redirect_Should_Compose_Public_CacheControl_When_Cache_Directives_Are_Provided(HttpStatusCode status)
     {
         var response = ResponseHelper.Redirect(
             "https://example.com/results/42",
-            HttpStatusCode.TemporaryRedirect,
+            status,
             sMaxAge: 600,
             maxAge: 300,
             staleWhileRevalidate: 1200,
             staleIfError: 3600);
 
-        Assert.Equal(307, response.StatusCode);
+        Assert.Equal((int)status, response.StatusCode);
         Assert.Null(response.Body);
         Assert.Equal("https://example.com/results/42", response.Headers["Location"]);
+        Assert.Equal("application/json; charset=utf-8", response.Headers["Content-Type"]);
         Assert.Equal("public, s-maxage=600, max-age=300, stale-while-revalidate=1200, stale-if-error=3600", response.Headers["Cache-Control"]);
     }
 
-    [Fact]
-    public void Redirect_Should_Use_NoStore_When_NoStore_Is_Requested()
+    [Theory]
+    [InlineData(HttpStatusCode.MovedPermanently)]
+    [InlineData(HttpStatusCode.Found)]
+    [InlineData(HttpStatusCode.SeeOther)]
+    [InlineData(HttpStatusCode.TemporaryRedirect)]
+    [InlineData(HttpStatusCode.PermanentRedirect)]
+    public void Redirect_Should_Use_NoStore_When_NoStore_Is_Requested(HttpStatusCode status)
     {
         var response = ResponseHelper.Redirect(
             "https://example.com/results/42",
+            status,
             sMaxAge: 600,
             noStore: true);
 
+        Assert.Equal((int)status, response.StatusCode);
+        Assert.Null(response.Body);
+        Assert.Equal("https://example.com/results/42", response.Headers["Location"]);
+        Assert.Equal("application/json; charset=utf-8", response.Headers["Content-Type"]);
         Assert.Equal("no-store, no-cache, must-revalidate", response.Headers["Cache-Control"]);
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Redirect_Should_Throw_When_Location_Is_Empty(string location)
+    public void Redirect_Should_Throw_When_Location_Is_Null_Empty_Or_Whitespace(string? location)
     {
-        _ = Assert.Throws<ArgumentException>(() => ResponseHelper.Redirect(location, noStore: true));
+        _ = Assert.Throws<ArgumentException>(() => ResponseHelper.Redirect(location!, noStore: true));
     }
 
     [Fact]
