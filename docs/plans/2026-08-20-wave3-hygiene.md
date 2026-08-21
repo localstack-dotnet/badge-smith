@@ -54,7 +54,12 @@ Wave 3 is complete when:
   composition, route resolution) are gated by Release-mode xUnit facts that measure
   `GC.GetAllocatedBytesForCurrentThread()` around a warmed-up call. Asynchronous HTTP paths are
   measured with BenchmarkDotNet `[MemoryDiagnoser]` in `tests/BadgeSmith.Api.Performance.Tests`
-  and recorded, not gated, because thread hops make per-thread measurement unreliable.
+  and recorded, not gated, because thread hops make per-thread measurement unreliable. Gates
+  compare against a baseline measured on the unchanged code in Increment 1a and stored as named
+  constants with the measured value; the candidate must be `<=` the approved baseline. The
+  route-parameter OneOf result is the one explicit, measured exception. Raising a ceiling is a
+  reviewed performance-contract change with a stated reason (for example a runtime bump that
+  changed serializer internals), never a test fix.
 - Preserve CloudFormation logical IDs across behavior-neutral CDK extraction. Any synthesized
   replacement is a blocker, not an acceptable refactor side effect.
 - Use source and tests as runtime canon. Dated research remains evidence only.
@@ -255,7 +260,9 @@ internal readonly record struct TestResultRouteParameters(
 }
 ```
 
-Add one failure type in the existing `FailureTypes` hierarchy so `ToErrorResponse()` is inherited:
+Add one failure type deriving from `ValidationFailure` so `ToErrorResponse()` is inherited. It is
+feature-local: it lives in `Features/TestResults/Models/TestResultsResults.cs` beside the other
+TestResults failures, never in `Core/FailureTypes.cs`, and the result type lives with it:
 
 ```csharp
 internal sealed record MissingRouteParameter(string Reason, string ParameterName)
@@ -285,9 +292,11 @@ internal sealed partial class TestResultRouteParametersResult
 }
 ```
 
-Allocation delta: one result instance per request (the standard OneOf result allocation).
-`MissingRouteParameter` and `ErrorResponse` allocate only on the failure path; the success path
-performs the same four dictionary lookups as today and allocates nothing else.
+Allocation delta: one result instance per request (the standard OneOf result allocation). This is
+the explicit, measured exception to the no-new-allocation rule; its gate asserts the Increment 1a
+baseline plus one result instance. `MissingRouteParameter` and `ErrorResponse` allocate only on the
+failure path; the success path performs the same four dictionary lookups as today and allocates
+nothing else.
 
 Extraction rules:
 
@@ -421,6 +430,11 @@ Consistency fixes applied to both services:
 
 Allocation delta per upstream call: the boxed tuple (one heap object) is replaced by one
 `UpstreamCacheEntry` record (one heap object, no unbox copy on read). No result type is added.
+`Uri.EscapeDataString` returns the input instance when nothing needs escaping, which is the
+common case for lowercase package ids and organizations, so NuGet gains nothing and GitHub drops
+the `HttpUtility.UrlEncode` byte-array and string allocations per segment. `EntityTagHeaderValue.
+ToString()` returns the existing tag string for strong ETags and concatenates one `W/` string for
+weak ETags: +1 small string per weak-tag upstream fetch, accepted as the cost of the correctness fix.
 
 ### Tests
 
@@ -466,7 +480,8 @@ closeout; this is not a CI gate.
 ### Acceptance Criteria
 
 - The conditional-GET/cache blocks in both services are textually identical apart from provider
-  headers, URL construction, and the status-to-result switch.
+  headers, URL construction, provider-specific cache-key construction (`nuget:index:{package}` and
+  `github_package:index:{org}:{package}`), and the status-to-result switch.
 - Provider policy (request headers, status mapping, deserialization, result union) remains visible
   in each service; no shared base class or fetch collaborator exists.
 - The shared scenario matrix passes against both services.
@@ -615,6 +630,10 @@ to one allocation on the common path:
 - Build the quoted hex with `string.Create(66, hash, ...)`, passing the 32-byte hash span as the
   state (`string.Create`'s `TState` allows ref structs on .NET 9+) and writing `"` +
   `Convert.TryToHexString` into `span[1..65]` + `"`; never re-encode or re-hash inside the callback.
+- Consume every returned count, whether or not CA1806 fires: slice the UTF-8 buffer to the
+  `bytesWritten` returned by `Encoding.UTF8.GetBytes`, require `SHA256.HashData` to return 32, and
+  require `Convert.TryToHexString` to return `true` with 64 chars written; any other value is an
+  `InvalidOperationException` contract violation, not a silently shorter ETag.
 - The single-allocation guarantee (the returned ETag string) holds for the stack path and the warmed
   pool path; a cold pool rent may allocate once.
 
@@ -674,8 +693,9 @@ unchanged (per-response dictionary with constant values). No new per-request all
 - Strong ETag value is byte-for-byte identical before and after the single-allocation rewrite.
 - Functional test-result redirect remains 302 and points to the stored `url_html`.
 - Allocation gate (Release, warmed up, `GC.GetAllocatedBytesForCurrentThread()`): `RedirectCached`,
-  `RedirectNoStore`, and `OkCached` with the preset each assert an explicit byte ceiling recorded in
-  the test at implementation time; exceeding it fails.
+  `RedirectNoStore`, and `OkCached` with the preset each assert `<=` the baseline measured in
+  Increment 1a on the current `Redirect`/`OkCached` equivalents; exceeding it fails, and the ETag
+  rewrite must move `OkCached` below its baseline.
 
 ### Acceptance Criteria
 
@@ -811,11 +831,12 @@ The operator synth in the deployment workflow remains a separate gate and is not
 
 ### Optional Tidy (separate commit)
 
-While `ProductionStack` is open, fix two latent defects as an isolated, reviewable commit after the
-drift proof: `LocalStackDotnetHostedZone` is a property that calls `HostedZone.FromLookup` on every
-access (a second access throws a duplicate-construct error) and becomes a local inside
-`CreateCustomDomainRecord`; `CreateCustomDomainRecord` becomes private and returns nothing because
-its result is discarded. Re-run the drift proof after this commit.
+While `ProductionStack` is open, fix the same latent pattern in two places as an isolated, reviewable
+commit after the drift proof: `LocalStackDotnetHostedZone` and `ApiLocalStackCertificate` are
+properties that call `HostedZone.FromLookup` / `Certificate.FromCertificateArn` on every access (a
+second access throws a duplicate-construct error) and become locals at their single use sites;
+`CreateCustomDomainRecord` becomes private and returns nothing because its result is discarded.
+Re-run the drift proof after this commit.
 
 ### Assertions
 
@@ -908,6 +929,8 @@ After implementation and validation:
 ### Increment 1a: Api Test Safety Net
 
 - Expand ResponseHelper tests around redirect status/cache and no-store decisions.
+- Measure and record the allocation baselines on unchanged code for the cached 200 badge path, the
+  cached and no-store redirects, and test-result route-parameter extraction.
 - Establish both Lambda compile-mode build commands.
 
 ### Increment 1b: CDK Safety Net
