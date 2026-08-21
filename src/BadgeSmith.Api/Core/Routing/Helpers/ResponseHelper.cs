@@ -1,12 +1,11 @@
+using System.Buffers;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Infrastructure;
-using BadgeSmith.Api.Features.HealthCheck;
 
 namespace BadgeSmith.Api.Core.Routing.Helpers;
 
@@ -16,9 +15,9 @@ namespace BadgeSmith.Api.Core.Routing.Helpers;
 internal static class ResponseHelper
 {
     private const string DefaultContentType = "application/json; charset=utf-8";
-
-    [StructLayout(LayoutKind.Auto)]
-    internal readonly record struct CacheSettings(int SMaxAgeSeconds = 60, int MaxAgeSeconds = 10, int SwrSeconds = 30, int SieSeconds = 24 * 60 * 60);
+    private const string NoStoreValue = "no-store";
+    private const string UpperHexDigits = "0123456789ABCDEF";
+    private const int StackallocThresholdBytes = 512;
 
     /// <summary>
     /// Creates a custom HTTP response with the specified status code and optional body/headers.
@@ -68,22 +67,22 @@ internal static class ResponseHelper
     public static APIGatewayHttpApiV2ProxyResponse OkCached<T>(
         T responseObject,
         JsonTypeInfo<T> jsonTypeInfo,
+        PublicCachePolicy cachePolicy,
         string? ifNoneMatchHeader = null,
-        CacheSettings? cache = null,
         DateTimeOffset? lastModifiedUtc = null)
     {
-        var settings = cache ?? new CacheSettings();
+        ArgumentNullException.ThrowIfNull(cachePolicy);
         var body = JsonSerializer.Serialize(responseObject, jsonTypeInfo);
         var etag = ComputeStrongEtag(body);
 
         if (IfNoneMatchMatches(ifNoneMatchHeader, etag))
         {
             return CreateResponse(HttpStatusCode.NotModified, responseBody: null,
-                customHeaders: () => BuildCacheHeaders(etag, settings, lastModifiedUtc));
+                customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));
         }
 
         return CreateResponse(HttpStatusCode.OK, body,
-            customHeaders: () => BuildCacheHeaders(etag, settings, lastModifiedUtc));
+            customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));
     }
 
     public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
@@ -91,12 +90,6 @@ internal static class ResponseHelper
 
     public static APIGatewayHttpApiV2ProxyResponse Ok<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo, Func<Dictionary<string, string>>? customHeaders = null) =>
         CreateResponse(HttpStatusCode.OK, responseObject, jsonTypeInfo, customHeaders);
-
-    public static APIGatewayHttpApiV2ProxyResponse OkHealthWithNoCache(string status, DateTimeOffset timestamp)
-    {
-        var response = new HealthCheckResponse(status, timestamp);
-        return CreateResponse(HttpStatusCode.OK, response, LambdaFunctionJsonSerializerContext.Default.HealthCheckResponse, () => NoCacheHeaders());
-    }
 
     public static APIGatewayHttpApiV2ProxyResponse Created(string responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
         CreateResponse(HttpStatusCode.Created, responseBody, customHeaders);
@@ -132,95 +125,101 @@ internal static class ResponseHelper
     public static APIGatewayHttpApiV2ProxyResponse Forbidden(Func<Dictionary<string, string>>? customHeaders = null) =>
         CreateResponse(HttpStatusCode.Forbidden, responseBody: null, customHeaders);
 
-    public static APIGatewayHttpApiV2ProxyResponse Redirect(string location, string? cacheControl = null)
+    public static APIGatewayHttpApiV2ProxyResponse RedirectCached(string location, PublicCachePolicy cachePolicy) =>
+        RedirectCached(location, RedirectStatus.Found, cachePolicy);
+
+    public static APIGatewayHttpApiV2ProxyResponse RedirectCached(string location, RedirectStatus status, PublicCachePolicy cachePolicy)
+    {
+        ArgumentNullException.ThrowIfNull(cachePolicy);
+        return CreateRedirect(location, status, cachePolicy.CacheControl);
+    }
+
+    public static APIGatewayHttpApiV2ProxyResponse RedirectNoStore(string location) =>
+        RedirectNoStore(location, RedirectStatus.Found);
+
+    public static APIGatewayHttpApiV2ProxyResponse RedirectNoStore(string location, RedirectStatus status) =>
+        CreateRedirect(location, status, NoStoreValue);
+
+    public static APIGatewayHttpApiV2ProxyResponse OptionsResponse(Func<Dictionary<string, string>>? customHeaders = null) =>
+        CreateResponse(HttpStatusCode.NoContent, responseBody: null, customHeaders);
+
+    public static Dictionary<string, string> NoStoreHeaders(string contentType = DefaultContentType)
+        => new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Cache-Control"] = NoStoreValue,
+            ["Content-Type"] = contentType,
+        };
+
+    private static APIGatewayHttpApiV2ProxyResponse CreateRedirect(string location, RedirectStatus status, string cacheControl)
     {
         if (string.IsNullOrWhiteSpace(location))
         {
             throw new ArgumentException("Location cannot be null, empty, or whitespace.", nameof(location));
         }
 
-        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        if (status.Code is < 300 or > 399)
         {
-            ["Location"] = location,
-        };
-
-        if (!string.IsNullOrEmpty(cacheControl))
-        {
-            headers["Cache-Control"] = cacheControl;
-        }
-
-        return CreateResponse(HttpStatusCode.Found, responseBody: null, customHeaders: () => headers);
-    }
-
-    public static APIGatewayHttpApiV2ProxyResponse Redirect(
-        string location,
-        HttpStatusCode status = HttpStatusCode.Found,
-        int? sMaxAge = null,
-        int? maxAge = null,
-        int? staleWhileRevalidate = null,
-        int? staleIfError = null,
-        bool noStore = false)
-    {
-        if (string.IsNullOrWhiteSpace(location))
-        {
-            throw new ArgumentException("Location cannot be null/empty.", nameof(location));
+            throw new ArgumentOutOfRangeException(nameof(status), status.Code, "Redirect status must be a 3xx redirect code.");
         }
 
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["Location"] = location,
+            ["Cache-Control"] = cacheControl,
         };
 
-        if (noStore)
-        {
-            headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
-        }
-        else if (sMaxAge.HasValue || maxAge.HasValue || staleWhileRevalidate.HasValue || staleIfError.HasValue)
-        {
-            var cc = "public";
-            if (sMaxAge.HasValue)
-            {
-                cc += $", s-maxage={sMaxAge.Value}";
-            }
-
-            if (maxAge.HasValue)
-            {
-                cc += $", max-age={maxAge.Value}";
-            }
-
-            if (staleWhileRevalidate.HasValue)
-            {
-                cc += $", stale-while-revalidate={staleWhileRevalidate.Value}";
-            }
-
-            if (staleIfError.HasValue)
-            {
-                cc += $", stale-if-error={staleIfError.Value}";
-            }
-
-            headers["Cache-Control"] = cc;
-        }
-
-        return CreateResponse(status, responseBody: null, () => headers);
+        return CreateResponse((HttpStatusCode)status.Code, responseBody: null, customHeaders: () => headers);
     }
-
-    public static APIGatewayHttpApiV2ProxyResponse OptionsResponse(Func<Dictionary<string, string>>? customHeaders = null) =>
-        CreateResponse(HttpStatusCode.NoContent, responseBody: null, customHeaders);
-
-    public static Dictionary<string, string> NoCacheHeaders(string contentType = "application/json; charset=utf-8")
-        => new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Cache-Control"] = "no-store, no-cache, must-revalidate",
-            ["Pragma"] = "no-cache",
-            ["Expires"] = "0",
-            ["Content-Type"] = contentType,
-        };
 
     private static string ComputeStrongEtag(string payload)
     {
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(payload));
-        var hex = Convert.ToHexString(hash);
-        return $"\"{hex}\"";
+        var byteCount = Encoding.UTF8.GetByteCount(payload);
+
+        return byteCount <= StackallocThresholdBytes
+            ? HashToEtag(payload, byteCount, stackalloc byte[StackallocThresholdBytes])
+            : HashToEtagPooled(payload, byteCount);
+    }
+
+    private static string HashToEtagPooled(string payload, int byteCount)
+    {
+        var rentedBuffer = ArrayPool<byte>.Shared.Rent(byteCount);
+        try
+        {
+            return HashToEtag(payload, byteCount, rentedBuffer);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(rentedBuffer);
+        }
+    }
+
+    private static string HashToEtag(string payload, int byteCount, Span<byte> utf8Buffer)
+    {
+        var bytesWritten = Encoding.UTF8.GetBytes(payload, utf8Buffer);
+        if (bytesWritten != byteCount)
+        {
+            throw new InvalidOperationException($"UTF-8 encoding wrote {bytesWritten} bytes but expected {byteCount}.");
+        }
+
+        Span<byte> hash = stackalloc byte[32];
+        var hashBytesWritten = SHA256.HashData(utf8Buffer[..bytesWritten], hash);
+        if (hashBytesWritten != 32)
+        {
+            throw new InvalidOperationException($"SHA-256 wrote {hashBytesWritten} bytes but expected 32.");
+        }
+
+        return string.Create(66, hash, static (span, digest) =>
+        {
+            span[0] = '"';
+            for (var index = 0; index < digest.Length; index++)
+            {
+                var value = digest[index];
+                span[1 + (index * 2)] = UpperHexDigits[(value >> 4) & 0xF];
+                span[2 + (index * 2)] = UpperHexDigits[value & 0xF];
+            }
+
+            span[65] = '"';
+        });
     }
 
     private static bool IfNoneMatchMatches(string? ifNoneMatchHeader, string etag)
@@ -261,14 +260,11 @@ internal static class ResponseHelper
         return false;
     }
 
-    private static Dictionary<string, string> BuildCacheHeaders(string etag, in CacheSettings s, DateTimeOffset? lastModifiedUtc = null)
+    private static Dictionary<string, string> BuildCacheHeaders(string etag, PublicCachePolicy cachePolicy, DateTimeOffset? lastModifiedUtc = null)
     {
-        var cacheControlValue =
-            $"public, s-maxage={s.SMaxAgeSeconds}, max-age={s.MaxAgeSeconds}, stale-while-revalidate={s.SwrSeconds}, stale-if-error={s.SieSeconds}";
-
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Cache-Control"] = cacheControlValue,
+            ["Cache-Control"] = cachePolicy.CacheControl,
             ["ETag"] = etag,
         };
 

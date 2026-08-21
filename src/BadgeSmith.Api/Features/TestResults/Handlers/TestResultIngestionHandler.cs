@@ -130,7 +130,7 @@ internal class TestResultIngestionHandler : ITestResultIngestionHandler
         return ResponseHelper.Created(
             response,
             LambdaFunctionJsonSerializerContext.Default.TestResultIngestionResponse,
-            () => ResponseHelper.NoCacheHeaders("application/json; charset=utf-8"));
+            () => ResponseHelper.NoStoreHeaders("application/json; charset=utf-8"));
     }
 
     private static bool TryExtractAuthHeaders(

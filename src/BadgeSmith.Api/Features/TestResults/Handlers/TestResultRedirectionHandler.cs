@@ -51,13 +51,7 @@ internal class TestResultRedirectionHandler : ITestResultRedirectionHandler
             _logger.LogInformation("Redirecting to test result URL for {Owner}/{Repo}: {RunId}", entity.Owner, entity.Repo, entity.RunId);
 
             // Redirect to the GitHub Actions run page
-            return ResponseHelper.Redirect(
-                location: entity.UrlHtml,
-                sMaxAge: 600, // CloudFront caches
-                maxAge: 300, // Browser's cache
-                staleWhileRevalidate: 1200,
-                staleIfError: 3600
-            );
+            return ResponseHelper.RedirectCached(entity.UrlHtml, BadgeResponsePolicy.PublicCache);
         }
         catch (Exception ex)
         {

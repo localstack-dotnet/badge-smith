@@ -10,13 +10,15 @@ namespace BadgeSmith.Api.Tests.Functional;
 public sealed class HealthContractTests(AspireContractFixture stack)
 {
     [Fact]
-    public async Task Health_Should_Return_200_With_No_Cache_Headers()
+    public async Task Health_Should_Return_200_With_Exact_NoStore_Header_And_No_Legacy_Cache_Headers()
     {
         var response = await stack.Api.InvokeAsync("GET", "/health", ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(200, response.StatusCode);
         Assert.Contains("Healthy", response.Body ?? string.Empty, StringComparison.Ordinal);
         Assert.NotNull(response.Headers);
-        Assert.Contains("no-store", response.Headers["Cache-Control"], StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("no-store", response.Headers["Cache-Control"]);
+        Assert.False(response.Headers.ContainsKey("Pragma"));
+        Assert.False(response.Headers.ContainsKey("Expires"));
     }
 }

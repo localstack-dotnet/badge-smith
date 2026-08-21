@@ -13,19 +13,15 @@ namespace BadgeSmith.Api.Tests.Routing;
 public sealed class AllocationBaselineTests
 {
     private const int WarmupIterations = 64;
-    private const long CachedBadgeResponseAllocationBaselineBytes = 1208;
-    private const long CachedRedirectAllocationBaselineBytes = 1096;
+    private const long CachedBadgeResponseAllocationBaselineBytes = 704;
+    private const long CachedRedirectAllocationBaselineBytes = 352;
     private const long NoStoreRedirectAllocationBaselineBytes = 352;
     private const long TestResultRouteParameterExtractionAllocationBaselineBytes = 64;
     private const string RedirectLocation = "https://example.com/results/42";
 
     private static readonly ShieldsBadgeResponse CachedBadge = new(1, "NuGet", "1.2.3", "blue");
 
-    private static readonly ResponseHelper.CacheSettings PublicCacheSettings = new(
-        SMaxAgeSeconds: 600,
-        MaxAgeSeconds: 300,
-        SwrSeconds: 1200,
-        SieSeconds: 3600);
+    private static readonly PublicCachePolicy PublicCacheSettings = BadgeResponsePolicy.PublicCache;
 
     private static readonly RouteContext TestResultRouteContext = new(
         new APIGatewayHttpApiV2ProxyRequest(),
@@ -76,22 +72,17 @@ public sealed class AllocationBaselineTests
         return ResponseHelper.OkCached(
             CachedBadge,
             LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
-            cache: PublicCacheSettings);
+            cachePolicy: PublicCacheSettings);
     }
 
     private static APIGatewayHttpApiV2ProxyResponse CreateCachedRedirectResponse()
     {
-        return ResponseHelper.Redirect(
-            RedirectLocation,
-            sMaxAge: 600,
-            maxAge: 300,
-            staleWhileRevalidate: 1200,
-            staleIfError: 3600);
+        return ResponseHelper.RedirectCached(RedirectLocation, PublicCacheSettings);
     }
 
     private static APIGatewayHttpApiV2ProxyResponse CreateNoStoreRedirectResponse()
     {
-        return ResponseHelper.Redirect(RedirectLocation, noStore: true);
+        return ResponseHelper.RedirectNoStore(RedirectLocation);
     }
 
     private static string ExtractTestResultRouteParameters()

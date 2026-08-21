@@ -34,13 +34,8 @@ public sealed class ResponseHelperTests
     public void OkCached_Should_Return_Cacheable_Response_When_Entity_Tag_Does_Not_Match()
     {
         var lastModified = new DateTimeOffset(2026, 8, 20, 12, 34, 56, TimeSpan.FromHours(3));
-        var cache = new ResponseHelper.CacheSettings(
-            SMaxAgeSeconds: 600,
-            MaxAgeSeconds: 300,
-            SwrSeconds: 1200,
-            SieSeconds: 3600);
 
-        var response = CreateCachedResponse(cache: cache, lastModifiedUtc: lastModified);
+        var response = CreateCachedResponse(lastModifiedUtc: lastModified);
 
         Assert.Equal(200, response.StatusCode);
         Assert.Equal("{\"schemaVersion\":1,\"label\":\"NuGet\",\"message\":\"1.2.3\",\"color\":\"blue\"}", response.Body);
@@ -86,81 +81,103 @@ public sealed class ResponseHelperTests
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.MovedPermanently)]
-    [InlineData(HttpStatusCode.Found)]
-    [InlineData(HttpStatusCode.SeeOther)]
-    [InlineData(HttpStatusCode.TemporaryRedirect)]
-    [InlineData(HttpStatusCode.PermanentRedirect)]
-    public void Redirect_Should_Compose_Public_CacheControl_When_Cache_Directives_Are_Provided(HttpStatusCode status)
+    [InlineData(301)]
+    [InlineData(302)]
+    [InlineData(303)]
+    [InlineData(307)]
+    [InlineData(308)]
+    public void RedirectCached_Should_Compose_Preset_CacheControl_When_Status_Is_Supported(int statusCode)
     {
-        var response = ResponseHelper.Redirect(
-            "https://example.com/results/42",
-            status,
-            sMaxAge: 600,
-            maxAge: 300,
-            staleWhileRevalidate: 1200,
-            staleIfError: 3600);
+        var status = StatusFromCode(statusCode);
+        var policy = BadgeResponsePolicy.PublicCache;
 
-        Assert.Equal((int)status, response.StatusCode);
+        var response = ResponseHelper.RedirectCached("https://example.com/results/42", status, policy);
+
+        Assert.Equal(statusCode, response.StatusCode);
         Assert.Null(response.Body);
         Assert.Equal("https://example.com/results/42", response.Headers["Location"]);
         Assert.Equal("application/json; charset=utf-8", response.Headers["Content-Type"]);
-        Assert.Equal("public, s-maxage=600, max-age=300, stale-while-revalidate=1200, stale-if-error=3600", response.Headers["Cache-Control"]);
+        Assert.Equal(policy.CacheControl, response.Headers["Cache-Control"]);
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.MovedPermanently)]
-    [InlineData(HttpStatusCode.Found)]
-    [InlineData(HttpStatusCode.SeeOther)]
-    [InlineData(HttpStatusCode.TemporaryRedirect)]
-    [InlineData(HttpStatusCode.PermanentRedirect)]
-    public void Redirect_Should_Use_NoStore_When_NoStore_Is_Requested(HttpStatusCode status)
+    [InlineData(301)]
+    [InlineData(302)]
+    [InlineData(303)]
+    [InlineData(307)]
+    [InlineData(308)]
+    public void RedirectNoStore_Should_Emit_Exact_NoStore_Without_Legacy_Headers(int statusCode)
     {
-        var response = ResponseHelper.Redirect(
-            "https://example.com/results/42",
-            status,
-            sMaxAge: 600,
-            noStore: true);
+        var status = StatusFromCode(statusCode);
 
-        Assert.Equal((int)status, response.StatusCode);
+        var response = ResponseHelper.RedirectNoStore("https://example.com/results/42", status);
+
+        Assert.Equal(statusCode, response.StatusCode);
         Assert.Null(response.Body);
         Assert.Equal("https://example.com/results/42", response.Headers["Location"]);
         Assert.Equal("application/json; charset=utf-8", response.Headers["Content-Type"]);
-        Assert.Equal("no-store, no-cache, must-revalidate", response.Headers["Cache-Control"]);
+        Assert.Equal("no-store", response.Headers["Cache-Control"]);
+        Assert.False(response.Headers.ContainsKey("Pragma"));
+        Assert.False(response.Headers.ContainsKey("Expires"));
+    }
+
+    [Fact]
+    public void Redirect_Cached_And_NoStore_Should_Default_To_Found_When_Only_Location_Is_Given()
+    {
+        var cached = ResponseHelper.RedirectCached("https://example.com/a", BadgeResponsePolicy.PublicCache);
+        var noStore = ResponseHelper.RedirectNoStore("https://example.com/b");
+
+        Assert.Equal(302, cached.StatusCode);
+        Assert.Equal(302, noStore.StatusCode);
+    }
+
+    [Fact]
+    public void RedirectApis_Should_Reject_Default_RedirectStatus()
+    {
+        var status = default(RedirectStatus);
+        var policy = BadgeResponsePolicy.PublicCache;
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => ResponseHelper.RedirectCached("https://example.com/a", status, policy));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ResponseHelper.RedirectNoStore("https://example.com/a", status));
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Redirect_Should_Throw_When_Location_Is_Null_Empty_Or_Whitespace(string? location)
+    public void RedirectApis_Should_Reject_Null_Empty_Or_Whitespace_Location(string? location)
     {
-        _ = Assert.Throws<ArgumentException>(() => ResponseHelper.Redirect(location!, noStore: true));
+        var policy = BadgeResponsePolicy.PublicCache;
+
+        var cachedException = Assert.Throws<ArgumentException>(() => ResponseHelper.RedirectCached(location!, policy));
+        var explicitException = Assert.Throws<ArgumentException>(() => ResponseHelper.RedirectCached(location!, RedirectStatus.Found, policy));
+        var noStoreException = Assert.Throws<ArgumentException>(() => ResponseHelper.RedirectNoStore(location!));
+
+        Assert.Contains("Location cannot be null, empty, or whitespace.", cachedException.Message, StringComparison.Ordinal);
+        Assert.Contains("Location cannot be null, empty, or whitespace.", explicitException.Message, StringComparison.Ordinal);
+        Assert.Contains("Location cannot be null, empty, or whitespace.", noStoreException.Message, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void NoCacheHeaders_Should_Return_NoCache_Headers_When_ContentType_Is_Provided()
+    private static RedirectStatus StatusFromCode(int code) => code switch
     {
-        var headers = ResponseHelper.NoCacheHeaders("text/plain; charset=utf-8");
-
-        Assert.Equal(4, headers.Count);
-        Assert.Equal("no-store, no-cache, must-revalidate", headers["Cache-Control"]);
-        Assert.Equal("no-cache", headers["Pragma"]);
-        Assert.Equal("0", headers["Expires"]);
-        Assert.Equal("text/plain; charset=utf-8", headers["Content-Type"]);
-    }
+        301 => RedirectStatus.MovedPermanently,
+        302 => RedirectStatus.Found,
+        303 => RedirectStatus.SeeOther,
+        307 => RedirectStatus.TemporaryRedirect,
+        308 => RedirectStatus.PermanentRedirect,
+        _ => throw new ArgumentOutOfRangeException(nameof(code)),
+    };
 
     private static APIGatewayHttpApiV2ProxyResponse CreateCachedResponse(
         string? ifNoneMatchHeader = null,
-        ResponseHelper.CacheSettings? cache = null,
         DateTimeOffset? lastModifiedUtc = null)
     {
         var badge = new ShieldsBadgeResponse(1, "NuGet", "1.2.3", "blue");
         return ResponseHelper.OkCached(
             badge,
             LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
+            BadgeResponsePolicy.PublicCache,
             ifNoneMatchHeader,
-            cache,
             lastModifiedUtc);
     }
 }

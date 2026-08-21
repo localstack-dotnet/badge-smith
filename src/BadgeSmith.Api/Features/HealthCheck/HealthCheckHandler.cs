@@ -1,4 +1,5 @@
 using Amazon.Lambda.APIGatewayEvents;
+using BadgeSmith.Api.Core.Infrastructure;
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Core.Routing.Helpers;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,9 @@ internal class HealthCheckHandler : IHealthCheckHandler
 
         await Task.Yield();
 
-        return ResponseHelper.OkHealthWithNoCache("Healthy", DateTimeOffset.UtcNow);
+        return ResponseHelper.Ok(
+            new HealthCheckResponse("Healthy", DateTimeOffset.UtcNow),
+            LambdaFunctionJsonSerializerContext.Default.HealthCheckResponse,
+            customHeaders: () => ResponseHelper.NoStoreHeaders());
     }
 }

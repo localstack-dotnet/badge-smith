@@ -292,8 +292,7 @@ public sealed class TestResultsContractTests(AspireContractFixture stack)
         Assert.Equal(302, redirect.StatusCode);
         Assert.NotNull(redirect.Headers);
         Assert.Equal(testCase.UrlHtml, redirect.Headers["Location"]);
-        Assert.True(redirect.Headers.ContainsKey("Cache-Control"));
-        Assert.Contains("public", redirect.Headers["Cache-Control"], StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("public, s-maxage=600, max-age=300, stale-while-revalidate=1200, stale-if-error=3600", redirect.Headers["Cache-Control"]);
     }
 
     private sealed record TestResultCase(

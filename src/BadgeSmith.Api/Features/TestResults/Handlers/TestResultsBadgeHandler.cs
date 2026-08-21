@@ -54,18 +54,12 @@ internal class TestResultsBadgeHandler : ITestResultsBadgeHandler
                 entity.Owner, entity.Repo, badge.Message);
 
             routeContext.Request.Headers.TryGetValue("if-none-match", out var ifNoneMatch);
-            var cache = new ResponseHelper.CacheSettings(
-                SMaxAgeSeconds: 600, // CloudFront cache
-                MaxAgeSeconds: 300, // Browser's cache
-                SwrSeconds: 1200, // Stale while revalidate
-                SieSeconds: 3600 // Stale if error
-            );
 
             return ResponseHelper.OkCached(
                 badge,
                 LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
+                cachePolicy: BadgeResponsePolicy.PublicCache,
                 ifNoneMatchHeader: ifNoneMatch,
-                cache: cache,
                 lastModifiedUtc: entity.CreatedAt
             );
         }
