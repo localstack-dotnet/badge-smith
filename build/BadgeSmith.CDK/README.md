@@ -15,6 +15,10 @@ the exact property values live in `BadgeSmithCloudFrontFactory` and `ProductionS
 `build/BadgeSmith.CDK.Shared/`, and the in-process assertions that lock them live in
 [`tests/BadgeSmith.CDK.Tests`](../../tests/BadgeSmith.CDK.Tests/README.md).
 
+Behavior-neutral CDK extraction must preserve CloudFormation logical IDs: any synthesized
+replacement, logical-ID change, or property drift is a blocker. Prove neutrality with a
+before/after `cdk synth BadgeSmithStack` template diff before committing the change.
+
 - Project: `build/BadgeSmith.CDK/BadgeSmith.CDK.csproj`
 - CDK working directory: `build`
 - CDK config: `build/cdk.json`

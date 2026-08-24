@@ -40,6 +40,18 @@ Avoid both failure modes:
 Extraction needs a concrete signal from the list above. An interface needs a real seam or a
 substitution that production or tests actually perform.
 
+## Duplication Thresholds
+
+Two similar provider implementations stay inline and textually identical, guarded by one shared
+scenario matrix run against both. Extract a shared collaborator only at a third real example; a
+two-way abstraction is a dependency bought with a single use. Duplicated mechanics must not drift
+in details that are not provider policy: statement order, local names, and precedence stay
+identical across the copies.
+
+Do not merge upstream HTTP validation with downstream BadgeSmith response validation. They are
+different contracts even when the code looks similar; a shared validator hides whose status codes
+and whose error shapes are being decided.
+
 ## Composition Boundaries
 
 BadgeSmith has three deliberate composition styles:
@@ -65,8 +77,31 @@ types are not silently changed without reviewing their construction and extensio
 - A parameter cluster repeated across signatures is a domain concept asking for a name.
 - Guard invalid public inputs with BCL throw helpers. Use OneOf results for expected domain failures
   and exceptions for violated contracts or unexpected failures.
+- Where named route values cross the HMAC boundary, bind them through named properties or named
+  constructor arguments. Positional deconstruction is prohibited there because tuple order
+  silently diverges from public route order.
 - Prefer immutable records and init-only state where that matches ownership; do not mistake
   `IReadOnly*` for deep immutability.
+
+## Allocation Discipline
+
+Minimum allocation is a project hallmark, not a micro-optimization.
+
+- The OneOf-driven result pattern — a `[GenerateOneOf]` partial class deriving from
+  `OneOfBase<...>` that exposes `IsSuccess`, a typed success accessor, and `Failure` — is the
+  standard result shape. Consumers use those three members; `TryPick*`, `IsT*`, and `AsT*` stay
+  inside result classes. The single result instance is the accepted allocation.
+- A refactor must not add per-request heap allocations on a success path relative to the code it
+  replaces. Prefer `readonly` structs, named presets, and precomputed header values over per-call
+  construction.
+- Verification has two tiers. Synchronous hot paths (route binding, response and header
+  composition, route resolution) are gated by Release-mode facts that measure
+  `GC.GetAllocatedBytesForCurrentThread()` around a warmed-up call and compare against a baseline
+  stored as a named constant with its measured value. Asynchronous HTTP paths are measured with
+  BenchmarkDotNet `[MemoryDiagnoser]` and recorded as evidence, not gated, because thread hops
+  make per-thread measurement unreliable.
+- Raising a recorded ceiling is a reviewed performance-contract change with a stated reason (for
+  example a runtime bump that changed serializer internals), never a test edit.
 
 ## Layout And Tests
 
