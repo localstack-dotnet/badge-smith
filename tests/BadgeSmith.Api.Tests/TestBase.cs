@@ -23,9 +23,11 @@ public static class TestBase
         return mockFor;
     }
 
-    public static Mock<ILogger> SetupILogger()
+    public static Mock<ILogger> SetupILogger(bool isEnabled = true)
     {
         var mockFor = new Mock<ILogger>();
+
+        mockFor.Setup(logger => logger.IsEnabled(It.IsAny<LogLevel>())).Returns(isEnabled);
 
         mockFor.Setup(logger => logger.Log(It.IsAny<LogLevel>(),
             It.IsAny<EventId>(),

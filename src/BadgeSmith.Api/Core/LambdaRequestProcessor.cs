@@ -1,10 +1,9 @@
-#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
-
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Helpers;
 using Microsoft.Extensions.Logging;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace BadgeSmith.Api.Core;
 
@@ -14,7 +13,7 @@ namespace BadgeSmith.Api.Core;
 /// </summary>
 /// <param name="apiRouter">The application router invoked for every request.</param>
 /// <param name="logger">The category logger created once at initialization.</param>
-internal sealed class LambdaRequestProcessor(IApiRouter apiRouter, ILogger logger)
+internal sealed partial class LambdaRequestProcessor(IApiRouter apiRouter, ILogger logger)
 {
     public async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
     {
@@ -24,7 +23,7 @@ internal sealed class LambdaRequestProcessor(IApiRouter apiRouter, ILogger logge
         var path = request.RequestContext.Http.Path ?? "/";
 
         using var beginScope = logger.BeginScope(context.AwsRequestId);
-        logger.LogInformation("Handling {Method} {Path}", httpMethod, path);
+        LogLambdaRequestHandling(logger, httpMethod, path);
 
         try
         {
@@ -32,10 +31,14 @@ internal sealed class LambdaRequestProcessor(IApiRouter apiRouter, ILogger logge
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unhandled error");
+            LogLambdaUnhandledError(logger, ex);
             return ResponseHelper.InternalServerError("An error occurred processing the request");
         }
     }
-}
 
-#pragma warning restore CA1873
+    [LoggerMessage(EventId = 1001, EventName = "LambdaRequestHandling", Level = LogLevel.Information, Message = "Handling {Method} {Path}")]
+    private static partial void LogLambdaRequestHandling(ILogger logger, string method, string path);
+
+    [LoggerMessage(EventId = 1002, EventName = "LambdaUnhandledError", Level = LogLevel.Error, Message = "Unhandled error")]
+    private static partial void LogLambdaUnhandledError(ILogger logger, Exception exception);
+}
