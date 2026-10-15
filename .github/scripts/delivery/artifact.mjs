@@ -12,7 +12,7 @@ const failureCategories = new Set([
   'artifact-selection', 'artifact-id-mismatch', 'artifact-expired', 'archive-digest-missing',
   'artifact-run-mismatch', 'archive-layout', 'archive-digest-mismatch', 'manifest-invalid',
   'manifest-identity-mismatch', 'zip-digest-mismatch', 'github-metadata', 'artifact-download',
-  'storage-redirect', 'storage-download', 'response-too-large', 'unknown',
+  'storage-redirect', 'storage-download', 'response-too-large', 'source-not-on-master', 'unknown',
 ]);
 class ArtifactFailure extends Error {
   constructor(category) {
@@ -26,6 +26,16 @@ function requireValue(condition, category = 'archive-layout') {
 
 function positiveId(value) {
   return typeof value === 'string' && /^[1-9][0-9]*$/.test(value) && Number.isSafeInteger(Number(value));
+}
+
+function canonicalRunTimestamp(value) {
+  requireValue(typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value),
+    'ci-run-ineligible');
+  const timestamp = new Date(value);
+  requireValue(Number.isFinite(timestamp.getTime()), 'ci-run-ineligible');
+  const canonical = timestamp.toISOString();
+  requireValue(canonical === value || canonical.replace('.000Z', 'Z') === value, 'ci-run-ineligible');
+  return canonical;
 }
 
 function validateIdentity(selection) {
@@ -55,6 +65,7 @@ export function validateProvenance(selection, run, listing) {
   requireValue(run.path === '.github/workflows/ci-cd.yml' && run.event === 'push' &&
     run.head_branch === 'master' && run.status === 'completed' && run.conclusion === 'success',
   'ci-run-ineligible');
+  const ciRunCreatedAtUtc = canonicalRunTimestamp(run.created_at);
   requireValue(listing.total_count === 1 && listing.artifacts?.length === 1,
     'artifact-selection');
   const item = listing.artifacts[0];
@@ -67,7 +78,35 @@ export function validateProvenance(selection, run, listing) {
   requireValue(item.workflow_run?.id === run.id && item.workflow_run?.head_sha === selection.sha &&
     item.workflow_run?.head_branch === 'master' && item.workflow_run?.repository_id === run.repository.id &&
     item.workflow_run?.head_repository_id === run.repository.id, 'artifact-run-mismatch');
-  return { ...selection, archiveSha256: item.digest.slice(7) };
+  return {
+    repository: selection.repository, runId: selection.runId, artifactId: selection.artifactId,
+    sha: selection.sha, attempt: selection.attempt, archiveSha256: item.digest.slice(7), ciRunCreatedAtUtc,
+  };
+}
+
+async function verifyMasterHistory(sourceSha, apiJson) {
+  try {
+    // Resolve the branch explicitly: a tag named master is never a branch proof.
+    const ref = await apiJson('/git/ref/heads/master');
+    requireValue(ref?.ref === 'refs/heads/master' && ref.object?.type === 'commit' &&
+      typeof ref.object.sha === 'string' && /^[a-f0-9]{40}$/.test(ref.object.sha), 'source-not-on-master');
+    const masterSha = ref.object.sha;
+    // GitHub describes HEAD relative to BASE. Master must equal or be ahead of source.
+    // The resolved request SHA identifies HEAD; compare has no head_commit field.
+    const comparison = await apiJson(`/compare/${sourceSha}...${masterSha}`);
+    requireValue(comparison?.base_commit?.sha === sourceSha && comparison.merge_base_commit?.sha === sourceSha,
+      'source-not-on-master');
+    const { status, ahead_by: aheadBy, behind_by: behindBy, total_commits: totalCommits } = comparison;
+    requireValue([aheadBy, behindBy, totalCommits].every(count => Number.isSafeInteger(count) && count >= 0) &&
+      behindBy === 0 && totalCommits === aheadBy, 'source-not-on-master');
+    requireValue((status === 'identical' && sourceSha === masterSha && aheadBy === 0) ||
+      (status === 'ahead' && sourceSha !== masterSha && aheadBy > 0), 'source-not-on-master');
+    return { sourceSha, masterSha, direction: 'source-to-master', status, aheadBy, behindBy, totalCommits };
+  } catch {
+    // Lookup, parsing and comparison failures share a finite category. External
+    // exceptions may carry credentials, URLs or forged category properties.
+    throw new ArtifactFailure('source-not-on-master');
+  }
 }
 
 // Read only the two flat files produced by CI. Never extract artifact paths onto
@@ -167,6 +206,7 @@ export async function downloadPromotion(selection, { token, fetchImpl = fetch } 
   const name = `lambda-zip-${selection.runId}-${selection.attempt}`;
   const listing = await apiJson(`/actions/runs/${selection.runId}/artifacts?name=${name}&per_page=100`);
   const evidence = validateProvenance(selection, run, listing);
+  evidence.masterHistory = await verifyMasterHistory(selection.sha, apiJson);
   const response = await fetchImpl(`${base}/actions/artifacts/${selection.artifactId}/zip`, {
     headers, redirect: 'manual', signal: AbortSignal.timeout(30000),
   });

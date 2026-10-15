@@ -301,11 +301,25 @@ const run = {
   head_repository: { full_name: 'fixture/service', id: 10 },
   path: '.github/workflows/ci-cd.yml', event: 'push', head_branch: 'master',
   status: 'completed', conclusion: 'success', head_sha: sha, run_attempt: 2,
+  created_at: '2026-10-15T10:20:30Z',
 };
 const metadata = {
   id: 456, name: 'lambda-zip-123-2', expired: false, digest: `sha256:${'b'.repeat(64)}`,
   workflow_run: { id: 123, repository_id: 10, head_repository_id: 10, head_branch: 'master', head_sha: sha },
 };
+
+const masterSha = 'c'.repeat(40);
+const masterRef = { ref: 'refs/heads/master', object: { type: 'commit', sha: masterSha } };
+const ancestorComparison = {
+  status: 'ahead', ahead_by: 3, behind_by: 0, total_commits: 3,
+  base_commit: { sha }, merge_base_commit: { sha },
+};
+const identicalComparison = {
+  status: 'identical', ahead_by: 0, behind_by: 0, total_commits: 0,
+  base_commit: { sha }, merge_base_commit: { sha },
+};
+const masterRefUrl = 'https://api.github.com/repos/fixture/service/git/ref/heads/master';
+const compareUrl = `https://api.github.com/repos/fixture/service/compare/${sha}...${masterSha}`;
 
 // Tiny ZIP fixture builder, independent of the promotion reader. Local headers and
 // central records deliberately allow adversarial names and duplicate entries.
@@ -426,12 +440,116 @@ test('archive verification rejects corruption, unsafe extraction and mismatched 
   assert.throws(() => artifact.verifyArchive(symlink, { ...evidence, archiveSha256: sha256(symlink) }));
 });
 
+test('promotion binds current master and older ancestors to the explicit branch and resolved SHA', async t => {
+  const { archive } = archiveFixture();
+  for (const [head, comparison, status, aheadBy] of [
+    [sha, identicalComparison, 'identical', 0],
+    [masterSha, ancestorComparison, 'ahead', 3],
+  ]) {
+    await t.test(status, async () => {
+      const requests = [];
+      const result = await artifact.downloadPromotion(selection, { token: 'fixture-token', fetchImpl: async url => {
+        requests.push(url);
+        if (url === masterRefUrl) return Response.json({ ...masterRef, object: { type: 'commit', sha: head }, url: 'https://secret.invalid/ref' });
+        if (url === `https://api.github.com/repos/fixture/service/compare/${sha}...${head}`) {
+          return Response.json({ ...comparison, html_url: 'https://secret.invalid/compare', secret: 'unsafe metadata' });
+        }
+        if (url.endsWith('/actions/runs/123')) return Response.json({ ...run, html_url: 'https://secret.invalid/run' });
+        if (url.includes('/artifacts?')) return Response.json({ total_count: 1, artifacts: [{ ...metadata, digest: `sha256:${sha256(archive)}` }] });
+        if (url.endsWith('/actions/artifacts/456/zip')) return new Response(null, { status: 302, headers: { location: 'https://fixture.blob.core.windows.net/archive' } });
+        assert.equal(url, 'https://fixture.blob.core.windows.net/archive');
+        return new Response(archive);
+      } });
+      assert.deepEqual(requests.filter(url => url.includes('/git/') || url.includes('/compare/')), [
+        masterRefUrl, `https://api.github.com/repos/fixture/service/compare/${sha}...${head}`,
+      ]);
+      assert.ok(requests.indexOf(masterRefUrl) < requests.findIndex(url => url.endsWith('/zip')));
+      assert.deepEqual(result.provenance, {
+        ...selection, archiveSha256: sha256(archive), zipSha256: sha256(lambdaZip),
+        zipBytes: lambdaZip.length, archiveBytes: archive.length,
+        ciRunCreatedAtUtc: '2026-10-15T10:20:30.000Z',
+        masterHistory: { sourceSha: sha, masterSha: head, direction: 'source-to-master', status, aheadBy, behindBy: 0, totalCommits: aheadBy },
+      });
+      assert.deepEqual(result.zip, lambdaZip);
+    });
+  }
+});
+
+test('promotion rejects absent, malformed or incoherent master history before archive download', async t => {
+  const cases = [
+    ['missing-ref', null, ancestorComparison],
+    ['tag-ref', { ...masterRef, ref: 'refs/tags/master' }, ancestorComparison],
+    ['ambiguous-ref', { ...masterRef, ref: 'master' }, ancestorComparison],
+    ['missing-object', { ref: 'refs/heads/master' }, ancestorComparison],
+    ['tag-object', { ...masterRef, object: { type: 'tag', sha: masterSha } }, ancestorComparison],
+    ['short-master-sha', { ...masterRef, object: { type: 'commit', sha: 'abc123' } }, ancestorComparison],
+    ['invalid-master-sha', { ...masterRef, object: { type: 'commit', sha: 'Z'.repeat(40) } }, ancestorComparison],
+    ['injected-master-sha', { ...masterRef, object: { type: 'commit', sha: masterSha + '\ncredential' } }, ancestorComparison],
+    ['missing-comparison', masterRef, null],
+    ['missing-status', masterRef, { ...ancestorComparison, status: undefined }],
+    ['unknown-status', masterRef, { ...ancestorComparison, status: 'unexpected' }],
+    ['behind', masterRef, { ...ancestorComparison, status: 'behind', ahead_by: 0, behind_by: 3, total_commits: 0 }],
+    ['ahead-but-behind', masterRef, { ...ancestorComparison, behind_by: 1 }],
+    ['diverged', masterRef, { ...ancestorComparison, status: 'diverged', behind_by: 2 }],
+    ['wrong-base', masterRef, { ...ancestorComparison, base_commit: { sha: masterSha } }],
+    ['wrong-merge-base', masterRef, { ...ancestorComparison, merge_base_commit: { sha: masterSha } }],
+    ['missing-base', masterRef, { ...ancestorComparison, base_commit: undefined }],
+    ['missing-merge-base', masterRef, { ...ancestorComparison, merge_base_commit: undefined }],
+    ['wrong-direction', masterRef, { ...ancestorComparison, ahead_by: 0, behind_by: 3 }],
+    ['zero-ahead', masterRef, { ...ancestorComparison, ahead_by: 0, total_commits: 0 }],
+    ['ahead-equal-head', { ...masterRef, object: { type: 'commit', sha } }, ancestorComparison],
+    ['identical-different-head', masterRef, identicalComparison],
+    ['identical-nonzero', { ...masterRef, object: { type: 'commit', sha } }, { ...identicalComparison, ahead_by: 1, total_commits: 1 }],
+    ['inconsistent-total', masterRef, { ...ancestorComparison, total_commits: 2 }],
+  ];
+  for (const field of ['ahead_by', 'behind_by', 'total_commits']) {
+    for (const value of [undefined, null, '3', -1, 0.5, Number.MAX_SAFE_INTEGER + 1]) {
+      cases.push([`invalid-${field}-${value}`, masterRef, { ...ancestorComparison, [field]: value }]);
+    }
+  }
+  for (const [name, ref, comparison] of cases) {
+    await t.test(name, async () => {
+      const requests = [];
+      await assert.rejects(artifact.downloadPromotion(selection, { token: 'fixture', fetchImpl: async url => {
+        requests.push(url);
+        if (url.endsWith('/actions/runs/123')) return Response.json(run);
+        if (url.includes('/artifacts?')) return Response.json({ total_count: 1, artifacts: [metadata] });
+        if (url === masterRefUrl) return Response.json(ref);
+        if (url === compareUrl || url === `https://api.github.com/repos/fixture/service/compare/${sha}...${sha}`) return Response.json(comparison);
+        throw new Error('Archive download must not be reached');
+      } }), error => error.category === 'source-not-on-master' && error.message === 'Delivery artifact validation failed.', name);
+      assert.ok(requests.includes(masterRefUrl), name);
+      assert.ok(requests.every(url => !url.endsWith('/zip') && !url.includes('.blob.')), name);
+    });
+  }
+});
+
+test('promotion rejects missing or noncanonical CI run timestamps before archive download', async t => {
+  for (const created_at of [undefined, null, '', 'secret', '2026-02-30T10:20:30Z',
+    '2026-10-15T10:20:30+02:00', '2026-10-15', '2026-10-15T10:20:30Z\ncredential']) {
+    await t.test(String(created_at), async () => {
+      const requests = [];
+      await assert.rejects(artifact.downloadPromotion(selection, { token: 'fixture', fetchImpl: async url => {
+        requests.push(url);
+        if (url.endsWith('/actions/runs/123')) return Response.json({ ...run, created_at });
+        if (url.includes('/artifacts?')) return Response.json({ total_count: 1, artifacts: [metadata] });
+        if (url === masterRefUrl) return Response.json(masterRef);
+        if (url === compareUrl) return Response.json(ancestorComparison);
+        throw new Error('Archive download must not be reached');
+      } }), error => error.category === 'ci-run-ineligible');
+      assert.ok(requests.every(url => !url.endsWith('/zip') && !url.includes('.blob.')));
+    });
+  }
+});
+
 test('artifact transport uses fixed API URLs and never forwards GitHub credentials to storage', async () => {
   const { archive } = archiveFixture();
   const item = { ...metadata, digest: `sha256:${sha256(archive)}` };
   const calls = [];
   const fetchImpl = async (url, options) => {
     calls.push({ url, options });
+    if (url === masterRefUrl) return Response.json(masterRef);
+    if (url === compareUrl) return Response.json(ancestorComparison);
     if (url.endsWith('/actions/runs/123')) return Response.json(run);
     if (url.includes('/actions/runs/123/artifacts?')) return Response.json({ total_count: 1, artifacts: [item] });
     if (url.endsWith('/actions/artifacts/456/zip')) return new Response(null, { status: 302, headers: { location: 'https://fixture.blob.core.windows.net/artifact?sig=secret' } });
@@ -441,9 +559,45 @@ test('artifact transport uses fixed API URLs and never forwards GitHub credentia
   };
   const result = await artifact.downloadPromotion(selection, { token: 'fixture-token', fetchImpl });
   assert.deepEqual(result.zip, lambdaZip);
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 6);
   assert.ok(calls.every(call => call.options.redirect === 'manual'));
-  assert.ok(calls.slice(0, 3).every(call => call.options.headers.authorization === 'Bearer fixture-token'));
+  assert.ok(calls.slice(0, 5).every(call => call.options.headers.authorization === 'Bearer fixture-token'));
+});
+
+test('promotion CLI writes fixed outputs and sanitized history with a canonical selected-run timestamp', async () => {
+  const { archive } = archiveFixture();
+  const directory = await mkdtemp(join(tmpdir(), 'delivery-promotion-'));
+  try {
+    const fixture = `globalThis.fetch = async url => {
+      if (url.endsWith('/actions/runs/123')) return Response.json(${JSON.stringify({ ...run, created_at: '2026-10-15T10:20:30.123Z', html_url: 'https://secret.invalid/run', secret: 'unsafe metadata' })});
+      if (url.includes('/artifacts?')) return Response.json(${JSON.stringify({ total_count: 1, artifacts: [{ ...metadata, digest: `sha256:${sha256(archive)}` }] })});
+      if (url === '${masterRefUrl}') return Response.json(${JSON.stringify({ ...masterRef, url: 'https://secret.invalid/ref' })});
+      if (url === '${compareUrl}') return Response.json(${JSON.stringify({ ...ancestorComparison, html_url: 'https://secret.invalid/compare' })});
+      if (url.endsWith('/actions/artifacts/456/zip')) return new Response(null, {status:302,headers:{location:'https://fixture.blob.core.windows.net/archive?sig=credential'}});
+      if (url === 'https://fixture.blob.core.windows.net/archive?sig=credential') return new Response(Buffer.from('${archive.toString('base64')}', 'base64'));
+      throw new Error('Unexpected fixture request');
+    };`;
+    await writeFile(join(directory, 'fetch-fixture.mjs'), fixture);
+    const command = spawnSync(process.execPath, ['--import', join(directory, 'fetch-fixture.mjs'), resolve('.github/scripts/delivery/artifact.mjs'), 'promote'], {
+      cwd: directory, encoding: 'utf8', timeout: 5000, env: {
+        GITHUB_REPOSITORY: selection.repository, CI_RUN_ID: selection.runId, CI_ARTIFACT_ID: selection.artifactId,
+        CI_HEAD_SHA: selection.sha, CI_RUN_ATTEMPT: selection.attempt, GITHUB_TOKEN: 'fixture-token',
+        GITHUB_OUTPUT: 'github-output', GITHUB_STEP_SUMMARY: 'summary.md',
+      },
+    });
+    assert.equal(command.status, 0, command.stderr);
+    assert.equal(await readFile(join(directory, 'github-output'), 'utf8'), `source_sha=${sha}\n`);
+    assert.deepEqual(await readFile(join(directory, 'artifacts/badge-lambda-linux-arm64.zip')), lambdaZip);
+    const json = await readFile(join(directory, 'artifacts/verified-provenance.json'), 'utf8');
+    assert.deepEqual(JSON.parse(json), {
+      ...selection, archiveSha256: sha256(archive), zipSha256: sha256(lambdaZip), zipBytes: lambdaZip.length,
+      archiveBytes: archive.length, ciRunCreatedAtUtc: '2026-10-15T10:20:30.123Z',
+      masterHistory: { sourceSha: sha, masterSha, direction: 'source-to-master', status: 'ahead', aheadBy: 3, behindBy: 0, totalCommits: 3 },
+    });
+    const summary = await readFile(join(directory, 'summary.md'), 'utf8');
+    assert.equal(summary, `## Verified delivery artifact\n\n\`\`\`json\n${json.trimEnd()}\n\`\`\`\n`);
+    assert.doesNotMatch(summary + command.stdout + command.stderr, /secret|unsafe metadata|sig=|credential|https?:\/\//);
+  } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
 test('CI record command emits source identity and inner ZIP evidence without a circular archive digest', async () => {
@@ -471,6 +625,8 @@ test('artifact transport fails closed on metadata errors, storage redirects and 
   for (const scenario of ['metadata-error', 'missing', 'unsafe-redirect', 'credentials-redirect', 'storage-redirect', 'corrupt']) {
     let storageCalls = 0;
     const fetchImpl = async (url) => {
+      if (url === masterRefUrl) return Response.json(masterRef);
+      if (url === compareUrl) return Response.json(ancestorComparison);
       if (url.endsWith('/actions/runs/123')) return scenario === 'metadata-error' ? new Response(null, { status: 403 }) : Response.json(run);
       if (url.includes('/artifacts?')) return Response.json({ total_count: scenario === 'missing' ? 0 : 1, artifacts: scenario === 'missing' ? [] : [metadata] });
       if (url.endsWith('/zip')) return new Response(null, { status: 302, headers: { location:
@@ -551,6 +707,11 @@ async function cliDiagnostic(script, command, fixture, env = {}, outputs) {
     });
     assert.equal(result.status, 1, result.stderr);
     assert.doesNotMatch(result.stdout + result.stderr, /SENTINEL_CREDENTIAL_9c743|sig=|https?:\/\/|Error:|\bat file:|raw-body/);
+    if (script.endsWith('/artifact.mjs')) {
+      for (const name of ['badge-lambda-linux-arm64.zip', 'verified-provenance.json']) {
+        await assert.rejects(readFile(join(directory, 'artifacts', name)), { code: 'ENOENT' });
+      }
+    }
     return result.stderr;
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
@@ -579,6 +740,8 @@ test('artifact CLI distinguishes safe provenance, expiry and digest gates while 
         error.code = 'artifact-expired'; error.category = 'artifact-expired';
         error.context = {origin:'public',check:'nuget',status:418,attempt:5}; throw error;
       }
+      if (url === '${masterRefUrl}') return Response.json(${JSON.stringify(masterRef)});
+      if (url === '${compareUrl}') return Response.json(${JSON.stringify(ancestorComparison)});
       if (url.endsWith('/actions/runs/123')) return Response.json(${JSON.stringify(scenario === 'identity' ? { ...run, run_attempt: 99 } : run)});
       if (url.includes('/artifacts?')) return Response.json(${JSON.stringify({ total_count: scenario === 'missing' ? 0 : 1, artifacts: scenario === 'missing' ? [] : [record] })});
       if (url.endsWith('/zip')) return new Response('raw-body ${diagnosticSentinel}', {status:302,headers:{location:'https://fixture.blob.core.windows.net/zip?sig=${diagnosticSentinel}'}});
@@ -587,6 +750,37 @@ test('artifact CLI distinguishes safe provenance, expiry and digest gates while 
     const diagnostic = await cliDiagnostic('.github/scripts/delivery/artifact.mjs', 'promote', fixture, environment);
     assert.match(diagnostic, new RegExp(`category=${category}(?:[ ,\\]])`), scenario);
     if (scenario === 'unknown') assert.equal(diagnostic, 'Delivery artifact validation failed [category=unknown]; no artifact was approved.\n');
+  }
+});
+
+test('artifact CLI fails closed with a finite category for master lookup and comparison errors', async t => {
+  const environment = {
+    GITHUB_REPOSITORY: selection.repository, CI_RUN_ID: selection.runId, CI_ARTIFACT_ID: selection.artifactId,
+    CI_HEAD_SHA: selection.sha, CI_RUN_ATTEMPT: selection.attempt, GITHUB_TOKEN: diagnosticSentinel,
+  };
+  for (const endpoint of [masterRefUrl, compareUrl]) {
+    for (const failure of ['403', '404', '500', 'redirect', 'json', 'network', 'body']) {
+      await t.test(`${endpoint.includes('/compare/') ? 'compare' : 'ref'}-${failure}`, async () => {
+        const fixture = `globalThis.fetch = async url => {
+          if (url === '${endpoint}') {
+            if ('${failure}' === 'network') {
+              const error = new Error('https://secret.invalid/?sig=${diagnosticSentinel}');
+              error.category = 'artifact-expired'; error.stack = '${diagnosticSentinel}'; throw error;
+            }
+            if ('${failure}' === 'body') return new Response(new ReadableStream({start(controller) {controller.error(new Error('raw-body ${diagnosticSentinel}'));}}));
+            if ('${failure}' === 'json') return new Response('raw-body ${diagnosticSentinel}');
+            return new Response('raw-body ${diagnosticSentinel}', {status:'${failure}' === 'redirect' ? 302 : Number('${failure}'), headers:{location:'https://secret.invalid/?sig=${diagnosticSentinel}'}});
+          }
+          if (url.endsWith('/actions/runs/123')) return Response.json(${JSON.stringify(run)});
+          if (url.includes('/artifacts?')) return Response.json(${JSON.stringify({ total_count: 1, artifacts: [metadata] })});
+          if (url === '${masterRefUrl}') return Response.json(${JSON.stringify(masterRef)});
+          if (url === '${compareUrl}') return Response.json(${JSON.stringify(ancestorComparison)});
+          throw new Error('Unexpected download ${diagnosticSentinel}');
+        };`;
+        const diagnostic = await cliDiagnostic('.github/scripts/delivery/artifact.mjs', 'promote', fixture, environment);
+        assert.equal(diagnostic, 'Delivery artifact validation failed [category=source-not-on-master]; no artifact was approved.\n');
+      });
+    }
   }
 });
 

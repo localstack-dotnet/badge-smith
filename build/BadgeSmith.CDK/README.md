@@ -87,6 +87,17 @@ An explicitly selected older successful master run may be promoted when every
 identity/provenance gate passes; selection is not restricted to the newest run or
 current master tip. Older artifacts without the required manifest still fail.
 
+Before artifact download, validation resolves the explicit `refs/heads/master` branch
+and compares the selected source SHA to that resolved full master SHA. Only coherent
+`identical` or `ahead` evidence in the source-to-master direction is accepted, so older
+master ancestors remain eligible; missing, malformed, inaccessible or divergent
+evidence fails closed. This proves history membership at validation time: master can
+move afterward, and this snapshot does not guarantee hosted protection settings.
+Comparisons above the 1 MiB metadata budget also fail as `source-not-on-master`;
+this category includes unavailable history evidence for an otherwise valid ancestor.
+The tag-named-`master` run scenario remains an unverified hypothesis; no live probe
+has established its metadata semantics.
+
 Before AWS credential setup, delivery validates inputs, run metadata, the single
 matching artifact ID, expiration, and GitHub's artifact **archive** SHA-256. It then
 validates the manifest and the **inner Lambda ZIP** SHA-256 and exact byte count.
@@ -99,7 +110,9 @@ Missing evidence, unsupported archive layout, or a storage-host change fails clo
 The workflow checks out the verified source SHA into `source/` for CDK and places
 the verified ZIP in `source/artifacts/`. Delivery control scripts stay in the
 workflow checkout. Provenance, archive bytes, and ZIP bytes are recorded in the
-Actions summary. Artifact bytes establish size only; they do not establish Lambda
+Actions summary, together with observed source/master SHAs, comparison direction,
+status and counts, and the validated selected CI run creation timestamp in canonical
+UTC. Artifact bytes establish size only; they do not establish Lambda
 INIT duration, memory, deployed identity, or production readiness.
 
 ## Diff and failure behavior
