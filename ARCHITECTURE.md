@@ -37,7 +37,7 @@ and [`BadgeSmithCloudFrontFactory`](build/BadgeSmith.CDK.Shared/BadgeSmithCloudF
 | CloudFront edge | Custom `CachePolicy` | Lambda `Cache-Control` selects freshness inside policy bounds | Global low-latency delivery |
 | Client/browser | `max-age` directive | Lambda per endpoint | Client-side reuse window |
 | Conditional requests | Strong ETag (SHA-256 over body, quoted uppercase hex) + `If-None-Match` / `Last-Modified` | `ResponseHelper.OkCached` | 304 bandwidth savings |
-| Upstream validator store | `UpstreamCacheEntry` in provider `IAppCache` (15 min TTL) | Provider ETag / `Last-Modified` replay | Skips re-fetch/re-parse; every badge request still **revalidates** upstream — it is a validator store, not a freshness cache |
+| Upstream validator store | `UpstreamCacheEntry` in provider `IAppCache` (15 min TTL) | Provider ETag / `Last-Modified` replay | Avoids upstream body transfer on 304; cached JSON is still deserialized and versions are parsed/filtered on each request. Every badge request **revalidates** upstream — it is a validator store, not a freshness cache |
 
 `s-maxage` belongs to **CloudFront**; `max-age` belongs to the **browser**. Direct API Gateway
 traffic bypasses both edge layers and exercises only conditional-request and client caching.
