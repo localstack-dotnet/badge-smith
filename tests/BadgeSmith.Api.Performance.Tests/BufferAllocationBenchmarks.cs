@@ -12,11 +12,37 @@ namespace BadgeSmith.Api.Performance.Tests;
 /// Tests different buffer management strategies to optimize memory usage and allocation patterns.
 /// </summary>
 [MemoryDiagnoser]
-[ShortRunJob]
 [BenchmarkCategory("Buffer")]
 public class BufferAllocationBenchmarks
 {
     private const string TestPath = "/badges/packages/github/localstack-dotnet/localstack.client";
+
+    private RouteResolver _singleRouteResolver = null!;
+    private RouteResolver _multiRouteResolver = null!;
+    private RouteResolver _multiRouteMethodsResolver = null!;
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        _singleRouteResolver = RouteTestBuilder.CreateRouteResolver(
+            RouteTestBuilder.CreateRouteDescriptor("Test", "GET",
+                RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")));
+
+        var routes = new[]
+        {
+            RouteTestBuilder.CreateRouteDescriptor("Health", "GET", RouteTestBuilder.CreateExactPattern("/health")),
+            RouteTestBuilder.CreateRouteDescriptor("NugetPackage", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")),
+            RouteTestBuilder.CreateRouteDescriptor("GithubPackage", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{org}/{package}")),
+            RouteTestBuilder.CreateRouteDescriptor("TestsBadge", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/tests/{platform}/{owner}/{repo}/{branch}")),
+        };
+        _multiRouteResolver = RouteTestBuilder.CreateRouteResolver(routes);
+        _multiRouteMethodsResolver = RouteTestBuilder.CreateRouteResolver(
+        [
+            .. routes,
+            RouteTestBuilder.CreateRouteDescriptor("TestIngestion", "POST",
+                RouteTestBuilder.CreateTemplatePattern("/tests/results/{platform}/{owner}/{repo}/{branch}")),
+        ]);
+    }
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
@@ -101,33 +127,16 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    public void RouteResolver_TryResolve_Should_Measure_Current_Implementation()
+    [BenchmarkCategory("Quick")]
+    public bool RouteResolver_TryResolve_Should_Measure_Single_Route_Case()
     {
-        // Simulate the current RouteResolver.TryResolve an allocation pattern
-        var routes = new[]
-        {
-            RouteTestBuilder.CreateRouteDescriptor("Test", "GET",
-                RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")),
-        };
-        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
-
-        // This allocates a new buffer on every call (current issue)
-        _ = resolver.TryResolve("GET", "/badges/packages/nuget/TestPackage", out _);
+        return _singleRouteResolver.TryResolve("GET", "/badges/packages/nuget/TestPackage", out _);
     }
 
     [Benchmark]
-    public void RouteResolver_GetAllowedMethods_Should_Measure_Current_Implementation()
+    public IReadOnlyList<string> RouteResolver_GetAllowedMethods_Should_Measure_Single_Route_Case()
     {
-        // Simulate the current RouteResolver.GetAllowedMethods allocation pattern
-        var routes = new[]
-        {
-            RouteTestBuilder.CreateRouteDescriptor("Test", "GET",
-                RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")),
-        };
-        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
-
-        // This allocates a new buffer for EACH route check (major issue)
-        _ = resolver.GetAllowedMethods("/badges/packages/nuget/TestPackage");
+        return _singleRouteResolver.GetAllowedMethods("/badges/packages/nuget/TestPackage");
     }
 
     [Benchmark]
@@ -145,61 +154,22 @@ public class BufferAllocationBenchmarks
     }
 
     [Benchmark]
-    [BenchmarkCategory("Quick")]
-    public void RouteResolver_TryResolve_Should_Measure_Optimized_Implementation()
+    public IReadOnlyList<string> RouteResolver_GetAllowedMethods_Should_Measure_Multi_Route_Case()
     {
-        // Test the optimized version with buffer sharing - same logic but tests our fix
-        var routes = new[]
-        {
-            RouteTestBuilder.CreateRouteDescriptor("OptimizedTest", "GET",
-                RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")),
-        };
-        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
-
-        // This should now reuse buffer across route checks (optimized implementation)
-        _ = resolver.TryResolve("GET", "/badges/packages/nuget/OptimizedPackage", out _);
+        return _multiRouteMethodsResolver.GetAllowedMethods("/badges/packages/nuget/TestPackage");
     }
 
     [Benchmark]
-    public void RouteResolver_GetAllowedMethods_Should_Measure_Multi_Route_Case()
+    public bool RouteResolver_TryResolve_Should_Measure_Multi_Route_Case()
     {
-        // Test with multiple routes to see real-world buffer reuse impact
-        var routes = new[]
-        {
-            RouteTestBuilder.CreateRouteDescriptor("Health", "GET", RouteTestBuilder.CreateExactPattern("/health")),
-            RouteTestBuilder.CreateRouteDescriptor("NugetPackage", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")),
-            RouteTestBuilder.CreateRouteDescriptor("GithubPackage", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{org}/{package}")),
-            RouteTestBuilder.CreateRouteDescriptor("TestsBadge", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/tests/{platform}/{owner}/{repo}/{branch}")),
-            RouteTestBuilder.CreateRouteDescriptor("TestIngestion", "POST", RouteTestBuilder.CreateExactPattern("/tests/results")),
-        };
-        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
-
-        // This tests buffer reuse across multiple route patterns
-        _ = resolver.GetAllowedMethods("/badges/packages/nuget/TestPackage");
-    }
-
-    [Benchmark]
-    public void RouteResolver_TryResolve_Should_Measure_Multi_Route_Case()
-    {
-        // Test TryResolve with multiple routes
-        var routes = new[]
-        {
-            RouteTestBuilder.CreateRouteDescriptor("Health", "GET", RouteTestBuilder.CreateExactPattern("/health")),
-            RouteTestBuilder.CreateRouteDescriptor("NugetPackage", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")),
-            RouteTestBuilder.CreateRouteDescriptor("GithubPackage", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{org}/{package}")),
-            RouteTestBuilder.CreateRouteDescriptor("TestsBadge", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/tests/{platform}/{owner}/{repo}/{branch}")),
-        };
-        var resolver = RouteTestBuilder.CreateRouteResolver(routes);
-
-        // This tests optimized buffer sharing across multiple route checks
-        _ = resolver.TryResolve("GET", "/badges/packages/nuget/TestPackage", out _);
+        return _multiRouteResolver.TryResolve("GET", "/badges/packages/nuget/TestPackage", out _);
     }
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void BufferAllocation_Should_Measure_Isolated_Current_Implementation()
+    public void BufferAllocation_Should_Measure_Three_Independent_Buffers()
     {
-        // Test JUST the buffer allocation (current approach - per route)
+        // Synthetic per-route buffers, not an alternate production resolver.
         for (var i = 0; i < 3; i++) // Simulate 3 route checks
         {
             var paramBuffer = new (string, int, int)[8]; // NEW buffer each time
@@ -210,9 +180,9 @@ public class BufferAllocationBenchmarks
 
     [Benchmark]
     [BenchmarkCategory("Quick")]
-    public void BufferAllocation_Should_Measure_Isolated_Optimized_Implementation()
+    public void BufferAllocation_Should_Measure_One_Buffer_Across_Three_Route_Checks()
     {
-        // Test JUST the buffer allocation (optimized approach - shared)
+        // Synthetic shared buffer; the three route checks form one benchmark operation.
         var paramBuffer = new (string, int, int)[8]; // SHARED buffer
         for (var i = 0; i < 3; i++) // Simulate 3 route checks
         {

@@ -17,7 +17,6 @@ namespace BadgeSmith.Api.Performance.Tests;
 /// path, warm cache exercises the 304 validator-replay path. Recorded evidence only; not a CI gate.
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob]
 public class ProviderBenchmarks : IDisposable
 {
     private const string NugetIndexPayload = """{"versions":["1.0.0","1.2.0","2.0.0-preview"]}""";
