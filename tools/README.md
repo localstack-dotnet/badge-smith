@@ -64,7 +64,7 @@ does not print the signature or digest.
 
 ### `lambda build`
 
-Multi-arch Docker build of the Native AOT Lambda. Used by CI and the deploy workflow.
+Multi-arch Docker build of the Native AOT Lambda. Used by CI; the deploy workflow promotes a verified CI artifact.
 Defaults to `linux-arm64` and `zip` to match production, while the normal local
 AOT/LocalStack path uses `linux-x64`.
 
