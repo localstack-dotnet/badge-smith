@@ -1,0 +1,111 @@
+{
+  "observed_at_utc": "2026-10-15T22:51:53Z",
+  "scope": "Local BenchmarkDotNet microbenchmark of provider services against fake upstreams; not a production, native-AOT, ARM64 or cache-ROI measurement",
+  "measured_identity": {
+    "description": "Isolated performance worktree t3-1c48689d = d778400 + first-package prerequisite v1 + second-wave performance delta. NOT the combined second-wave candidate, not eb13185, not a native or deployed build.",
+    "base_commit": "d778400bd16cee44994f1c9bb68121e6a54d66cf",
+    "prerequisite_v1_patch_sha256": "57dcfd99bff66f6d13f9bd8178f1191a11047522b9880f182f72278640f2d0f8",
+    "performance_delta_patch_sha256": "20f759bca2bba28685d2527a7a8dd08eabce60f0ff13a1aeb04d7d8a033e8439"
+  },
+  "run": {
+    "count": 1,
+    "exit_code": 0,
+    "job": "explicit Short, --runtimes net10.0, one launch, 3 warmup and 3 measured iterations per case",
+    "cases": 8,
+    "filter": "*ProviderBenchmarks*",
+    "high_priority": "denied (nonfatal)",
+    "host_noise": "background agent/MCP processes (~5% CPU) and idle editor/MSBuild processes on an otherwise ~95% idle 12-core host"
+  },
+  "host": {
+    "bdn": "0.15.8",
+    "runtime": ".NET 10.0.13 (10.0.13, 10.0.1326.50504)",
+    "sdk": "10.0.402",
+    "os": "Linux Ubuntu 26.04.1 LTS (Resolute Raccoon)",
+    "cpu": "AMD Ryzen Threadripper 2970WX",
+    "logical_cores": 12,
+    "architecture": "X64"
+  },
+  "raw_exports": {
+    "full_json_sha256": "4681c0c6c09366b87a68360b986242d825fd0745da63c55e968c19d7b7b6a7a0",
+    "csv_sha256": "e377f9ad0a61a664dc352453fd5687477bc86232da1c8ee9d756254448d3a1bb",
+    "retention": "Raw exports retained outside the repository and identified by these hashes"
+  },
+  "results": [
+    {
+      "method": "NuGet_ColdCache_FullFetch_200",
+      "corpus_size": 3,
+      "samples": 3,
+      "mean_ns": 2544.5,
+      "ci99_9_margin_ns": 754.2,
+      "allocated_bytes_per_op": 3288
+    },
+    {
+      "method": "NuGet_WarmCache_Revalidate_304",
+      "corpus_size": 3,
+      "samples": 3,
+      "mean_ns": 2417.0,
+      "ci99_9_margin_ns": 750.9,
+      "allocated_bytes_per_op": 3304
+    },
+    {
+      "method": "GitHub_ColdCache_FullFetch_200",
+      "corpus_size": 3,
+      "samples": 3,
+      "mean_ns": 3572.3,
+      "ci99_9_margin_ns": 536.2,
+      "allocated_bytes_per_op": 4304
+    },
+    {
+      "method": "GitHub_WarmCache_Revalidate_304",
+      "corpus_size": 3,
+      "samples": 3,
+      "mean_ns": 3519.4,
+      "ci99_9_margin_ns": 1119.6,
+      "allocated_bytes_per_op": 4040
+    },
+    {
+      "method": "NuGet_ColdCache_FullFetch_200",
+      "corpus_size": 32,
+      "samples": 3,
+      "mean_ns": 5794.1,
+      "ci99_9_margin_ns": 977.5,
+      "allocated_bytes_per_op": 5928
+    },
+    {
+      "method": "NuGet_WarmCache_Revalidate_304",
+      "corpus_size": 32,
+      "samples": 3,
+      "mean_ns": 5338.7,
+      "ci99_9_margin_ns": 1114.5,
+      "allocated_bytes_per_op": 5152
+    },
+    {
+      "method": "GitHub_ColdCache_FullFetch_200",
+      "corpus_size": 32,
+      "samples": 3,
+      "mean_ns": 15553.2,
+      "ci99_9_margin_ns": 28231.9,
+      "allocated_bytes_per_op": 11672
+    },
+    {
+      "method": "GitHub_WarmCache_Revalidate_304",
+      "corpus_size": 32,
+      "samples": 3,
+      "mean_ns": 13970.7,
+      "ci99_9_margin_ns": 1188.6,
+      "allocated_bytes_per_op": 9832
+    }
+  ],
+  "observations": [
+    "NuGet 3-name warm 304 allocates 3304 B/op versus 3288 B/op for cold 200 (+16): the 304 path saves no allocation today; exact byte attribution was not isolated.",
+    "Only 3 measured samples per case: confidence intervals are wide, especially GitHub 32-name 200, so timing differences are not statistically established."
+  ],
+  "unmeasured": [
+    "Retained cache heap (MemoryDiagnoser reports allocation per operation only)",
+    "Component-level A/B benefit of any cache change",
+    "Cache ROI",
+    "Production INIT, memory and latency",
+    "Native AOT/ARM64 behavior and artifact size"
+  ],
+  "interpretation_limits": "This baseline does not justify or authorize a production cache change."
+}

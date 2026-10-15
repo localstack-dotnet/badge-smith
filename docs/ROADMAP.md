@@ -20,6 +20,7 @@ workstreams may link a temporary plan; new ideas land in Inbox / Untriaged until
 | Production delivery hardening — first increment | committed locally; not merged | [approved implementation plan](plans/2026-10-16-roadmap-first-increments.md) | Artifact/source binding, rebuild removal, diff error propagation and bounded GET smoke implementation accepted after R3 (N1 addressed; Standards and Spec ready). All three scopes accepted and combined local validation complete; final whole-package review completed (Standards READY / Spec READY, round 1). Committed locally on `work/first-increments-validation`; not merged to master, pushed, released or deployed. Hosted execution and AWS OIDC trust (H2) remain unverified; GitHub environment branch restriction (H1) and master protection (H4) observed missing ([evidence](research/baselines/2026-10-16-github-delivery-trust.json)). No deployment or AWS operation is authorized. |
 | Performance instruments — BDN repair | committed locally; not merged | [approved implementation plan](plans/2026-10-16-roadmap-first-increments.md) | Four-file implementation validated with bounded correctness checks and approved on both independent review axes; committed locally on `work/first-increments-validation`; not merged to master. Local-core CLI, provider corpus expansion, runtime optimization, and precision/production measurements remain outside this increment. |
 | Logging hygiene — first CORS slice | committed locally; not merged | [approved implementation plan](plans/2026-10-16-roadmap-first-increments.md) | Three-file implementation validated and independently approved on both axes; committed locally on `work/first-increments-validation`; not merged to master. ARM64 CI baseline recorded ([6,000,572 bytes, 572 over the 6,000,000-byte goal](research/baselines/2026-10-16-d778400-arm64-artifact.json)); deployed identity and candidate size/runtime remain unverified. Retain remaining migration work below. |
+| Roadmap second wave — ancestry binding, processor logging, provider benchmark harness | committed locally; not merged | [approved second-wave scope](plans/2026-10-16-roadmap-second-wave.md) | Delivery binds promotion to master history (resolved master SHA; the selected source must be that commit or an older ancestor; fails closed before download). `LambdaRequestProcessor` logs 1001/`LambdaRequestHandling` and 1002/`LambdaUnhandledError` via source generation. The provider benchmark adds 3- and 32-name fake-upstream fixtures over 200/304 (eight cases) with one bounded Short baseline ([evidence](research/baselines/2026-10-16-provider-benchmark-short.json)). Each lane passed independent Standards/Spec review; combined local validation passed; final whole-package review READY/READY (round 1). Committed locally on `t3/second-wave-validation` on top of the first package; not merged to master, pushed, released or deployed. Hosted GitHub behavior, AWS trust (H2), AOT, candidate size, INIT and memory remain unverified. |
 
 ## Process Notes
 
@@ -35,23 +36,28 @@ Scoped work waiting to start. Promote an item into Status & Plan Mapping and lin
 detailed plan when it becomes active.
 
 - **Logging hygiene — remaining source-generated logging migration** (2026-07-02): The first
-  CORS slice is integration pending above. For the remaining files, replace
+  CORS slice (1000/`CorsPreflightRequest`) and the second-wave `LambdaRequestProcessor` slice
+  (1001/`LambdaRequestHandling`, 1002/`LambdaUnhandledError`) are committed locally above. For the
+  remaining files, replace
   temporary `CA1873` pragmas with `LoggerMessageAttribute` source-generated logging,
   then remove the suppressions and keep the zero-warning build contract. Retain the existing test
   logger helpers until this work decides whether structured logging is a verified test contract and
   standardizes the corresponding assertion support; they are not a Wave 3 dead-code cleanup target.
-  Before broader migration, decide EventId allocation/collision rules (only CORS
-  1000/`CorsPreflightRequest` is approved) and address non-generic `SetupILogger`'s unset
-  `IsEnabled` before relying on negative log assertions. The disabled-Debug plus null-header
+  Before broader migration, decide repository-wide EventId allocation/collision rules (only
+  1000–1002 are approved). The non-generic `SetupILogger` now supports `IsEnabled`, so negative
+  log assertions through it are meaningful. Test readability (owner: logging domain):
+  `LambdaRequestProcessorTests` has two hand-rolled test loggers, the newer making the older mostly
+  redundant, and one theory uses two logger doubles; consolidate when those tests are next touched. The disabled-Debug plus null-header
   combination remains a deferred test gap, not a current defect. Measure ARM64 ZIP size per slice;
   the CI baseline above is already over goal and proves neither deployed identity nor candidate compliance.
 - **Production delivery hardening — remaining work** (captured 2026-08-08): Artifact binding,
-  diff error handling, and post-deploy smoke implementation are integration pending above. Remaining
+  diff error handling, post-deploy smoke and master-history ancestry binding are committed locally above. Remaining
   work: restrict the `production` environment to `master` deployments and configure master protection
   (H1/H4 observed missing on 2026-10-16, [evidence](research/baselines/2026-10-16-github-delivery-trust.json));
-  verify AWS OIDC trust audience/subject (H2 unverified); decide the **unapproved** master-ancestry
-  guard proposal, preserving promotion of selected older successful master ancestors rather than
-  requiring the latest tip. Historical promotion policy is unchanged; no tag exploit is established.
+  verify AWS OIDC trust audience/subject (H2 unverified). Master-history ancestry binding is
+  implemented in the second wave: promotion resolves the master SHA and accepts that commit or an
+  older successful ancestor, failing closed before download; comparisons larger than 1 MiB fail
+  closed. Hosted GitHub behavior is unverified, and no tag exploit is established.
   Hosted/AWS changes require separate approval.
   The final candidate's production CDK guide records the dated H1/H4 observations and unverified H2.
   Retain nested numeric-PR formatting for now; consider a simpler
@@ -69,6 +75,10 @@ detailed plan when it becomes active.
   Candidate levers: explicit edge error-cache policy and badge TTL tuning (CloudFront already
   has default error caching, including 404s), `TrimMode=full` plus individually measured ILC knobs,
   request-path cleanup, and measurement-led parsed-result reuse only after upstream confirms 304.
+  The 2026-10-16 provider Short baseline ([evidence](research/baselines/2026-10-16-provider-benchmark-short.json))
+  covers fake-upstream provider paths only: the NuGet 3-name 304 path allocates 3,304 B/op versus
+  3,288 B/op for 200, and three-sample intervals are wide (especially GitHub 32-name 200). Retained
+  heap, component A/B benefit and cache ROI are unmeasured, so no production cache change follows.
   Reuse must never skip per-request upstream revalidation or add a freshness cache; see the
   [cache layers](../ARCHITECTURE.md#cache-layers). JSON-name snapshots, semantic-version and
   selected-winner caching are not implemented or silently approved by this backlog entry.

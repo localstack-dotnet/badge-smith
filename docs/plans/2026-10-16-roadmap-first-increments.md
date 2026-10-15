@@ -331,6 +331,8 @@ the final independent combined review. Standards and Spec remain separate accept
   The proposed immutable JSON-name snapshot does not remove semantic-version parsing or network
   revalidation. Extra lazy state, raw-plus-name retention, and exception memoization need evidence
   and explicit approval; no cache source change, corpus expansion, or new run is authorized yet.
+  This is a historical first-wave restriction; the approved second-wave scope later authorized only
+  the 3/32-name fake-provider harness and one bounded Short run, still without a cache change.
 - Local closeout: Deniz authorized four local Conventional Commits (ci, test, refactor, docs) on
   `work/first-increments-validation`, based on `d778400`. They are not merged to master, pushed,
   released or deployed. Hosted Actions, AWS trust (H2), CDK deploy, production smoke, AOT, candidate
