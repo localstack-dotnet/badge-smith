@@ -389,6 +389,8 @@ the dated [Iteration 0 and Wave 1 closeout evidence](docs/research/2026-07-09-it
 2. **Lambda image**: Minimal runtime for container deployment
 3. **Zip export**: Artifact generation for .zip deployment
 
+The ZIP is written with Python's standard library using standard zlib Deflate level 9.
+
 ### **Build Tooling**
 
 **`tools/badgesmith.cs lambda build`** provides **cross-platform build automation**:
