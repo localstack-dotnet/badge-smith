@@ -103,19 +103,38 @@ Minimum allocation is a project hallmark, not a micro-optimization.
 - Raising a recorded ceiling is a reviewed performance-contract change with a stated reason (for
   example a runtime bump that changed serializer internals), never a test edit.
 
-## Layout And Tests
+## Layout
 
 - Keep feature behavior together in vertical slices; do not create repository-wide horizontal
   buckets by type kind.
-- A test project should mirror the production area it verifies so source and test paths remain
-  predictable.
-- Test names use `Subject_Should_Expected_Behavior_When_Condition`. Keep code identifiers intact,
-  underscore other words, put `Should` immediately after the subject, and end conditions with
-  `When...`.
 - Split classes and folders when real cohesion or navigation pressure appears, not in anticipation
   of hypothetical growth.
-- Test through public or internal contracts. The urge to test a private method is extraction
-  feedback, not a reason to use reflection.
+
+The Lambda separates shared infrastructure from business capabilities:
+
+```text
+src/BadgeSmith.Api/
+├── Core/                    # Shared infrastructure concerns
+│   ├── Security/            # Authentication, HMAC, secrets
+│   ├── Routing/             # HTTP routing and response handling
+│   ├── Caching/             # Memory caching with TTL
+│   └── Observability/       # Logging and telemetry
+└── Features/                # Business capabilities (vertical slices)
+    ├── NuGet/               # NuGet package badge functionality
+    ├── GitHub/              # GitHub package badge functionality
+    ├── TestResults/         # Test result ingestion and badge generation
+    └── HealthCheck/         # System health monitoring
+```
+
+Each feature keeps its models, services, and handlers together. These boundaries isolate feature
+changes, make navigation predictable, and let contributors work on different features without
+creating a repository-wide layer for each type kind. They also leave room for a feature to be
+extracted into a service if a real need appears; they do not require that extraction now.
+
+[Testing style](testing-style.md#layout-and-names) owns mirrored test paths and names;
+[test contracts](testing-style.md#contracts-and-seams) owns public/internal seams rather than
+private reflection. Changes to linked source must validate
+[every compiling consumer](quality-gates.md#shared-source-consumers).
 
 ## Code Documentation
 

@@ -8,10 +8,9 @@ using BenchmarkDotNet.Attributes;
 namespace BadgeSmith.Api.Performance.Tests;
 
 /// <summary>
-/// Performance benchmarks for routing components to ensure zero-allocation goals.
+/// Microbenchmarks of production route resolution and synthetic pattern and parameter operations.
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob]
 public class RoutingBenchmarks
 {
     private RouteResolver _resolver = null!;
@@ -29,7 +28,7 @@ public class RoutingBenchmarks
             RouteTestBuilder.CreateRouteDescriptor("NugetPackageBadge", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{package}")),
             RouteTestBuilder.CreateRouteDescriptor("GithubPackagesBadge", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/packages/{provider}/{org}/{package}")),
             RouteTestBuilder.CreateRouteDescriptor("TestsBadge", "GET", RouteTestBuilder.CreateTemplatePattern("/badges/tests/{platform}/{owner}/{repo}/{branch}")),
-            RouteTestBuilder.CreateRouteDescriptor("TestIngestion", "POST", RouteTestBuilder.CreateExactPattern("/tests/results")),
+            RouteTestBuilder.CreateRouteDescriptor("TestIngestion", "POST", RouteTestBuilder.CreateTemplatePattern("/tests/results/{platform}/{owner}/{repo}/{branch}")),
             RouteTestBuilder.CreateRouteDescriptor("BadgeRedirect", "GET", RouteTestBuilder.CreateTemplatePattern("/redirect/test-results/{platform}/{owner}/{repo}/{branch}")),
         };
 
@@ -41,14 +40,15 @@ public class RoutingBenchmarks
     }
 
     [Benchmark]
-    [Arguments("/health")]
-    [Arguments("/badges/packages/nuget/Newtonsoft.Json")]
-    [Arguments("/badges/packages/github/localstack-dotnet/localstack.client")]
-    [Arguments("/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main")]
-    [Arguments("/redirect/test-results/linux/localstack-dotnet/dotnet-aspire-for-localstack/main")]
-    public bool RouteResolver_TryResolve_Should_Measure_Route_Resolution(string path)
+    [Arguments("GET", "/health")]
+    [Arguments("GET", "/badges/packages/nuget/Newtonsoft.Json")]
+    [Arguments("GET", "/badges/packages/github/localstack-dotnet/localstack.client")]
+    [Arguments("GET", "/badges/tests/linux/localstack-dotnet/dotnet-aspire-for-localstack/main")]
+    [Arguments("GET", "/redirect/test-results/linux/localstack-dotnet/dotnet-aspire-for-localstack/main")]
+    [Arguments("POST", "/tests/results/linux/localstack-dotnet/badge-smith/feature%2Fbenchmark")]
+    public bool RouteResolver_TryResolve_Should_Measure_Route_Resolution(string method, string path)
     {
-        return _resolver.TryResolve("GET", path, out _);
+        return _resolver.TryResolve(method, path, out _);
     }
 
     [Benchmark]
@@ -86,7 +86,7 @@ public class RoutingBenchmarks
 
     [Benchmark]
     [Arguments("/health")]
-    [Arguments("/tests/results")]
+    [Arguments("/nonexistent/path")]
     public bool ExactPattern_TryMatch_Should_Measure_Exact_Route(string path)
     {
         var values = RouteTestBuilder.CreateRouteValues(path);

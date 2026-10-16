@@ -1,5 +1,3 @@
-#pragma warning disable CA1873 // Replace with LoggerMessage source-generated logging.
-
 using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Routing.Contracts;
 using BadgeSmith.Api.Core.Routing.Helpers;
@@ -12,7 +10,7 @@ namespace BadgeSmith.Api.Core.Routing.Cors;
 /// Handles preflight requests by extracting request headers and consulting the route resolver
 /// to determine appropriate CORS responses.
 /// </summary>
-internal sealed class CorsHandler : ICorsHandler
+internal sealed partial class CorsHandler : ICorsHandler
 {
     private readonly IRouteResolver _routeResolver;
     private readonly ILogger<CorsHandler> _logger;
@@ -33,7 +31,7 @@ internal sealed class CorsHandler : ICorsHandler
         var requestMethod = GetHeaderValue(headers, "Access-Control-Request-Method");
         var requestHeaders = GetHeaderValue(headers, "Access-Control-Request-Headers");
 
-        _logger.LogDebug("CORS preflight request: Origin={Origin}, Method={Method}, Headers={Headers}", origin, requestMethod, requestHeaders);
+        LogCorsPreflightRequest(_logger, origin, requestMethod, requestHeaders);
 
         var corsHeaders = BuildPreflightHeaders(path, requestMethod, requestHeaders, origin);
 
@@ -201,6 +199,10 @@ internal sealed class CorsHandler : ICorsHandler
         }
     }
 
+    [LoggerMessage(EventId = 1000, EventName = "CorsPreflightRequest", Level = LogLevel.Debug,
+        Message = "CORS preflight request: Origin={Origin}, Method={Method}, Headers={Headers}")]
+    private static partial void LogCorsPreflightRequest(ILogger logger, string? origin, string? method, string? headers);
+
     private static string NormalizeMethod(string method) => string.IsNullOrWhiteSpace(method) ? method : method.Trim().ToUpperInvariant();
 
     private static string? GetHeaderValue(IDictionary<string, string>? headers, string headerName)
@@ -213,5 +215,3 @@ internal sealed class CorsHandler : ICorsHandler
         return headers.TryGetValue(headerName, out var value) ? value.Trim() : null;
     }
 }
-
-#pragma warning restore CA1873

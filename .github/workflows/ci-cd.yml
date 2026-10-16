@@ -8,9 +8,6 @@ on:
     branches:
       - "master"
   pull_request:
-    paths-ignore:
-      - "**.md"
-      - LICENSE
     branches:
       - master
       - "feature/*"
@@ -39,6 +36,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Run delivery fixture tests
+        run: node --test .github/scripts/delivery/delivery.test.mjs
+
       - name: "Cache NuGet packages"
         uses: actions/cache@v6
         with:
@@ -54,6 +54,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run tests with BadgeSmith integration
+        id: api-tests
         uses: ./.github/workflows/run-dotnet-tests
         with:
           project-path: 'tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj'
@@ -93,7 +94,12 @@ jobs:
           max-annotations: 50
 
       - name: Update test badge via BadgeSmith API
-        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: >-
+          always() && github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+          (steps.api-tests.outcome == 'success' || steps.api-tests.outcome == 'failure') &&
+          (steps.test-results.outputs.passed != '0' && steps.test-results.outputs.passed != '' ||
+           steps.test-results.outputs.failed != '0' && steps.test-results.outputs.failed != '' ||
+           steps.test-results.outputs.skipped != '0' && steps.test-results.outputs.skipped != '')
         continue-on-error: true
         uses: ./.github/workflows/update-test-badge
         with:
@@ -124,6 +130,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
@@ -138,10 +149,28 @@ jobs:
         run: |
           "$BADGESMITH_TOOL_PATH" lambda build --target zip --rid linux-arm64 --clean --verbose
 
+      - name: Record Lambda ZIP provenance
+        run: node .github/scripts/delivery/artifact.mjs record
+
       - name: Upload Lambda artifact
+        id: lambda-artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ github.ref == 'refs/heads/master' && 'lambda-zip-latest' || format('lambda-zip-pr-{0}', github.event.pull_request.number) }}
-          path: artifacts/badge-lambda-linux-arm64.zip
+          name: ${{ github.ref == 'refs/heads/master' && format('lambda-zip-{0}-{1}', github.run_id, github.run_attempt) || format('{0}-{1}-{2}', format('lambda-zip-pr-{0}', github.event.pull_request.number), github.run_id, github.run_attempt) }}
+          path: |
+            artifacts/badge-lambda-linux-arm64.zip
+            artifacts/provenance.json
+          if-no-files-found: error
           retention-days: 30
-          overwrite: true
+
+      - name: Artifact selection summary
+        env:
+          ARTIFACT_ID: ${{ steps.lambda-artifact.outputs.artifact-id }}
+          ARCHIVE_DIGEST: ${{ steps.lambda-artifact.outputs.artifact-digest }}
+        run: |
+          echo '## CI artifact selection' >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: $GITHUB_RUN_ID; attempt: $GITHUB_RUN_ATTEMPT; SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact ID: $ARTIFACT_ID; archive digest: $ARCHIVE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/provenance.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

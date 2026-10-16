@@ -13,15 +13,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace BadgeSmith.Api.Performance.Tests;
 
 /// <summary>
-/// Allocation profile of the provider upstream fetch: cold cache exercises the 200 fetch/parse/cache
-/// path, warm cache exercises the 304 validator-replay path. Recorded evidence only; not a CI gate.
+/// Timing and allocation of one provider call using fake HTTP and a dictionary cache with 3 or 32 names.
+/// Each 200 operation includes a response-cache reset; 304 revalidates a seeded, provider-primed entry.
+/// ColdCache means response-cache cold after process/setup warming, not cold JIT or Lambda INIT.
+/// Recorded evidence only; not a CI gate.
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob]
 public class ProviderBenchmarks : IDisposable
 {
-    private const string NugetIndexPayload = """{"versions":["1.0.0","1.2.0","2.0.0-preview"]}""";
-    private const string GitHubVersionsPayload = """[{"name":"1.0.0"},{"name":"1.2.0"},{"name":"2.0.0-preview"}]""";
     private const string WeakEtag = "W/\"bench\"";
     private const string EtagTag = "\"bench\"";
     private const string NuGetCacheKey = "nuget:index:benchmark.package";
@@ -38,13 +37,17 @@ public class ProviderBenchmarks : IDisposable
     private GitHubPackageService _gitHubColdService = null!;
     private GitHubPackageService _gitHubWarmService = null!;
 
+    [Params(3, 32)]
+    public int CorpusSize { get; set; }
+
     [GlobalSetup]
-    public void Setup()
+    public async Task Setup()
     {
+        var corpus = ProviderBenchmarkCorpus.ForSize(CorpusSize);
         var nuGetVersionService = new NuGetVersionService();
 
-        var nuGetColdHandler = Own(new ScriptedUpstreamHandler(HttpStatusCode.OK, NugetIndexPayload));
-        var nuGetColdClient = new HttpClient(nuGetColdHandler)
+        var nuGetColdHandler = Own(new ScriptedUpstreamHandler(HttpStatusCode.OK, corpus.NuGetPayload));
+        var nuGetColdClient = new HttpClient(nuGetColdHandler, disposeHandler: false)
         {
             BaseAddress = new Uri(NuGetBaseAddress),
         };
@@ -57,20 +60,20 @@ public class ProviderBenchmarks : IDisposable
 
         var nuGetWarmHandler = Own(new ScriptedUpstreamHandler(
             HttpStatusCode.NotModified, string.Empty, new EntityTagHeaderValue(EtagTag, isWeak: true)));
-        var nuGetWarmClient = new HttpClient(nuGetWarmHandler)
+        var nuGetWarmClient = new HttpClient(nuGetWarmHandler, disposeHandler: false)
         {
             BaseAddress = new Uri(NuGetBaseAddress),
         };
         var nuGetWarmCache = new ScriptedCache();
-        nuGetWarmCache.Seed(NuGetCacheKey, new UpstreamCacheEntry(NugetIndexPayload, WeakEtag, null));
+        nuGetWarmCache.Seed(NuGetCacheKey, new UpstreamCacheEntry(corpus.NuGetPayload, WeakEtag, null));
         _nuGetWarmService = new NuGetPackageService(
             nuGetVersionService,
             NullLogger<NuGetPackageService>.Instance,
             Own(nuGetWarmClient),
             nuGetWarmCache);
 
-        var gitHubColdHandler = Own(new ScriptedUpstreamHandler(HttpStatusCode.OK, GitHubVersionsPayload));
-        var gitHubColdClient = new HttpClient(gitHubColdHandler)
+        var gitHubColdHandler = Own(new ScriptedUpstreamHandler(HttpStatusCode.OK, corpus.GitHubPayload));
+        var gitHubColdClient = new HttpClient(gitHubColdHandler, disposeHandler: false)
         {
             BaseAddress = new Uri(GitHubBaseAddress),
         };
@@ -83,40 +86,53 @@ public class ProviderBenchmarks : IDisposable
 
         var gitHubWarmHandler = Own(new ScriptedUpstreamHandler(
             HttpStatusCode.NotModified, string.Empty, new EntityTagHeaderValue(EtagTag, isWeak: true)));
-        var gitHubWarmClient = new HttpClient(gitHubWarmHandler)
+        var gitHubWarmClient = new HttpClient(gitHubWarmHandler, disposeHandler: false)
         {
             BaseAddress = new Uri(GitHubBaseAddress),
         };
         var gitHubWarmCache = new ScriptedCache();
-        gitHubWarmCache.Seed(GitHubCacheKey, new UpstreamCacheEntry(GitHubVersionsPayload, WeakEtag, null));
+        gitHubWarmCache.Seed(GitHubCacheKey, new UpstreamCacheEntry(corpus.GitHubPayload, WeakEtag, null));
         _gitHubWarmService = new GitHubPackageService(
             Own(gitHubWarmClient),
             nuGetVersionService,
             gitHubWarmCache,
             NullLogger<GitHubPackageService>.Instance);
+
+        try
+        {
+            await ProviderBenchmarkPreflight.ValidateAsync(_nuGetColdService, corpus, HttpStatusCode.OK).ConfigureAwait(false);
+            await ProviderBenchmarkPreflight.ValidateAsync(_nuGetWarmService, corpus, HttpStatusCode.NotModified).ConfigureAwait(false);
+            await ProviderBenchmarkPreflight.ValidateAsync(_gitHubColdService, corpus, HttpStatusCode.OK).ConfigureAwait(false);
+            await ProviderBenchmarkPreflight.ValidateAsync(_gitHubWarmService, corpus, HttpStatusCode.NotModified).ConfigureAwait(false);
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
     }
 
     [Benchmark]
-    public async Task NuGet_ColdCache_FullFetch_200()
+    public Task NuGet_ColdCache_FullFetch_200()
     {
         _nuGetColdCache.Reset();
-        _ = await _nuGetColdService.GetLatestVersionAsync("benchmark.package").ConfigureAwait(false);
+        return _nuGetColdService.GetLatestVersionAsync("benchmark.package");
     }
 
     [Benchmark]
-    public async Task NuGet_WarmCache_Revalidate_304() =>
-        _ = await _nuGetWarmService.GetLatestVersionAsync("benchmark.package").ConfigureAwait(false);
+    public Task NuGet_WarmCache_Revalidate_304() =>
+        _nuGetWarmService.GetLatestVersionAsync("benchmark.package");
 
     [Benchmark]
-    public async Task GitHub_ColdCache_FullFetch_200()
+    public Task GitHub_ColdCache_FullFetch_200()
     {
         _gitHubColdCache.Reset();
-        _ = await _gitHubColdService.GetLatestVersionAsync("benchmark-org", "benchmark.package", "token").ConfigureAwait(false);
+        return _gitHubColdService.GetLatestVersionAsync("benchmark-org", "benchmark.package", "token");
     }
 
     [Benchmark]
-    public async Task GitHub_WarmCache_Revalidate_304() =>
-        _ = await _gitHubWarmService.GetLatestVersionAsync("benchmark-org", "benchmark.package", "token").ConfigureAwait(false);
+    public Task GitHub_WarmCache_Revalidate_304() =>
+        _gitHubWarmService.GetLatestVersionAsync("benchmark-org", "benchmark.package", "token");
 
     [GlobalCleanup]
     public void Dispose()
@@ -132,10 +148,12 @@ public class ProviderBenchmarks : IDisposable
             return;
         }
 
-        foreach (var disposable in _disposables)
+        for (var i = _disposables.Count - 1; i >= 0; i--)
         {
-            disposable.Dispose();
+            _disposables[i].Dispose();
         }
+
+        _disposables.Clear();
     }
 
     private T Own<T>(T disposable) where T : IDisposable
