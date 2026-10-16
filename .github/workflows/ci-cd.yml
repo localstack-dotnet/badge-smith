@@ -51,6 +51,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run tests with BadgeSmith integration
+        id: api-tests
         uses: ./.github/workflows/run-dotnet-tests
         with:
           project-path: 'tests/BadgeSmith.Api.Tests/BadgeSmith.Api.Tests.csproj'
@@ -90,7 +91,12 @@ jobs:
           max-annotations: 50
 
       - name: Update test badge via BadgeSmith API
-        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: >-
+          always() && github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+          (steps.api-tests.outcome == 'success' || steps.api-tests.outcome == 'failure') &&
+          (steps.test-results.outputs.passed != '0' && steps.test-results.outputs.passed != '' ||
+           steps.test-results.outputs.failed != '0' && steps.test-results.outputs.failed != '' ||
+           steps.test-results.outputs.skipped != '0' && steps.test-results.outputs.skipped != '')
         continue-on-error: true
         uses: ./.github/workflows/update-test-badge
         with:
