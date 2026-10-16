@@ -53,12 +53,38 @@ CMD ["bootstrap"]
 FROM debian:bookworm-slim AS lambda-zip
 ARG RID=linux-x64
 ARG ZIP_NAME=badge-lambda-${RID}.zip
-RUN apt-get update && apt-get install -y --no-install-recommends zip \
+RUN apt-get update && apt-get install -y --no-install-recommends python3 \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /out
 COPY --from=build /artifacts/publish/bootstrap ./bootstrap
-RUN zip -9 -r ${ZIP_NAME} bootstrap
+RUN python3 - "${ZIP_NAME}" <<'PY'
+import os
+import sys
+import zipfile
+
+entry = zipfile.ZipInfo.from_file("bootstrap", arcname="bootstrap")
+source_mtime = (*entry.date_time[:5], entry.date_time[5] - entry.date_time[5] % 2)
+entry.create_system = 3
+entry.external_attr = 0o100755 << 16
+with open("bootstrap", "rb") as source, zipfile.ZipFile(sys.argv[1], "w") as archive:
+    archive.writestr(entry, source.read(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+
+with zipfile.ZipFile(sys.argv[1]) as archive:
+    if archive.namelist() != ["bootstrap"]:
+        raise SystemExit("ZIP must contain only bootstrap")
+    if archive.testzip() is not None:
+        raise SystemExit("ZIP CRC verification failed")
+    entry = archive.getinfo("bootstrap")
+    if entry.create_system != 3 or entry.external_attr >> 16 != 0o100755:
+        raise SystemExit("bootstrap must be Unix 0100755")
+    if entry.file_size != os.path.getsize("bootstrap"):
+        raise SystemExit("bootstrap size mismatch")
+    if entry.compress_type != zipfile.ZIP_DEFLATED:
+        raise SystemExit("ZIP compression must be Deflate")
+    if entry.date_time != source_mtime:
+        raise SystemExit("bootstrap mtime mismatch")
+PY
 
 ###############################
 # Stage 3: Export-only (avoid rootfs & symlinks)

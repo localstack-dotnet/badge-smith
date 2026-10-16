@@ -1,0 +1,105 @@
+{
+  "observed_at_utc": "2026-10-15T21:37:54.269267+00:00",
+  "repository": "localstack-dotnet/badge-smith",
+  "scope": "Read-only GitHub GET observations; no settings changes; no AWS or IAM queries",
+  "sources": [
+    {
+      "id": "environment-production",
+      "request": "GET /repos/localstack-dotnet/badge-smith/environments/production",
+      "http_status": 200,
+      "raw_sha256": "9f7479e9aaa3aa870e0475acc9a491ba17d2f3a993a117ee86002ed5140e3466",
+      "observed": {
+        "deployment_branch_policy": null,
+        "can_admins_bypass": true,
+        "protection_rules": []
+      }
+    },
+    {
+      "id": "environment-branch-policies",
+      "request": "GET /repos/localstack-dotnet/badge-smith/environments/production/deployment-branch-policies",
+      "http_status": 404,
+      "raw_sha256": "360cc9bf3c29fed2922092d7bbb2edab194afef64ad1ad72230acd727a34a2e2",
+      "observed_message": "Not Found",
+      "interpretation": "No pass inferred from this response; environment GET supplies the branch-policy observation"
+    },
+    {
+      "id": "master-branch",
+      "request": "GET /repos/localstack-dotnet/badge-smith/branches/master",
+      "http_status": 200,
+      "raw_sha256": "689af9a02b4cd3c5b98d1da7fabf3c1a598801b402ebf54a36b0995f56beb4b7",
+      "observed": {
+        "protected": false,
+        "sha": "d778400bd16cee44994f1c9bb68121e6a54d66cf"
+      }
+    },
+    {
+      "id": "master-classic-protection",
+      "request": "GET /repos/localstack-dotnet/badge-smith/branches/master/protection",
+      "http_status": 404,
+      "raw_sha256": "d6020ee3b0852c3deb66c66d159cc80caabeaa66ee301778307a2a18d486450d",
+      "observed_message": "Branch not protected"
+    },
+    {
+      "id": "master-effective-rules",
+      "request": "GET /repos/localstack-dotnet/badge-smith/rules/branches/master",
+      "http_status": 200,
+      "raw_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "observed": []
+    },
+    {
+      "id": "repo-oidc-sub-template",
+      "request": "GET /repos/localstack-dotnet/badge-smith/actions/oidc/customization/sub",
+      "http_status": 200,
+      "raw_sha256": "6e6f239aabe72426e78befa58b712766287622bcf810a4ca28b7d7b544ee9101",
+      "observed": {
+        "use_default": true,
+        "use_immutable_subject": false,
+        "sub_claim_prefix": "repo:localstack-dotnet/badge-smith"
+      }
+    },
+    {
+      "id": "org-oidc-sub-template",
+      "request": "GET /orgs/localstack-dotnet/actions/oidc/customization/sub",
+      "http_status": 404,
+      "raw_sha256": "ba1555e4cc2f6fb2f6719e77f579cbaab0c0f4d453b959e8ce4eb182691e30ee",
+      "observed_message": "No Actions OIDC custom sub claim template found for the organization localstack-dotnet",
+      "interpretation": "No additional trust-policy conclusion inferred"
+    }
+  ],
+  "gates": {
+    "H1_production_master_only": {
+      "status": "fail",
+      "source_ids": ["environment-production"],
+      "reason": "deployment_branch_policy=null allows all branches; no master-only deployment policy is configured"
+    },
+    "H2_aws_oidc_trust": {
+      "status": "unverified",
+      "reason": "No AWS/IAM query or token-assumption probe was authorized or performed"
+    },
+    "H3_repository_oidc_template": {
+      "status": "configured_default_observed",
+      "source_ids": ["repo-oidc-sub-template"],
+      "reason": "Repository reports use_default=true; actual minted token claims and AWS trust matching were not tested"
+    },
+    "H4_master_protection": {
+      "status": "fail",
+      "source_ids": ["master-branch", "master-classic-protection", "master-effective-rules"],
+      "reason": "Branch GET reports protected=false, classic protection reports Branch not protected, and the effective rule list is empty"
+    },
+    "T2_tag_named_master": {
+      "status": "unverified",
+      "reason": "No existing tag-push run semantics verified and no tag/workflow mutation performed"
+    }
+  },
+  "interpretation_limits": [
+    "These observations prove missing GitHub guard layers, not that the AWS role can actually be assumed.",
+    "Ancestry-check code remains a proposal; no frozen delivery diff was changed for this investigation.",
+    "No secret values, role identifiers, account IDs, personal reviewer identities, or raw responses are committed in this record.",
+    "Raw API response bytes were retained outside the worktrees and identified by the hashes above."
+  ],
+  "documentation_sources": [
+    "https://docs.github.com/en/rest/deployments/environments",
+    "https://docs.github.com/en/rest/deployments/branch-policies",
+    "https://docs.github.com/en/rest/actions/oidc"
+  ]
+}

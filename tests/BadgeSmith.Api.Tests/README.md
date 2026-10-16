@@ -27,6 +27,25 @@ scenario under `scripts/` is an HTTP load harness, not a test category or contra
 It sends requests directly to `K6_API_URL` (or the script's default endpoint); it does not
 provision infrastructure or seed DynamoDB and Secrets Manager.
 
+**Warning:** Omitting `K6_API_URL` uses the production API Gateway endpoint. Local smoke/load
+runs must explicitly set `K6_API_URL` to the intended local endpoint.
+
+The benchmark runner uses standard BenchmarkDotNet arguments, not `--type`. Always pass an
+explicit `--filter` in automation to avoid interactive selection. For example, from the repo root:
+
+```bash
+# Discover benchmark names without executing cases.
+dotnet run --project tests/BadgeSmith.Api.Performance.Tests -c Release -- --filter "*" --list flat
+
+# Validate one POST routing case without a precision run or generated child-project build.
+dotnet run --project tests/BadgeSmith.Api.Performance.Tests -c Release -- --filter "*RoutingBenchmarks.RouteResolver_TryResolve_Should_Measure_Route_Resolution*POST*" --job Dry --inProcess --noOverwrite
+```
+
+Dry runs validate execution, not performance. The `Quick` category is only a selection label;
+it does not select a Short job. Timing comparisons require explicit matching job settings and
+matching case identities. The runner's exit status alone is not a correctness gate: inspect the
+selected case count, validation errors, and benchmark reports as well.
+
 The local-performance CDK stack defines API Gateway resources and a Lambda Function URL. The
 Function URL is the compatibility fallback for the LocalStack benchmark workflow; production uses
 API Gateway HTTP v2. See the
