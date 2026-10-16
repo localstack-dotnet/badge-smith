@@ -1,0 +1,55 @@
+{
+  "observed_at_utc": "2026-10-15T21:11:36Z",
+  "scope": "Existing GitHub CI artifact; not a production deployment measurement",
+  "repository": "localstack-dotnet/badge-smith",
+  "source_commit": "d778400bd16cee44994f1c9bb68121e6a54d66cf",
+  "ci_run": {
+    "id": 35340178681,
+    "attempt": 1,
+    "url": "https://github.com/localstack-dotnet/badge-smith/actions/runs/35340178681",
+    "workflow_path": ".github/workflows/ci-cd.yml",
+    "event": "push",
+    "branch": "master",
+    "status": "completed",
+    "conclusion": "success",
+    "source_association": "Recorded in GitHub run and artifact metadata; not a reproducible-build attestation"
+  },
+  "artifact_archive": {
+    "id": 10544353895,
+    "name": "lambda-zip-latest",
+    "expires_at_utc": "2026-10-18T11:45:14Z",
+    "github_digest": "sha256:7e01b2a03955fdcc39102fa64d2139dffa084c02491a44da37ea68822c614ec4",
+    "observed_sha256": "7e01b2a03955fdcc39102fa64d2139dffa084c02491a44da37ea68822c614ec4",
+    "observed_bytes": 5976641,
+    "digest_matches": true
+  },
+  "deployment_zip": {
+    "name": "badge-lambda-linux-arm64.zip",
+    "observed_sha256": "e8b92998e76e51eef4b4bf37d276165eb02efad2e911a467f6f42f95ccb69451",
+    "observed_bytes": 6000572,
+    "zip_integrity_verified": true,
+    "bootstrap_format": "64-bit little-endian ELF",
+    "bootstrap_elf_machine": 183,
+    "bootstrap_architecture": "AArch64"
+  },
+  "size_goal_comparison": {
+    "limit_bytes": 6000000,
+    "headroom_bytes": -572,
+    "ci_artifact_meets_size_goal": false,
+    "production_goal_verdict": "unverified: no evidence this exact ZIP was deployed"
+  },
+  "method": [
+    "Read CI run and artifact metadata using GitHub REST GET requests.",
+    "Download the artifact by its explicit ID and hash the received archive bytes.",
+    "Verify the archive digest against GitHub metadata before opening the sole expected ZIP entry.",
+    "Hash and count the inner deployment ZIP bytes separately from the artifact archive.",
+    "Verify deployment ZIP integrity and the bootstrap ELF architecture without executing it.",
+    "Preserve both binary files outside worktrees; no build, publish, deployment, or AWS operation was run."
+  ],
+  "unverified": [
+    "Source-to-binary reproducibility or signed build attestation",
+    "Identity of the currently deployed production ZIP",
+    "Production INIT and Max Memory Used percentiles",
+    "Size and runtime behavior of the forthcoming logging candidate"
+  ]
+}
