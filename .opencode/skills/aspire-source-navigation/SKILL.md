@@ -5,7 +5,7 @@ description: Use when BadgeSmith's compatibility-sensitive Aspire, AWS, or Local
 
 # Aspire Source Navigation
 
-Canonical skill content lives in [docs/agents/skills/aspire-source-navigation.md](../../../docs/agents/skills/aspire-source-navigation.md).
+Canonical skill content lives in [docs/engineering/aspire-source-navigation.md](../../../docs/engineering/aspire-source-navigation.md).
 
 Read that file and follow it. This file is a native OpenCode discovery relay, not the source of truth.
 

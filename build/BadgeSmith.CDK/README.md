@@ -10,7 +10,7 @@ versions. Use the same versions for local synth and diff checks instead of dupli
 version numbers in documentation.
 
 The CloudFront cache/transport contract (zero-TTL invariants, error-caching behavior,
-cache-key rules) is owned by [`ARCHITECTURE.md`](../../ARCHITECTURE.md#cache-strategy);
+cache-key rules) is owned by [runtime architecture](../../docs/architecture/runtime-and-routing.md#cache-strategy);
 the exact property values live in `BadgeSmithCloudFrontFactory` and `ProductionStack` under
 `build/BadgeSmith.CDK.Shared/`, and the in-process assertions that lock them live in
 [`tests/BadgeSmith.CDK.Tests`](../../tests/BadgeSmith.CDK.Tests/README.md).
@@ -70,12 +70,16 @@ on hosted controls: the `production` environment must restrict deployment branch
 to master, and AWS OIDC trust must constrain the intended repository, production
 environment subject, and audience (normally `sts.amazonaws.com`). An environment
 subject such as `repo:localstack-dotnet/badge-smith:environment:production` relies
-on that environment's branch restriction. As observed on 2026-10-16, the
-`production` environment has no deployment branch restriction and `master` is
-unprotected ([evidence](../../docs/research/baselines/2026-10-16-github-delivery-trust.json));
-AWS OIDC trust remains unverified; this documentation does not establish
-enforcement. A modified workflow on another ref cannot be secured by its
-own repository guard alone. Verifying or changing those settings is a separate gate.
+on that environment's branch restriction.
+
+The accepted 2026-10-16 [closeout](../../docs/research/2026-10-16-delivery-and-diagnostics-closeout.md#trust-and-iam-timeline)
+records a master-only production branch policy and master protection requiring PRs and
+`build-and-test` (zero approvals). The Windows operator reported environment-only OIDC
+trust and scoped direct role permissions, checked by readback and simulation. These dated
+reports do not establish current hosted enforcement, live OIDC/CDK compatibility or
+end-to-end least privilege; the shared CDK-to-cfn-exec admin chain remains open. A modified
+workflow on another ref cannot be secured by its own repository guard alone. Verifying
+or changing those settings is a separate gate.
 
 CI names each immutable master artifact `lambda-zip-{run_id}-{run_attempt}`; PR
 artifacts retain a numeric PR prefix followed by run and attempt. Each contains

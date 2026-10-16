@@ -2,7 +2,7 @@
 
 Harness-neutral entry point for LLM/code agents working in BadgeSmith. It keeps always-on safety and
 approval rules; task-specific guidance is loaded through the routing table. Documentation ownership
-and lifecycle are defined in [`docs/README.md`](docs/README.md).
+and lifecycle are defined in [`docs/engineering/documentation.md`](docs/engineering/documentation.md).
 
 ## Purpose
 
@@ -10,36 +10,6 @@ BadgeSmith is a high-performance, Shields.io-compatible badge service shipped as
 AOT AWS Lambda behind API Gateway and CloudFront, with DynamoDB and Secrets Manager. Cold-start
 performance, AOT/trim safety, secure request handling, and predictable HTTP contracts are core
 behavior. Aspire and LocalStack integrations are consumed for local development, not built here.
-
-## Load Before Acting
-
-| Task | Read first |
-| --- | --- |
-| Product behavior, endpoints, data/storage, topology, HMAC, caching, or performance policy | [`README.md`](README.md), then the relevant part of [`ARCHITECTURE.md`](ARCHITECTURE.md) |
-| Hand-written C#, including code comments, tests, and test naming | [`docs/engineering/coding-style.md`](docs/engineering/coding-style.md) |
-| SDK, analyzer, language, package, or build policy | [`global.json`](global.json), [`.editorconfig`](.editorconfig), [`Directory.Build.props`](Directory.Build.props), [`Directory.Packages.props`](Directory.Packages.props), and the affected project files |
-| CLI commands, secret seeding, or Lambda build tooling | [`tools/README.md`](tools/README.md) |
-| Production or local-performance CDK | The matching [production](build/BadgeSmith.CDK/README.md) or [local-performance](build/BadgeSmith.CDK.LocalPerformance/README.md) guide |
-| Aspire/LocalStack contract tests | [`tests/BadgeSmith.Api.Tests/README.md`](tests/BadgeSmith.Api.Tests/README.md) |
-| Failing tests, internals visibility, local seeding, or required environment variables | [`docs/agents/KNOWN_ISSUES.md`](docs/agents/KNOWN_ISSUES.md) |
-| Backlog, current work, or deferred decisions | [`docs/ROADMAP.md`](docs/ROADMAP.md); use dated research only as evidence |
-| Agent relays, discovery shims, or runtime-tool boundaries | [`docs/agents/README.md`](docs/agents/README.md) |
-| Aspire/AWS/LocalStack source compatibility | [`docs/agents/skills/aspire-source-navigation.md`](docs/agents/skills/aspire-source-navigation.md) |
-| Documentation refactoring or placement | [`docs/README.md`](docs/README.md) |
-| Canonical sources disagree | [`docs/agents/deviation-protocol.md`](docs/agents/deviation-protocol.md) |
-
-Read the relevant canon before proposing or changing design. Source and tests define runtime
-behavior; dated research and handovers may intentionally describe superseded states.
-
-## Operating Style
-
-- Be direct, practical, and clear. Challenge decisions instead of agreeing into bad architecture.
-- Prefer the smallest correct change. Do not add compatibility code without a concrete consumer or
-  persisted/shipped contract.
-- Deniz communicates in Turkish and English interchangeably; respond in the language that best
-  matches the current message.
-- If implementation and current canon disagree, follow the deviation protocol instead of choosing a
-  convenient winner.
 
 ## Approval Gate
 
@@ -50,9 +20,9 @@ behavior; dated research and handovers may intentionally describe superseded sta
 - Change build or package behavior (`Directory.Build.props`, `Directory.Packages.props`, MSBuild,
   `.editorconfig` analyzer policy, `Dockerfile`, or `tools/badgesmith.cs`).
 - Change CI/CD under `.github/workflows/**`.
-- Change repository policy in `AGENTS.md`, `docs/README.md`,
-  `docs/engineering/coding-style.md`, or `docs/agents/deviation-protocol.md`; or change approval
-  gates, repository routing, discovery relays, or agent-integration behavior.
+- Change repository policy in `AGENTS.md` or `docs/engineering/` (including documentation,
+  coding/testing style, quality, workflow, and deviation policy), or policy in any other location;
+  or change approval gates, repository routing, discovery relays, or agent-integration behavior.
 - Weaken, skip, delete, or substantially rewrite tests to change verified behavior.
 - Change CDK/infrastructure under `build/`, public HTTP routes, or response schemas.
 - Run CDK deploy, Lambda publish/release builds, or any AWS mutation.
@@ -104,13 +74,51 @@ These constraints prevent runtime-invisible Lambda failures and repository-wide 
   files.
 - Treat HMAC, nonce, secrets, and replay-protection changes as security-sensitive. Review the exact
   protocol, threat model, and tests before mutation.
-- After LLM-authored code, project, analyzer, or test changes, run Slopwatch when available:
-  `slopwatch analyze --fail-on warning --exclude "artifacts/**,external/**,**/bin/**,**/obj/**"`.
+- After LLM-authored code, project, analyzer, or test changes, run Slopwatch when available;
+  [quality gates](docs/engineering/quality-gates.md#slopwatch) owns the exact command and exclusions.
   `external/**` contains ignored upstream source checkouts, not BadgeSmith-owned code.
+
+## Load Before Acting
+
+Read the relevant canon before proposing or changing design. Source and tests define runtime
+behavior; dated research and handovers may intentionally describe superseded states.
+
+| Task | Read first |
+| --- | --- |
+| Product use, endpoints, or public examples | [`README.md`](README.md) and the [consumer guide](docs/guide/README.md) |
+| Request handling, routing, HTTP results, or caching | [Runtime and routing](docs/architecture/runtime-and-routing.md) |
+| Data/storage, HMAC, nonce, secrets, replay protection, or transport security | [Security and storage](docs/architecture/security-and-storage.md); review the exact protocol, threat model, and relevant tests before mutation |
+| Topology, Native AOT, delivery, or performance policy | [Platform and delivery](docs/architecture/platform-and-delivery.md) |
+| Hand-written C#, including code comments | [Coding style](docs/engineering/coding-style.md) |
+| Test design, test code, or test naming | [Coding style](docs/engineering/coding-style.md) and [testing style](docs/engineering/testing-style.md) |
+| SDK, analyzer, language, package, build, or validation policy | [Quality gates](docs/engineering/quality-gates.md), [`global.json`](global.json), [`.editorconfig`](.editorconfig), [`Directory.Build.props`](Directory.Build.props), [`Directory.Packages.props`](Directory.Packages.props), and affected project files |
+| CLI commands, secret seeding, or Lambda build tooling | [`tools/README.md`](tools/README.md) |
+| Production or local-performance CDK | The matching [production](build/BadgeSmith.CDK/README.md) or [local-performance](build/BadgeSmith.CDK.LocalPerformance/README.md) guide |
+| Aspire/LocalStack contract tests or AppHost setup | [Local development](docs/engineering/local-development.md#apphost-and-contract-tests) and [`tests/BadgeSmith.Api.Tests/README.md`](tests/BadgeSmith.Api.Tests/README.md) |
+| Failing tests or internals visibility | [Test triage](docs/engineering/local-development.md#test-triage) |
+| Required table environment variables | [Required environment](docs/engineering/local-development.md#required-environment) |
+| Collaboration, review, commits, or session handoffs | [Workflow](docs/engineering/workflow.md); [slop review](docs/engineering/slop-review.md) for review and narrow arbitration |
+| Agent relays or discovery shims | [Agent-integration boundaries](docs/engineering/workflow.md#agent-integration-boundaries) |
+| Runtime-tool visibility or version limits | [Runtime-tool boundaries](docs/engineering/local-development.md#runtime-tool-boundaries) |
+| Aspire/AWS/LocalStack source compatibility | [Aspire source navigation](docs/engineering/aspire-source-navigation.md) |
+| Documentation placement, refactoring, research, or ADRs | [Documentation](docs/engineering/documentation.md); [ADR convention](docs/adr/README.md) when a real decision needs a record |
+| Domain terminology | [`GLOSSARY.md`](GLOSSARY.md) |
+| Backlog, current work, or deferred decisions | [`docs/ROADMAP.md`](docs/ROADMAP.md); use dated research only as evidence |
+| Canonical sources disagree | [Deviation protocol](docs/engineering/deviation-protocol.md) |
+
+## Operating Style
+
+- Be direct, practical, and clear. Challenge decisions instead of agreeing into bad architecture.
+- Prefer the smallest correct change. Do not add compatibility code without a concrete consumer or
+  persisted/shipped contract.
+- Deniz communicates in Turkish and English interchangeably; respond in the language that best
+  matches the current message.
+- If implementation and current canon disagree, follow the deviation protocol instead of choosing a
+  convenient winner.
 
 ## Documentation And Tooling
 
-- Documentation refactors follow `docs/README.md`: relocate useful unique information before
+- Documentation refactors follow `docs/engineering/documentation.md`: relocate useful unique information before
   deleting its source, and keep one canonical owner per current fact.
 - `AGENTS.md` is canonical. `CLAUDE.md`, `.github/copilot-instructions.md`, and project discovery shims
   are discovery relays and cannot override it.
