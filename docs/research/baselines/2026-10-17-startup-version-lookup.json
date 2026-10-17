@@ -1,0 +1,1256 @@
+{
+  "schemaVersion": 1,
+  "repository": "github.com/localstack-dotnet/badge-smith",
+  "baseCommit": "1044b6d6e7160fc8a3dedcd3154337a4dfb4bd9f",
+  "verdict": "unused-startup-version-allocation-removed; production-performance-goals-unverified",
+  "candidateCommitted": false,
+  "source": {
+    "path": "src/BadgeSmith.Api/Core/Settings.cs",
+    "beforeSha256": "c9c5f34850b3e4f5729ee98aaead5f8bad026403bb508be18a92f556ceb01e82",
+    "afterSha256": "fd13571981acf82e0773c3c395977d164e72cde10ed3e1a812c5ebc89430ca4f",
+    "beforeUtf8": "using static System.Environment;\nusing static BadgeSmith.Constants;\n\nnamespace BadgeSmith.Api.Core;\n\ninternal static class Settings\n{\n    private static readonly string? DotNetEnvironmentFromEnv = GetEnvironmentVariable(\"DOTNET_ENVIRONMENT\") ?? GetEnvironmentVariable(\"ASPNETCORE_ENVIRONMENT\");\n\n    private const string DefaultAppName = LambdaName;\n    private static readonly string DefaultAppVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? \"1.0.0\";\n\n    private const string DefaultDotNetEnvironment = \"Production\";\n    private const bool DefaulEnableTelemetryFactoryPerfLogs = true;\n    private const bool DefaultUseLocalStack = true;\n\n    private static string? _applicationName;\n    private static string? _applicationVersion;\n    private static string? _dotNetEnvironment;\n    private static bool? _enableTelemetryFactoryPerfLogs;\n    private static bool? _useLocalStack;\n\n    public static string ApplicationName => _applicationName ??= GetEnvironmentVariable(\"APP_NAME\") ?? DefaultAppName;\n\n    public static string ApplicationVersion => _applicationVersion ??= GetEnvironmentVariable(\"APP_VERSION\") ?? DefaultAppVersion;\n\n    public static bool TelemetryFactoryPerfLogs =>\n        _enableTelemetryFactoryPerfLogs ??= ParseEnvironmentVariable(\"APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS\") ?? DefaulEnableTelemetryFactoryPerfLogs;\n\n    public static string DotNetEnvironment => _dotNetEnvironment ??= DotNetEnvironmentFromEnv ?? DefaultDotNetEnvironment;\n\n    public static bool UseLocalStack => _useLocalStack ??= ParseEnvironmentVariable(\"LocalStack__UseLocalStack\") ?? DefaultUseLocalStack;\n\n    public static string? LocalStackEndpoint => GetEnvironmentVariable(\"ConnectionStrings__localstack\");\n\n#if !DEBUG\n    public static TimeSpan LambdaTimeout => TimeSpan.FromSeconds(Constants.LambdaTimeoutInSeconds).Subtract(TimeSpan.FromSeconds(2));\n#else\n    public static TimeSpan LambdaTimeout => TimeSpan.FromMinutes(3);\n#endif\n\n    private static bool? ParseEnvironmentVariable(string name)\n    {\n        var parsed = bool.TryParse(GetEnvironmentVariable(name), out var boolVal);\n\n        return parsed ? boolVal : null;\n    }\n}\n",
+    "afterUtf8": "using static System.Environment;\nusing static BadgeSmith.Constants;\n\nnamespace BadgeSmith.Api.Core;\n\ninternal static class Settings\n{\n    private static readonly string? DotNetEnvironmentFromEnv = GetEnvironmentVariable(\"DOTNET_ENVIRONMENT\") ?? GetEnvironmentVariable(\"ASPNETCORE_ENVIRONMENT\");\n\n    private const string DefaultAppName = LambdaName;\n\n    private const string DefaultDotNetEnvironment = \"Production\";\n    private const bool DefaulEnableTelemetryFactoryPerfLogs = true;\n    private const bool DefaultUseLocalStack = true;\n\n    private static string? _applicationName;\n    private static string? _applicationVersion;\n    private static string? _dotNetEnvironment;\n    private static bool? _enableTelemetryFactoryPerfLogs;\n    private static bool? _useLocalStack;\n\n    public static string ApplicationName => _applicationName ??= GetEnvironmentVariable(\"APP_NAME\") ?? DefaultAppName;\n\n    public static string ApplicationVersion => _applicationVersion ??= GetEnvironmentVariable(\"APP_VERSION\") ?? DefaultAppVersion;\n\n    public static bool TelemetryFactoryPerfLogs =>\n        _enableTelemetryFactoryPerfLogs ??= ParseEnvironmentVariable(\"APP_ENABLE_TELEMETRY_FACTORY_PERF_LOGS\") ?? DefaulEnableTelemetryFactoryPerfLogs;\n\n    public static string DotNetEnvironment => _dotNetEnvironment ??= DotNetEnvironmentFromEnv ?? DefaultDotNetEnvironment;\n\n    public static bool UseLocalStack => _useLocalStack ??= ParseEnvironmentVariable(\"LocalStack__UseLocalStack\") ?? DefaultUseLocalStack;\n\n    public static string? LocalStackEndpoint => GetEnvironmentVariable(\"ConnectionStrings__localstack\");\n\n    private static string DefaultAppVersion => typeof(Program).Assembly.GetName().Version?.ToString() ?? \"1.0.0\";\n\n#if !DEBUG\n    public static TimeSpan LambdaTimeout => TimeSpan.FromSeconds(Constants.LambdaTimeoutInSeconds).Subtract(TimeSpan.FromSeconds(2));\n#else\n    public static TimeSpan LambdaTimeout => TimeSpan.FromMinutes(3);\n#endif\n\n    private static bool? ParseEnvironmentVariable(string name)\n    {\n        var parsed = bool.TryParse(GetEnvironmentVariable(name), out var boolVal);\n\n        return parsed ? boolVal : null;\n    }\n}\n",
+    "onlyProductionDeltaSincePriorNative": [
+      "src/BadgeSmith.Api/Core/Settings.cs"
+    ],
+    "buildPackageAndSharedSourcesMatched": true
+  },
+  "screening": {
+    "managedFirstUse": {
+      "kind": "diagnostic-first-use-managed-build-not-native-aot-or-aws",
+      "productionCodeChanged": false,
+      "networkRequests": "No request methods invoked; client construction only; loopback base URLs and no credential files.",
+      "rows": [
+        {
+          "sequence": "cache",
+          "launch": 0,
+          "step": 0,
+          "operation": "cache",
+          "managedAllocatedBytes": 3776,
+          "elapsedMicroseconds": 7134.3
+        },
+        {
+          "sequence": "cache",
+          "launch": 1,
+          "step": 0,
+          "operation": "cache",
+          "managedAllocatedBytes": 3776,
+          "elapsedMicroseconds": 7387.1
+        },
+        {
+          "sequence": "cache",
+          "launch": 2,
+          "step": 0,
+          "operation": "cache",
+          "managedAllocatedBytes": 3776,
+          "elapsedMicroseconds": 7260.0
+        },
+        {
+          "sequence": "cache",
+          "launch": 3,
+          "step": 0,
+          "operation": "cache",
+          "managedAllocatedBytes": 3776,
+          "elapsedMicroseconds": 7404.3
+        },
+        {
+          "sequence": "cache",
+          "launch": 4,
+          "step": 0,
+          "operation": "cache",
+          "managedAllocatedBytes": 3776,
+          "elapsedMicroseconds": 7495.6
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 0,
+          "step": 0,
+          "operation": "registry",
+          "managedAllocatedBytes": 1236336,
+          "elapsedMicroseconds": 159854.4
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 0,
+          "step": 1,
+          "operation": "registry-cache",
+          "managedAllocatedBytes": 0,
+          "elapsedMicroseconds": 44.7
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 1,
+          "step": 0,
+          "operation": "registry",
+          "managedAllocatedBytes": 1211848,
+          "elapsedMicroseconds": 164529.7
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 1,
+          "step": 1,
+          "operation": "registry-cache",
+          "managedAllocatedBytes": 0,
+          "elapsedMicroseconds": 49.6
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 2,
+          "step": 0,
+          "operation": "registry",
+          "managedAllocatedBytes": 1211712,
+          "elapsedMicroseconds": 156073.7
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 2,
+          "step": 1,
+          "operation": "registry-cache",
+          "managedAllocatedBytes": 0,
+          "elapsedMicroseconds": 65.2
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 3,
+          "step": 0,
+          "operation": "registry",
+          "managedAllocatedBytes": 1211712,
+          "elapsedMicroseconds": 155616.9
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 3,
+          "step": 1,
+          "operation": "registry-cache",
+          "managedAllocatedBytes": 0,
+          "elapsedMicroseconds": 47.8
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 4,
+          "step": 0,
+          "operation": "registry",
+          "managedAllocatedBytes": 1211712,
+          "elapsedMicroseconds": 154994.1
+        },
+        {
+          "sequence": "registry-cache",
+          "launch": 4,
+          "step": 1,
+          "operation": "registry-cache",
+          "managedAllocatedBytes": 0,
+          "elapsedMicroseconds": 60.1
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 0,
+          "step": 0,
+          "operation": "nuget",
+          "managedAllocatedBytes": 42080,
+          "elapsedMicroseconds": 29949.5
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 0,
+          "step": 1,
+          "operation": "github",
+          "managedAllocatedBytes": 1400,
+          "elapsedMicroseconds": 446.5
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 0,
+          "step": 2,
+          "operation": "github",
+          "managedAllocatedBytes": 1360,
+          "elapsedMicroseconds": 14.2
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 1,
+          "step": 0,
+          "operation": "nuget",
+          "managedAllocatedBytes": 42080,
+          "elapsedMicroseconds": 32653.9
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 1,
+          "step": 1,
+          "operation": "github",
+          "managedAllocatedBytes": 1400,
+          "elapsedMicroseconds": 629.2
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 1,
+          "step": 2,
+          "operation": "github",
+          "managedAllocatedBytes": 1360,
+          "elapsedMicroseconds": 15.9
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 2,
+          "step": 0,
+          "operation": "nuget",
+          "managedAllocatedBytes": 42080,
+          "elapsedMicroseconds": 32929.6
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 2,
+          "step": 1,
+          "operation": "github",
+          "managedAllocatedBytes": 1400,
+          "elapsedMicroseconds": 602.1
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 2,
+          "step": 2,
+          "operation": "github",
+          "managedAllocatedBytes": 1360,
+          "elapsedMicroseconds": 15.7
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 3,
+          "step": 0,
+          "operation": "nuget",
+          "managedAllocatedBytes": 42080,
+          "elapsedMicroseconds": 32757.9
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 3,
+          "step": 1,
+          "operation": "github",
+          "managedAllocatedBytes": 1400,
+          "elapsedMicroseconds": 422.0
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 3,
+          "step": 2,
+          "operation": "github",
+          "managedAllocatedBytes": 1360,
+          "elapsedMicroseconds": 14.9
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 4,
+          "step": 0,
+          "operation": "nuget",
+          "managedAllocatedBytes": 42080,
+          "elapsedMicroseconds": 28565.9
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 4,
+          "step": 1,
+          "operation": "github",
+          "managedAllocatedBytes": 1400,
+          "elapsedMicroseconds": 404.9
+        },
+        {
+          "sequence": "nuget-github",
+          "launch": 4,
+          "step": 2,
+          "operation": "github",
+          "managedAllocatedBytes": 1360,
+          "elapsedMicroseconds": 13.6
+        }
+      ],
+      "summary": [
+        {
+          "sequence": "cache",
+          "step": 0,
+          "operation": "cache",
+          "n": 5,
+          "medianAllocatedBytes": 3776,
+          "medianMicroseconds": 7387.1
+        },
+        {
+          "sequence": "registry-cache",
+          "step": 0,
+          "operation": "registry",
+          "n": 5,
+          "medianAllocatedBytes": 1211712,
+          "medianMicroseconds": 156073.7
+        },
+        {
+          "sequence": "registry-cache",
+          "step": 1,
+          "operation": "registry-cache",
+          "n": 5,
+          "medianAllocatedBytes": 0,
+          "medianMicroseconds": 49.6
+        },
+        {
+          "sequence": "nuget-github",
+          "step": 0,
+          "operation": "nuget",
+          "n": 5,
+          "medianAllocatedBytes": 42080,
+          "medianMicroseconds": 32653.9
+        },
+        {
+          "sequence": "nuget-github",
+          "step": 1,
+          "operation": "github",
+          "n": 5,
+          "medianAllocatedBytes": 1400,
+          "medianMicroseconds": 446.5
+        },
+        {
+          "sequence": "nuget-github",
+          "step": 2,
+          "operation": "github",
+          "n": 5,
+          "medianAllocatedBytes": 1360,
+          "medianMicroseconds": 14.9
+        }
+      ]
+    },
+    "httpLazyPrototype": {
+      "kind": "managed-cold-construction-prototype-not-native-or-aws",
+      "productionCodeChanged": false,
+      "rows": [
+        {
+          "sequence": "http-before",
+          "launch": 0,
+          "step": 0,
+          "operation": "before-nuget",
+          "allocatedBytes": 42080,
+          "elapsedMicroseconds": 31284.4
+        },
+        {
+          "sequence": "http-before",
+          "launch": 0,
+          "step": 1,
+          "operation": "before-github",
+          "allocatedBytes": 1400,
+          "elapsedMicroseconds": 429.0
+        },
+        {
+          "sequence": "http-before",
+          "launch": 0,
+          "step": 2,
+          "operation": "before-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 14.9
+        },
+        {
+          "sequence": "http-after",
+          "launch": 0,
+          "step": 0,
+          "operation": "after-nuget",
+          "allocatedBytes": 41976,
+          "elapsedMicroseconds": 31322.2
+        },
+        {
+          "sequence": "http-after",
+          "launch": 0,
+          "step": 1,
+          "operation": "after-github",
+          "allocatedBytes": 1696,
+          "elapsedMicroseconds": 413.2
+        },
+        {
+          "sequence": "http-after",
+          "launch": 0,
+          "step": 2,
+          "operation": "after-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 14.7
+        },
+        {
+          "sequence": "http-after",
+          "launch": 1,
+          "step": 0,
+          "operation": "after-nuget",
+          "allocatedBytes": 41976,
+          "elapsedMicroseconds": 29730.3
+        },
+        {
+          "sequence": "http-after",
+          "launch": 1,
+          "step": 1,
+          "operation": "after-github",
+          "allocatedBytes": 1696,
+          "elapsedMicroseconds": 394.0
+        },
+        {
+          "sequence": "http-after",
+          "launch": 1,
+          "step": 2,
+          "operation": "after-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 15.0
+        },
+        {
+          "sequence": "http-before",
+          "launch": 1,
+          "step": 0,
+          "operation": "before-nuget",
+          "allocatedBytes": 42080,
+          "elapsedMicroseconds": 28929.3
+        },
+        {
+          "sequence": "http-before",
+          "launch": 1,
+          "step": 1,
+          "operation": "before-github",
+          "allocatedBytes": 1400,
+          "elapsedMicroseconds": 406.8
+        },
+        {
+          "sequence": "http-before",
+          "launch": 1,
+          "step": 2,
+          "operation": "before-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 14.2
+        },
+        {
+          "sequence": "http-before",
+          "launch": 2,
+          "step": 0,
+          "operation": "before-nuget",
+          "allocatedBytes": 42080,
+          "elapsedMicroseconds": 29975.6
+        },
+        {
+          "sequence": "http-before",
+          "launch": 2,
+          "step": 1,
+          "operation": "before-github",
+          "allocatedBytes": 1400,
+          "elapsedMicroseconds": 424.4
+        },
+        {
+          "sequence": "http-before",
+          "launch": 2,
+          "step": 2,
+          "operation": "before-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 14.9
+        },
+        {
+          "sequence": "http-after",
+          "launch": 2,
+          "step": 0,
+          "operation": "after-nuget",
+          "allocatedBytes": 41976,
+          "elapsedMicroseconds": 29942.3
+        },
+        {
+          "sequence": "http-after",
+          "launch": 2,
+          "step": 1,
+          "operation": "after-github",
+          "allocatedBytes": 1696,
+          "elapsedMicroseconds": 442.5
+        },
+        {
+          "sequence": "http-after",
+          "launch": 2,
+          "step": 2,
+          "operation": "after-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 14.7
+        },
+        {
+          "sequence": "http-after",
+          "launch": 3,
+          "step": 0,
+          "operation": "after-nuget",
+          "allocatedBytes": 41976,
+          "elapsedMicroseconds": 28875.4
+        },
+        {
+          "sequence": "http-after",
+          "launch": 3,
+          "step": 1,
+          "operation": "after-github",
+          "allocatedBytes": 1696,
+          "elapsedMicroseconds": 428.0
+        },
+        {
+          "sequence": "http-after",
+          "launch": 3,
+          "step": 2,
+          "operation": "after-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 15.7
+        },
+        {
+          "sequence": "http-before",
+          "launch": 3,
+          "step": 0,
+          "operation": "before-nuget",
+          "allocatedBytes": 42080,
+          "elapsedMicroseconds": 30422.4
+        },
+        {
+          "sequence": "http-before",
+          "launch": 3,
+          "step": 1,
+          "operation": "before-github",
+          "allocatedBytes": 1400,
+          "elapsedMicroseconds": 392.0
+        },
+        {
+          "sequence": "http-before",
+          "launch": 3,
+          "step": 2,
+          "operation": "before-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 15.2
+        },
+        {
+          "sequence": "http-before",
+          "launch": 4,
+          "step": 0,
+          "operation": "before-nuget",
+          "allocatedBytes": 42080,
+          "elapsedMicroseconds": 31826.6
+        },
+        {
+          "sequence": "http-before",
+          "launch": 4,
+          "step": 1,
+          "operation": "before-github",
+          "allocatedBytes": 1400,
+          "elapsedMicroseconds": 448.5
+        },
+        {
+          "sequence": "http-before",
+          "launch": 4,
+          "step": 2,
+          "operation": "before-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 15.9
+        },
+        {
+          "sequence": "http-after",
+          "launch": 4,
+          "step": 0,
+          "operation": "after-nuget",
+          "allocatedBytes": 41976,
+          "elapsedMicroseconds": 32633.8
+        },
+        {
+          "sequence": "http-after",
+          "launch": 4,
+          "step": 1,
+          "operation": "after-github",
+          "allocatedBytes": 1696,
+          "elapsedMicroseconds": 446.1
+        },
+        {
+          "sequence": "http-after",
+          "launch": 4,
+          "step": 2,
+          "operation": "after-github",
+          "allocatedBytes": 1360,
+          "elapsedMicroseconds": 15.9
+        }
+      ],
+      "summary": [
+        {
+          "sequence": "http-before",
+          "step": 0,
+          "n": 5,
+          "medianAllocatedBytes": 42080,
+          "medianMicroseconds": 30422.4
+        },
+        {
+          "sequence": "http-before",
+          "step": 1,
+          "n": 5,
+          "medianAllocatedBytes": 1400,
+          "medianMicroseconds": 424.4
+        },
+        {
+          "sequence": "http-before",
+          "step": 2,
+          "n": 5,
+          "medianAllocatedBytes": 1360,
+          "medianMicroseconds": 14.9
+        },
+        {
+          "sequence": "http-after",
+          "step": 0,
+          "n": 5,
+          "medianAllocatedBytes": 41976,
+          "medianMicroseconds": 29942.3
+        },
+        {
+          "sequence": "http-after",
+          "step": 1,
+          "n": 5,
+          "medianAllocatedBytes": 1696,
+          "medianMicroseconds": 428.0
+        },
+        {
+          "sequence": "http-after",
+          "step": 2,
+          "n": 5,
+          "medianAllocatedBytes": 1360,
+          "medianMicroseconds": 15.0
+        }
+      ]
+    },
+    "decisions": {
+      "cacheDeferral": "not-applied; shifts work with no proven net cold-request benefit",
+      "blanketHttpLazyFactory": "rejected; first NuGet saves104B, first both providers adds192B, warm client allocation unchanged"
+    },
+    "limits": [
+      "Managed/JIT first-use observations, not Native AOT timing.",
+      "First harness build failed resource/parameter analyzers; fixed without suppression.",
+      "Later snapshot directories entered the probe's default Compile glob; fixed with an explicit three-file scratch compile list only."
+    ]
+  },
+  "nativeDiagnostic": {
+    "originalAttribution": {
+      "kind": "instrumented-diagnostic-native-aot-startup-not-performance-baseline",
+      "rid": "linux-x64",
+      "telemetryCompiled": false,
+      "localStackCompiled": false,
+      "invocationsSent": 0,
+      "productionSourceModified": false,
+      "zipSha256": "3ff0956e9aa396dba7447e4d294d619b5b4f7bae6901050fdd61f0ddf81e7510",
+      "bootstrapSha256": "f3c6fb7c96a430031b76b949e859c741e5af1cc27c069e589d218ab2b9324135",
+      "rows": [
+        {
+          "launch": 0,
+          "routerManagedAllocatedBytes": 2234104,
+          "loggerManagedAllocatedBytes": 2212736,
+          "versionManagedAllocatedBytes": 78272,
+          "configurationManagedAllocatedBytes": 83136,
+          "routerMicroseconds": 6169.5,
+          "loggerMicroseconds": 6062.1,
+          "instrumentedProcessReadyMs": 14.277963,
+          "instrumentedProcessHighWaterKiB": 17472
+        },
+        {
+          "launch": 1,
+          "routerManagedAllocatedBytes": 2224000,
+          "loggerManagedAllocatedBytes": 2202632,
+          "versionManagedAllocatedBytes": 78272,
+          "configurationManagedAllocatedBytes": 83136,
+          "routerMicroseconds": 6809.0,
+          "loggerMicroseconds": 6636.9,
+          "instrumentedProcessReadyMs": 19.178577,
+          "instrumentedProcessHighWaterKiB": 17512
+        },
+        {
+          "launch": 2,
+          "routerManagedAllocatedBytes": 2223944,
+          "loggerManagedAllocatedBytes": 2202576,
+          "versionManagedAllocatedBytes": 78272,
+          "configurationManagedAllocatedBytes": 83136,
+          "routerMicroseconds": 6007.5,
+          "loggerMicroseconds": 5905.3,
+          "instrumentedProcessReadyMs": 14.925594,
+          "instrumentedProcessHighWaterKiB": 17276
+        },
+        {
+          "launch": 3,
+          "routerManagedAllocatedBytes": 2224496,
+          "loggerManagedAllocatedBytes": 2203128,
+          "versionManagedAllocatedBytes": 78272,
+          "configurationManagedAllocatedBytes": 83136,
+          "routerMicroseconds": 6633.6,
+          "loggerMicroseconds": 6503.5,
+          "instrumentedProcessReadyMs": 15.825838,
+          "instrumentedProcessHighWaterKiB": 17340
+        },
+        {
+          "launch": 4,
+          "routerManagedAllocatedBytes": 2224256,
+          "loggerManagedAllocatedBytes": 2202888,
+          "versionManagedAllocatedBytes": 78272,
+          "configurationManagedAllocatedBytes": 83136,
+          "routerMicroseconds": 6975.7,
+          "loggerMicroseconds": 6831.1,
+          "instrumentedProcessReadyMs": 16.355928,
+          "instrumentedProcessHighWaterKiB": 17292
+        }
+      ],
+      "medians": {
+        "routerManagedAllocatedBytes": 2224256,
+        "loggerManagedAllocatedBytes": 2202888,
+        "versionManagedAllocatedBytes": 78272,
+        "configurationManagedAllocatedBytes": 83136,
+        "routerMicroseconds": 6633.6,
+        "loggerMicroseconds": 6503.5,
+        "instrumentedProcessReadyMs": 15.825838,
+        "instrumentedProcessHighWaterKiB": 17340
+      },
+      "limits": [
+        "Instrumentation changes the executable; readiness/RSS are not uninstrumented A/B evidence.",
+        "Allocated bytes are cumulative managed allocation, not live heap or CloudWatch memory.",
+        "Logger allocation is a nested window inside router initialization, not additive.",
+        "Five local x64 launches are not a production INIT percentile or ARM64 proof."
+      ]
+    },
+    "deferredVersion": {
+      "kind": "instrumented-diagnostic-native-aot-startup-not-performance-baseline",
+      "rid": "linux-x64",
+      "telemetryCompiled": false,
+      "localStackCompiled": false,
+      "invocationsSent": 0,
+      "productionSourceModified": false,
+      "zipSha256": "4e1175d74d77c856bf27b8307137eecf9fa25d59a1f305df6b95ab94f6067c9c",
+      "bootstrapSha256": "f784fc8e9cae498963a245e59653e59a0a65a9121e6f58dc690038b69970f670",
+      "rows": [
+        {
+          "launch": 0,
+          "routerManagedAllocatedBytes": 2155272,
+          "loggerManagedAllocatedBytes": 2133904,
+          "versionManagedAllocatedBytes": 0,
+          "configurationManagedAllocatedBytes": 4864,
+          "routerMicroseconds": 6633.9,
+          "loggerMicroseconds": 6482.7,
+          "instrumentedProcessReadyMs": 15.106311,
+          "instrumentedProcessHighWaterKiB": 17468
+        },
+        {
+          "launch": 1,
+          "routerManagedAllocatedBytes": 2141136,
+          "loggerManagedAllocatedBytes": 2119768,
+          "versionManagedAllocatedBytes": 0,
+          "configurationManagedAllocatedBytes": 4864,
+          "routerMicroseconds": 6220.9,
+          "loggerMicroseconds": 6099.1,
+          "instrumentedProcessReadyMs": 15.176263,
+          "instrumentedProcessHighWaterKiB": 17480
+        },
+        {
+          "launch": 2,
+          "routerManagedAllocatedBytes": 2150456,
+          "loggerManagedAllocatedBytes": 2129088,
+          "versionManagedAllocatedBytes": 0,
+          "configurationManagedAllocatedBytes": 4864,
+          "routerMicroseconds": 6080.6,
+          "loggerMicroseconds": 5969.5,
+          "instrumentedProcessReadyMs": 13.291077,
+          "instrumentedProcessHighWaterKiB": 17400
+        },
+        {
+          "launch": 3,
+          "routerManagedAllocatedBytes": 2156864,
+          "loggerManagedAllocatedBytes": 2135496,
+          "versionManagedAllocatedBytes": 0,
+          "configurationManagedAllocatedBytes": 4864,
+          "routerMicroseconds": 6908.4,
+          "loggerMicroseconds": 6774.1,
+          "instrumentedProcessReadyMs": 16.215014,
+          "instrumentedProcessHighWaterKiB": 17344
+        },
+        {
+          "launch": 4,
+          "routerManagedAllocatedBytes": 2141504,
+          "loggerManagedAllocatedBytes": 2120136,
+          "versionManagedAllocatedBytes": 0,
+          "configurationManagedAllocatedBytes": 4864,
+          "routerMicroseconds": 7127.4,
+          "loggerMicroseconds": 6977.4,
+          "instrumentedProcessReadyMs": 19.075734,
+          "instrumentedProcessHighWaterKiB": 17368
+        }
+      ],
+      "medians": {
+        "routerManagedAllocatedBytes": 2150456,
+        "loggerManagedAllocatedBytes": 2129088,
+        "versionManagedAllocatedBytes": 0,
+        "configurationManagedAllocatedBytes": 4864,
+        "routerMicroseconds": 6633.9,
+        "loggerMicroseconds": 6482.7,
+        "instrumentedProcessReadyMs": 15.176263,
+        "instrumentedProcessHighWaterKiB": 17400
+      },
+      "limits": [
+        "Instrumentation changes the executable; readiness/RSS are not uninstrumented A/B evidence.",
+        "Allocated bytes are cumulative managed allocation, not live heap or CloudWatch memory.",
+        "Logger allocation is a nested window inside router initialization, not additive.",
+        "Five local x64 launches are not a production INIT percentile or ARM64 proof."
+      ]
+    },
+    "redGreen": "unused lookup assertion failed for baseline and passed for deferred startup",
+    "permanentAotTestTierAdded": false,
+    "sourceInstrumentationScope": "Snapshot-only Program/LoggerFactory/Settings and StartupAllocationProbe; never copied into production source",
+    "limits": [
+      "Cumulative allocation windows, not retained/live heap.",
+      "Logger is a nested window inside router, not additive; global counter may include background threads.",
+      "Instrumented diagnostic readiness/RSS are not the uninstrumented A/B."
+    ]
+  },
+  "versionContracts": {
+    "before": {
+      "phase": "before",
+      "defaultAssemblyVersion": "1.0.0.0",
+      "results": [
+        {
+          "case": "unset",
+          "valueAndFirstReadCaching": "PASS"
+        },
+        {
+          "case": "override",
+          "valueAndFirstReadCaching": "PASS"
+        },
+        {
+          "case": "empty",
+          "valueAndFirstReadCaching": "PASS"
+        },
+        {
+          "case": "unvalidated-label",
+          "valueAndFirstReadCaching": "PASS"
+        }
+      ]
+    },
+    "after": {
+      "phase": "after",
+      "defaultAssemblyVersion": "1.0.0.0",
+      "results": [
+        {
+          "case": "unset",
+          "valueAndFirstReadCaching": "PASS"
+        },
+        {
+          "case": "override",
+          "valueAndFirstReadCaching": "PASS"
+        },
+        {
+          "case": "empty",
+          "valueAndFirstReadCaching": "PASS"
+        },
+        {
+          "case": "unvalidated-label",
+          "valueAndFirstReadCaching": "PASS"
+        }
+      ]
+    }
+  },
+  "uninstrumentedNativeAB": {
+    "rid": "linux-x64",
+    "telemetryCompiled": false,
+    "localStackCompiled": false,
+    "launchOrder": "AB,BA repeated four times",
+    "launches": [
+      {
+        "variant": "before",
+        "launch": 0,
+        "readyNs": 14711523,
+        "firstInvokeNs": 42262189,
+        "processHighWaterKiB": 35036,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 0,
+        "readyNs": 13791543,
+        "firstInvokeNs": 36118177,
+        "processHighWaterKiB": 34724,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 1,
+        "readyNs": 14251723,
+        "firstInvokeNs": 34238501,
+        "processHighWaterKiB": 34816,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 1,
+        "readyNs": 13660418,
+        "firstInvokeNs": 41933663,
+        "processHighWaterKiB": 34848,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 2,
+        "readyNs": 14492934,
+        "firstInvokeNs": 38683224,
+        "processHighWaterKiB": 34888,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 2,
+        "readyNs": 14174018,
+        "firstInvokeNs": 35041183,
+        "processHighWaterKiB": 34592,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 3,
+        "readyNs": 14114767,
+        "firstInvokeNs": 36767082,
+        "processHighWaterKiB": 34900,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 3,
+        "readyNs": 18829344,
+        "firstInvokeNs": 35751182,
+        "processHighWaterKiB": 34832,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 4,
+        "readyNs": 13638686,
+        "firstInvokeNs": 40651076,
+        "processHighWaterKiB": 34176,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 4,
+        "readyNs": 13635311,
+        "firstInvokeNs": 33507735,
+        "processHighWaterKiB": 34376,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 5,
+        "readyNs": 14217159,
+        "firstInvokeNs": 34383723,
+        "processHighWaterKiB": 34540,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 5,
+        "readyNs": 14153290,
+        "firstInvokeNs": 33381310,
+        "processHighWaterKiB": 34332,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 6,
+        "readyNs": 15131649,
+        "firstInvokeNs": 39033410,
+        "processHighWaterKiB": 35076,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 6,
+        "readyNs": 17484609,
+        "firstInvokeNs": 33770657,
+        "processHighWaterKiB": 34548,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 7,
+        "readyNs": 15627837,
+        "firstInvokeNs": 35435040,
+        "processHighWaterKiB": 34260,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 7,
+        "readyNs": 15863338,
+        "firstInvokeNs": 45603597,
+        "processHighWaterKiB": 34812,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      }
+    ],
+    "summary": {
+      "before": {
+        "processToFirstRuntimeGetMs": {
+          "n": 8,
+          "min": 13.638686,
+          "median": 14.602228499999999,
+          "p95NearestRank": 18.829344,
+          "max": 18.829344
+        },
+        "firstInvokeRoundTripMs": {
+          "n": 8,
+          "min": 33.38131,
+          "median": 39.842243,
+          "p95NearestRank": 45.603597,
+          "max": 45.603597
+        },
+        "processHighWaterKiB": {
+          "n": 8,
+          "min": 34176.0,
+          "median": 34840.0,
+          "p95NearestRank": 35076.0,
+          "max": 35076.0
+        },
+        "warmRuntimeRoundTripMs": {
+          "NoHeader": {
+            "n": 256,
+            "min": 0.499383,
+            "median": 0.5874685,
+            "p95NearestRank": 0.87133,
+            "max": 1.663362
+          },
+          "Quoted": {
+            "n": 256,
+            "min": 0.494254,
+            "median": 0.5935539999999999,
+            "p95NearestRank": 0.943394,
+            "max": 5.379861
+          },
+          "WeakList": {
+            "n": 256,
+            "min": 0.498712,
+            "median": 0.589031,
+            "p95NearestRank": 0.892399,
+            "max": 1.410248
+          },
+          "Miss": {
+            "n": 256,
+            "min": 0.496077,
+            "median": 0.591251,
+            "p95NearestRank": 1.043091,
+            "max": 4.654555
+          }
+        }
+      },
+      "after": {
+        "processToFirstRuntimeGetMs": {
+          "n": 8,
+          "min": 13.635311,
+          "median": 14.1955885,
+          "p95NearestRank": 17.484609,
+          "max": 17.484609
+        },
+        "firstInvokeRoundTripMs": {
+          "n": 8,
+          "min": 33.507735,
+          "median": 34.712453,
+          "p95NearestRank": 36.767082,
+          "max": 36.767082
+        },
+        "processHighWaterKiB": {
+          "n": 8,
+          "min": 34260.0,
+          "median": 34570.0,
+          "p95NearestRank": 34900.0,
+          "max": 34900.0
+        },
+        "warmRuntimeRoundTripMs": {
+          "NoHeader": {
+            "n": 256,
+            "min": 0.510334,
+            "median": 0.6024514999999999,
+            "p95NearestRank": 0.809905,
+            "max": 1.686155
+          },
+          "Quoted": {
+            "n": 256,
+            "min": 0.500326,
+            "median": 0.605357,
+            "p95NearestRank": 0.887169,
+            "max": 6.512871
+          },
+          "WeakList": {
+            "n": 256,
+            "min": 0.505927,
+            "median": 0.6054625,
+            "p95NearestRank": 0.882321,
+            "max": 1.929248
+          },
+          "Miss": {
+            "n": 256,
+            "min": 0.495806,
+            "median": 0.6030575,
+            "p95NearestRank": 0.8935,
+            "max": 4.585255
+          }
+        }
+      }
+    },
+    "pairedProcessReadyPlusFirstInvokeMs": {
+      "before": {
+        "n": 8,
+        "median": 54.435144,
+        "min": 47.5346,
+        "max": 61.466935
+      },
+      "after": {
+        "n": 8,
+        "median": 49.5624605,
+        "min": 47.143046,
+        "max": 51.255266
+      }
+    },
+    "binaries": [
+      {
+        "variant": "before",
+        "zipBytes": 6320515,
+        "zipSha256": "968638cc2c2e62478c78eba4fd151eecf2ff86d0b5635b3038e6516fb89f7b47",
+        "bootstrapBytes": 14055608,
+        "bootstrapSha256": "6c002848d5417152a5be9c53ec02b64f0cc3ce0937950ed5f84982297b86266e"
+      },
+      {
+        "variant": "after",
+        "zipBytes": 6320306,
+        "zipSha256": "fa29e62c4f8b8c24b336374f7f454dc783151394ee1499eeae71d62b7705932b",
+        "bootstrapBytes": 14055608,
+        "bootstrapSha256": "b5fa8d97c03530d4cea182bcf361d65dca0b9f22608de7f83752931e893aa41a"
+      }
+    ],
+    "totalInvocationsIncludingWarmup": 2320,
+    "measuredWarmInvocations": 2048,
+    "warmInvocationCsv": "2026-10-17-startup-version-native-invocations.csv",
+    "warmInvocationCsvSha256": "b43542719af1345101484b5fdcb35e8c529f776945404c647bed2e026fe18018",
+    "upstreamRevalidatedEveryInvocation": true,
+    "limits": [
+      "Only eight launches per revision and correlated warmed samples.",
+      "No statistically qualified latency or resident-memory gain claimed; warmed point estimates can increase.",
+      "Not ARM64, AL2023 or CloudWatch INIT/Max Memory Used.",
+      "AOT AWS/DynamoDB first-use paths were not exercised by this NuGet fixture."
+    ]
+  },
+  "validation": {
+    "apiTests": {
+      "passed": 579,
+      "failed": 0,
+      "skipped": 0,
+      "trxSha256": "f2a592b6104f9a01d4f358767097a40217e69e54e4b7da36b6613021c2b17c13"
+    },
+    "slopwatchIssues": 0,
+    "aotCompilerDiagnostics": 0,
+    "oldResponseOptimizationAndTelemetryFixtureRetained": true,
+    "productionLoggingFormatFiltersAndScopesChanged": false,
+    "dependenciesPolicyTimeoutsOrTestsWeakened": false,
+    "fixturePrivateKeysRemoved": true,
+    "noCommitPushPrDeployOrProductionTraffic": true
+  },
+  "reproducerSources": {
+    "Probe.csproj": {
+      "sha256": "e2646a12abc1411101a518287691c6486854d0ab483cd734f302bfe8b0db6386",
+      "utf8Content": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n    <OutputType>Exe</OutputType>\n    <AssemblyName>BadgeSmith.Api.Performance.Tests</AssemblyName>\n    <RootNamespace>BadgeSmith.Api.Core.Http</RootNamespace>\n    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>\n  </PropertyGroup>\n  <ItemGroup>\n    <Compile Include=\"Program.cs\" />\n    <Compile Include=\"BaselineHttpClientFactory.cs\" />\n    <Compile Include=\"CandidateHttpClientFactory.cs\" />\n  </ItemGroup>\n  <ItemGroup>\n    <ProjectReference Include=\"../../src/BadgeSmith.Api/BadgeSmith.Api.csproj\" />\n  </ItemGroup>\n</Project>\n"
+    },
+    "Program.cs": {
+      "sha256": "1021c74f06e7266ed42a7e60f0bab428fd1a0636fc0cf971a4773b026f597a1f",
+      "utf8Content": "using System.Diagnostics;\nusing System.Globalization;\nusing System.Runtime.CompilerServices;\nusing BadgeSmith.Api.Core;\nusing BadgeSmith.Api.Core.Http;\nusing Microsoft.Extensions.Caching.Memory;\n\nif (args is [\"version-contract\", var expectedVersion])\n{\n    var first = Settings.ApplicationVersion;\n    if (!string.Equals(first, expectedVersion, StringComparison.Ordinal))\n    {\n        throw new InvalidOperationException(\"Application version does not match the supplied contract expectation.\");\n    }\n\n    Environment.SetEnvironmentVariable(\"APP_VERSION\", \"changed-after-first-read\");\n    if (!string.Equals(Settings.ApplicationVersion, first, StringComparison.Ordinal))\n    {\n        throw new InvalidOperationException(\"Application version was not cached after its first read.\");\n    }\n\n    Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $\"version-contract={true}\"));\n    return;\n}\n\nif (args.Length != 1)\n{\n    throw new ArgumentException(\"Specify a probe sequence.\", nameof(args));\n}\n\nvar sequence = args[0] switch\n{\n    \"cache\" => new[] { \"cache\" },\n    \"registry-cache\" => [\"registry\", \"registry-cache\"],\n    \"nuget-github\" => [\"nuget\", \"github\", \"github\"],\n    \"http-before\" => [\"before-nuget\", \"before-github\", \"before-github\"],\n    \"http-after\" => [\"after-nuget\", \"after-github\", \"after-github\"],\n    _ => throw new ArgumentException(\"Unknown probe sequence.\", nameof(args))\n};\n\nforeach (var step in sequence)\n{\n    var before = GC.GetAllocatedBytesForCurrentThread();\n    var started = Stopwatch.GetTimestamp();\n    var instance = Create(step);\n    using var owned = instance as IDisposable;\n    var elapsed = Stopwatch.GetElapsedTime(started);\n    var allocated = GC.GetAllocatedBytesForCurrentThread() - before;\n    GC.KeepAlive(instance);\n    Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $\"{step}\\t{allocated}\\t{elapsed.TotalMicroseconds:F3}\"));\n}\n\n[MethodImpl(MethodImplOptions.NoInlining)]\nstatic object Create(string step) => step switch\n{\n    \"cache\" => new MemoryCache(new MemoryCacheOptions()),\n    \"registry\" => ApplicationRegistry.ApiRouter,\n    \"registry-cache\" => ApplicationRegistry.MemoryAppCache,\n    \"nuget\" => HttpClientFactory.CreateNuGetClient(),\n    \"github\" => HttpClientFactory.CreateGithubClient(),\n    \"before-nuget\" => BaselineHttpClientFactory.CreateNuGetClient(),\n    \"before-github\" => BaselineHttpClientFactory.CreateGithubClient(),\n    \"after-nuget\" => CandidateHttpClientFactory.CreateNuGetClient(),\n    \"after-github\" => CandidateHttpClientFactory.CreateGithubClient(),\n    _ => throw new ArgumentException(\"Unknown probe step.\", nameof(step))\n};\n"
+    },
+    "BaselineHttpClientFactory.cs": {
+      "sha256": "a562072b0db7826c105aa1e4c1b5c3e98b93bf9851b6cc707e9d64ebbb083bfe",
+      "utf8Content": "using System.Net;\nusing static BadgeSmith.Constants;\n\nnamespace BadgeSmith.Api.Core.Http;\n\n/// <summary>\n/// Singleton HTTP stack optimized for Lambda execution with connection pooling\n/// and service-specific configurations. Handlers live for the Lambda process lifetime.\n/// </summary>\ninternal static class BaselineHttpClientFactory\n{\n#pragma warning disable S1075 // These are intentional public service defaults, overridable for local tests.\n    private const string NugetApiUrl = \"https://api.nuget.org/\";\n    private const string GithubApiUrl = \"https://api.github.com/\";\n#pragma warning restore S1075\n\n    private static Uri ResolveBaseUri(string envVar, string fallback)\n    {\n        var upstreamMode = ResolveUpstreamMode();\n        var value = Environment.GetEnvironmentVariable(envVar);\n        if (string.IsNullOrWhiteSpace(value))\n        {\n            if (upstreamMode == UpstreamModeMock)\n            {\n                throw new InvalidOperationException($\"{envVar} is required when {UpstreamModeEnvironmentVariable} is {UpstreamModeMock}.\");\n            }\n\n            return new Uri(fallback);\n        }\n\n        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)\n            || string.IsNullOrWhiteSpace(uri.Host)\n            || !string.IsNullOrEmpty(uri.UserInfo)\n            || !string.IsNullOrEmpty(uri.Query)\n            || !string.IsNullOrEmpty(uri.Fragment)\n            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))\n        {\n            throw new InvalidOperationException($\"{envVar} must be an absolute HTTP or HTTPS URL without credentials, query, or fragment.\");\n        }\n\n        if (upstreamMode == UpstreamModeLive && uri.Scheme != Uri.UriSchemeHttps)\n        {\n            throw new InvalidOperationException($\"{envVar} must use HTTPS when {UpstreamModeEnvironmentVariable} is {UpstreamModeLive}.\");\n        }\n\n        // Base addresses must end with '/' for correct relative URI resolution\n        // (e.g. HttpClient appends \"v3-flatcontainer/...\" relative to the base path).\n        if (!uri.AbsolutePath.EndsWith('/'))\n        {\n            var builder = new UriBuilder(uri);\n            builder.Path += \"/\";\n            return builder.Uri;\n        }\n\n        return uri;\n    }\n\n    private static string ResolveUpstreamMode()\n    {\n        var value = Environment.GetEnvironmentVariable(UpstreamModeEnvironmentVariable);\n        if (string.IsNullOrWhiteSpace(value) || value.Equals(UpstreamModeLive, StringComparison.OrdinalIgnoreCase))\n        {\n            return UpstreamModeLive;\n        }\n\n        if (value.Equals(UpstreamModeMock, StringComparison.OrdinalIgnoreCase))\n        {\n#if ENABLE_LOCALSTACK\n            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(\"HTTP_NUGET_BASE_URL\"))\n                || string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(\"HTTP_GITHUB_BASE_URL\")))\n            {\n                throw new InvalidOperationException(\n                    $\"{UpstreamModeMock} upstream mode requires both HTTP_NUGET_BASE_URL and HTTP_GITHUB_BASE_URL.\");\n            }\n\n            return UpstreamModeMock;\n#else\n            throw new InvalidOperationException($\"{UpstreamModeMock} upstream mode is unavailable in production builds.\");\n#endif\n        }\n\n        throw new InvalidOperationException(\n            $\"{UpstreamModeEnvironmentVariable} must be either {UpstreamModeLive} or {UpstreamModeMock}.\");\n    }\n\n    private static readonly Lazy<SocketsHttpHandler> NugetSocketsHttpHandlerFactory = new(CreateHandlerInstance());\n    private static readonly Lazy<SocketsHttpHandler> GithubSocketsHttpHandlerFactory = new(CreateHandlerInstance());\n    private static readonly Lazy<HttpMessageHandler> NugetRetryHandlerFactory = new(() => new ResilienceRetryHandler(NugetSocketsHttpHandlerFactory.Value));\n    private static readonly Lazy<HttpMessageHandler> GithubRetryHandlerFactory = new(() => new ResilienceRetryHandler(GithubSocketsHttpHandlerFactory.Value));\n\n    private static SocketsHttpHandler CreateHandlerInstance()\n    {\n        return new SocketsHttpHandler()\n        {\n            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,\n            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),\n            PooledConnectionLifetime = TimeSpan.FromMinutes(10),\n            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,\n            KeepAlivePingDelay = TimeSpan.FromSeconds(30),\n            KeepAlivePingTimeout = TimeSpan.FromSeconds(10),\n            MaxConnectionsPerServer = 8,\n            AllowAutoRedirect = false,\n        };\n    }\n\n    public static HttpClient CreateNuGetClient()\n    {\n        var httpClient = new HttpClient(NugetRetryHandlerFactory.Value, disposeHandler: false)\n        {\n            BaseAddress = ResolveBaseUri(\"HTTP_NUGET_BASE_URL\", NugetApiUrl),\n            Timeout = TimeSpan.FromSeconds(10),\n            DefaultRequestVersion = HttpVersion.Version11,\n            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,\n        };\n\n        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(\"badge-smith/1.0 (+https://github.com/localstack-dotnet/badge-smith)\");\n        httpClient.DefaultRequestHeaders.Accept.ParseAdd(\"application/json\");\n\n        return httpClient;\n    }\n\n    public static HttpClient CreateGithubClient()\n    {\n        var httpClient = new HttpClient(GithubRetryHandlerFactory.Value, disposeHandler: false)\n        {\n            BaseAddress = ResolveBaseUri(\"HTTP_GITHUB_BASE_URL\", GithubApiUrl),\n            Timeout = TimeSpan.FromSeconds(10),\n            DefaultRequestVersion = HttpVersion.Version11,\n            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,\n        };\n\n        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(\"badge-smith/1.0 (+https://github.com/localstack-dotnet/badge-smith)\");\n        httpClient.DefaultRequestHeaders.Accept.ParseAdd(\"application/vnd.github.v3+json\");\n\n        return httpClient;\n    }\n}\n"
+    },
+    "CandidateHttpClientFactory.cs": {
+      "sha256": "2ab97fdd60f7e6bfdef1e4a10e1f7bba879b2fd9361e94f2736b340e29d45b53",
+      "utf8Content": "using System.Net;\nusing static BadgeSmith.Constants;\n\nnamespace BadgeSmith.Api.Core.Http;\n\n/// <summary>\n/// Singleton HTTP stack optimized for Lambda execution with connection pooling\n/// and service-specific configurations. Handlers live for the Lambda process lifetime.\n/// </summary>\ninternal static class CandidateHttpClientFactory\n{\n#pragma warning disable S1075 // These are intentional public service defaults, overridable for local tests.\n    private const string NugetApiUrl = \"https://api.nuget.org/\";\n    private const string GithubApiUrl = \"https://api.github.com/\";\n#pragma warning restore S1075\n\n    private static Uri ResolveBaseUri(string envVar, string fallback)\n    {\n        var upstreamMode = ResolveUpstreamMode();\n        var value = Environment.GetEnvironmentVariable(envVar);\n        if (string.IsNullOrWhiteSpace(value))\n        {\n            if (upstreamMode == UpstreamModeMock)\n            {\n                throw new InvalidOperationException($\"{envVar} is required when {UpstreamModeEnvironmentVariable} is {UpstreamModeMock}.\");\n            }\n\n            return new Uri(fallback);\n        }\n\n        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)\n            || string.IsNullOrWhiteSpace(uri.Host)\n            || !string.IsNullOrEmpty(uri.UserInfo)\n            || !string.IsNullOrEmpty(uri.Query)\n            || !string.IsNullOrEmpty(uri.Fragment)\n            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))\n        {\n            throw new InvalidOperationException($\"{envVar} must be an absolute HTTP or HTTPS URL without credentials, query, or fragment.\");\n        }\n\n        if (upstreamMode == UpstreamModeLive && uri.Scheme != Uri.UriSchemeHttps)\n        {\n            throw new InvalidOperationException($\"{envVar} must use HTTPS when {UpstreamModeEnvironmentVariable} is {UpstreamModeLive}.\");\n        }\n\n        // Base addresses must end with '/' for correct relative URI resolution\n        // (e.g. HttpClient appends \"v3-flatcontainer/...\" relative to the base path).\n        if (!uri.AbsolutePath.EndsWith('/'))\n        {\n            var builder = new UriBuilder(uri);\n            builder.Path += \"/\";\n            return builder.Uri;\n        }\n\n        return uri;\n    }\n\n    private static string ResolveUpstreamMode()\n    {\n        var value = Environment.GetEnvironmentVariable(UpstreamModeEnvironmentVariable);\n        if (string.IsNullOrWhiteSpace(value) || value.Equals(UpstreamModeLive, StringComparison.OrdinalIgnoreCase))\n        {\n            return UpstreamModeLive;\n        }\n\n        if (value.Equals(UpstreamModeMock, StringComparison.OrdinalIgnoreCase))\n        {\n#if ENABLE_LOCALSTACK\n            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(\"HTTP_NUGET_BASE_URL\"))\n                || string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(\"HTTP_GITHUB_BASE_URL\")))\n            {\n                throw new InvalidOperationException(\n                    $\"{UpstreamModeMock} upstream mode requires both HTTP_NUGET_BASE_URL and HTTP_GITHUB_BASE_URL.\");\n            }\n\n            return UpstreamModeMock;\n#else\n            throw new InvalidOperationException($\"{UpstreamModeMock} upstream mode is unavailable in production builds.\");\n#endif\n        }\n\n        throw new InvalidOperationException(\n            $\"{UpstreamModeEnvironmentVariable} must be either {UpstreamModeLive} or {UpstreamModeMock}.\");\n    }\n\n    private static readonly Lazy<SocketsHttpHandler> NugetSocketsHttpHandlerFactory = new(CreateHandlerInstance);\n    private static readonly Lazy<SocketsHttpHandler> GithubSocketsHttpHandlerFactory = new(CreateHandlerInstance);\n    private static readonly Lazy<HttpMessageHandler> NugetRetryHandlerFactory = new(() => new ResilienceRetryHandler(NugetSocketsHttpHandlerFactory.Value));\n    private static readonly Lazy<HttpMessageHandler> GithubRetryHandlerFactory = new(() => new ResilienceRetryHandler(GithubSocketsHttpHandlerFactory.Value));\n\n    private static SocketsHttpHandler CreateHandlerInstance()\n    {\n        return new SocketsHttpHandler()\n        {\n            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,\n            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),\n            PooledConnectionLifetime = TimeSpan.FromMinutes(10),\n            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,\n            KeepAlivePingDelay = TimeSpan.FromSeconds(30),\n            KeepAlivePingTimeout = TimeSpan.FromSeconds(10),\n            MaxConnectionsPerServer = 8,\n            AllowAutoRedirect = false,\n        };\n    }\n\n    public static HttpClient CreateNuGetClient()\n    {\n        var httpClient = new HttpClient(NugetRetryHandlerFactory.Value, disposeHandler: false)\n        {\n            BaseAddress = ResolveBaseUri(\"HTTP_NUGET_BASE_URL\", NugetApiUrl),\n            Timeout = TimeSpan.FromSeconds(10),\n            DefaultRequestVersion = HttpVersion.Version11,\n            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,\n        };\n\n        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(\"badge-smith/1.0 (+https://github.com/localstack-dotnet/badge-smith)\");\n        httpClient.DefaultRequestHeaders.Accept.ParseAdd(\"application/json\");\n\n        return httpClient;\n    }\n\n    public static HttpClient CreateGithubClient()\n    {\n        var httpClient = new HttpClient(GithubRetryHandlerFactory.Value, disposeHandler: false)\n        {\n            BaseAddress = ResolveBaseUri(\"HTTP_GITHUB_BASE_URL\", GithubApiUrl),\n            Timeout = TimeSpan.FromSeconds(10),\n            DefaultRequestVersion = HttpVersion.Version11,\n            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,\n        };\n\n        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(\"badge-smith/1.0 (+https://github.com/localstack-dotnet/badge-smith)\");\n        httpClient.DefaultRequestHeaders.Accept.ParseAdd(\"application/vnd.github.v3+json\");\n\n        return httpClient;\n    }\n}\n"
+    },
+    "run_version_contract.py": {
+      "sha256": "1e8047f467fae4ead63bc5770ca512af638327fa903e9b0077dced1a298305e2",
+      "utf8Content": "import json\nimport os\nfrom pathlib import Path\nimport re\nimport subprocess\nimport sys\n\nROOT = Path(__file__).resolve().parents[2]\nHERE = Path(__file__).resolve().parent\nphase = sys.argv[1]\nassert phase in (\"before\", \"after\")\nenv = dict(os.environ)\nenv[\"TMPDIR\"] = str(Path.home() / \".cache/bst-20261017-d2\")\nbuild_number = len(list(HERE.glob(f\"version-contract-{phase}-build*.log\"))) + 1\nwith (HERE / f\"version-contract-{phase}-build-{build_number:02d}.log\").open(\"x\") as log:\n    result = subprocess.run([\"dotnet\", \"build\", str(HERE / \"Probe.csproj\"), \"-c\", \"Release\"],\n                            cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=120)\n    assert result.returncode == 0, \"Version contract probe did not build\"\nassembly_info = (ROOT / \"src/BadgeSmith.Api/obj/Release/net10.0/BadgeSmith.Api.AssemblyInfo.cs\").read_text()\nmatch = re.search(r'AssemblyVersionAttribute\\(\"([^\\\"]+)\"\\)', assembly_info)\nassert match is not None\ndefault_version = match[1]\ncases = [(\"unset\", None, default_version), (\"override\", \"probe-version-2\", \"probe-version-2\"),\n         (\"empty\", \"\", \"\"), (\"unvalidated-label\", \"not-semver\", \"not-semver\")]\nresults = []\nfor name, supplied, expected in cases:\n    child_env = dict(env)\n    child_env.pop(\"APP_VERSION\", None)\n    if supplied is not None:\n        child_env[\"APP_VERSION\"] = supplied\n    result = subprocess.run([\"dotnet\", str(HERE / \"bin/Release/net10.0/BadgeSmith.Api.Performance.Tests.dll\"),\n                             \"version-contract\", expected], cwd=ROOT, env=child_env, capture_output=True, text=True, timeout=15)\n    assert result.returncode == 0 and result.stdout.strip() == \"version-contract=True\", f\"Contract failed: {name}; raw process output omitted\"\n    results.append({\"case\": name, \"valueAndFirstReadCaching\": \"PASS\"})\nwith (HERE / f\"version-contract-{phase}.json\").open(\"x\") as stream:\n    json.dump({\"phase\": phase, \"defaultAssemblyVersion\": default_version, \"results\": results}, stream, indent=2)\n    stream.write(\"\\n\")\nprint(json.dumps(results, indent=2))\n"
+    },
+    "run_native_version_probe.py": {
+      "sha256": "c0f2746dbea3bb724ae5c092c064449f8275e805213a17aca649a7061ad53ad2",
+      "utf8Content": "import hashlib\nimport http.server\nimport json\nimport os\nfrom pathlib import Path\nimport re\nimport statistics\nimport subprocess\nimport threading\nimport time\nimport zipfile\n\nROOT = Path(__file__).resolve().parents[2]\nHERE = Path(__file__).resolve().parent\nenv = dict(os.environ)\nenv[\"TMPDIR\"] = str(Path.home() / \".cache/bst-20261017-d2\")\nlog_path = HERE / f\"version-native-build-{len(list(HERE.glob('version-native-build-*.log'))) + 1:02d}.log\"\nwith log_path.open(\"x\") as log:\n    build = subprocess.run([\"dotnet\", \"run\", \"--file\", \"tools/badgesmith.cs\", \"--\", \"lambda\", \"build\",\n                            \"--target\", \"zip\", \"--rid\", \"linux-x64\",\n                            \"--context\", \"artifacts/startup-lifetime-20261017/native-version-source\",\n                            \"--out\", \"artifacts/startup-lifetime-20261017/native-version-zip\"],\n                           cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=180)\n    assert build.returncode == 0, f\"Diagnostic AOT build failed; inspect {log_path.name}\"\n\narchive_path = HERE / \"native-version-zip/badge-lambda-linux-x64.zip\"\nwith zipfile.ZipFile(archive_path) as archive:\n    assert archive.namelist() == [\"bootstrap\"] and archive.testzip() is None\n    executable_bytes = archive.read(\"bootstrap\")\n    assert executable_bytes.startswith(b\"\\x7fELF\")\nexecutable = HERE / \"native-version-bootstrap\"\nwith executable.open(\"xb\") as stream:\n    stream.write(executable_bytes)\nexecutable.chmod(0o755)\n\n\nclass Runtime(http.server.BaseHTTPRequestHandler):\n    def log_message(self, *_args):\n        pass\n\n    def do_GET(self):\n        assert self.path == \"/2018-06-01/runtime/invocation/next\"\n        self.server.ready_ns = time.perf_counter_ns()\n        self.server.ready.set()\n        self.server.stop.wait(10)\n        self.close_connection = True\n\n\nrows = []\npattern = re.compile(r\"^BST_NATIVE routerBytes=(\\d+) loggerBytes=(\\d+) routerUs=([0-9.]+) loggerUs=([0-9.]+) versionBytes=(\\d+) configBytes=(\\d+)$\", re.M)\nfor launch in range(5):\n    server = http.server.ThreadingHTTPServer((\"127.0.0.1\", 0), Runtime)\n    server.ready, server.stop = threading.Event(), threading.Event()\n    thread = threading.Thread(target=server.serve_forever, daemon=True)\n    thread.start()\n    child_env = {\"PATH\": os.environ[\"PATH\"], \"HOME\": str(HERE / \"empty-home\"), \"TMPDIR\": env[\"TMPDIR\"],\n                 \"DOTNET_ENVIRONMENT\": \"Production\", \"AWS_EC2_METADATA_DISABLED\": \"true\",\n                 \"AWS_CONFIG_FILE\": \"/dev/null\", \"AWS_SHARED_CREDENTIALS_FILE\": \"/dev/null\",\n                 \"AWS_LAMBDA_RUNTIME_API\": f\"127.0.0.1:{server.server_port}\", \"AWS_REGION\": \"eu-central-1\"}\n    started = time.perf_counter_ns()\n    process = subprocess.Popen([str(executable)], env=child_env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)\n    try:\n        assert server.ready.wait(10), \"Diagnostic bootstrap did not reach the local Runtime API\"\n        hwm = None\n        for line in Path(f\"/proc/{process.pid}/status\").read_text().splitlines():\n            if line.startswith(\"VmHWM:\"):\n                hwm = int(line.split()[1])\n        process.terminate()\n        output, _ = process.communicate(timeout=5)\n        match = pattern.search(output)\n        assert match is not None and hwm is not None, \"Missing reduced startup metrics\"\n        router, logger = int(match[1]), int(match[2])\n        assert 0 < logger <= router, \"Invalid measured initialization boundary\"\n        rows.append({\"launch\": launch, \"routerManagedAllocatedBytes\": router, \"loggerManagedAllocatedBytes\": logger,\n                     \"versionManagedAllocatedBytes\": int(match[5]), \"configurationManagedAllocatedBytes\": int(match[6]),\n                     \"routerMicroseconds\": float(match[3]), \"loggerMicroseconds\": float(match[4]),\n                     \"instrumentedProcessReadyMs\": (server.ready_ns - started) / 1e6,\n                     \"instrumentedProcessHighWaterKiB\": hwm})\n    finally:\n        if process.poll() is None:\n            process.kill()\n            process.wait(timeout=5)\n        server.stop.set()\n        server.shutdown()\n        server.server_close()\n        thread.join(timeout=5)\n\nsummary = {key: statistics.median(row[key] for row in rows) for key in rows[0] if key != \"launch\"}\ndata = {\"kind\": \"instrumented-diagnostic-native-aot-startup-not-performance-baseline\", \"rid\": \"linux-x64\",\n        \"telemetryCompiled\": False, \"localStackCompiled\": False, \"invocationsSent\": 0,\n        \"productionSourceModified\": False, \"zipSha256\": hashlib.sha256(archive_path.read_bytes()).hexdigest(),\n        \"bootstrapSha256\": hashlib.sha256(executable_bytes).hexdigest(), \"rows\": rows, \"medians\": summary,\n        \"limits\": [\"Instrumentation changes the executable; readiness/RSS are not uninstrumented A/B evidence.\",\n                   \"Allocated bytes are cumulative managed allocation, not live heap or CloudWatch memory.\",\n                   \"Logger allocation is a nested window inside router initialization, not additive.\",\n                   \"Five local x64 launches are not a production INIT percentile or ARM64 proof.\"]}\nwith (HERE / \"native-version-diagnostic.json\").open(\"x\") as stream:\n    json.dump(data, stream, indent=2, allow_nan=False)\n    stream.write(\"\\n\")\nprint(json.dumps(summary, indent=2))\n"
+    },
+    "run_native_deferred_version_probe.py": {
+      "sha256": "aacdc8b958d43a360fde321fb2d6c8d414febd0d5b00528397a68e29567d9b55",
+      "utf8Content": "import hashlib\nimport http.server\nimport json\nimport os\nfrom pathlib import Path\nimport re\nimport statistics\nimport subprocess\nimport threading\nimport time\nimport zipfile\n\nROOT = Path(__file__).resolve().parents[2]\nHERE = Path(__file__).resolve().parent\nenv = dict(os.environ)\nenv[\"TMPDIR\"] = str(Path.home() / \".cache/bst-20261017-d2\")\nlog_path = HERE / f\"deferred-native-build-{len(list(HERE.glob('deferred-native-build-*.log'))) + 1:02d}.log\"\nwith log_path.open(\"x\") as log:\n    build = subprocess.run([\"dotnet\", \"run\", \"--file\", \"tools/badgesmith.cs\", \"--\", \"lambda\", \"build\",\n                            \"--target\", \"zip\", \"--rid\", \"linux-x64\",\n                            \"--context\", \"artifacts/startup-lifetime-20261017/native-deferred-version-source\",\n                            \"--out\", \"artifacts/startup-lifetime-20261017/native-deferred-version-zip\"],\n                           cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=180)\n    assert build.returncode == 0, f\"Diagnostic AOT build failed; inspect {log_path.name}\"\n\narchive_path = HERE / \"native-deferred-version-zip/badge-lambda-linux-x64.zip\"\nwith zipfile.ZipFile(archive_path) as archive:\n    assert archive.namelist() == [\"bootstrap\"] and archive.testzip() is None\n    executable_bytes = archive.read(\"bootstrap\")\n    assert executable_bytes.startswith(b\"\\x7fELF\")\nexecutable = HERE / \"native-deferred-version-bootstrap\"\nwith executable.open(\"xb\") as stream:\n    stream.write(executable_bytes)\nexecutable.chmod(0o755)\n\n\nclass Runtime(http.server.BaseHTTPRequestHandler):\n    def log_message(self, *_args):\n        pass\n\n    def do_GET(self):\n        assert self.path == \"/2018-06-01/runtime/invocation/next\"\n        self.server.ready_ns = time.perf_counter_ns()\n        self.server.ready.set()\n        self.server.stop.wait(10)\n        self.close_connection = True\n\n\nrows = []\npattern = re.compile(r\"^BST_NATIVE routerBytes=(\\d+) loggerBytes=(\\d+) routerUs=([0-9.]+) loggerUs=([0-9.]+) versionBytes=(\\d+) configBytes=(\\d+)$\", re.M)\nfor launch in range(5):\n    server = http.server.ThreadingHTTPServer((\"127.0.0.1\", 0), Runtime)\n    server.ready, server.stop = threading.Event(), threading.Event()\n    thread = threading.Thread(target=server.serve_forever, daemon=True)\n    thread.start()\n    child_env = {\"PATH\": os.environ[\"PATH\"], \"HOME\": str(HERE / \"empty-home\"), \"TMPDIR\": env[\"TMPDIR\"],\n                 \"DOTNET_ENVIRONMENT\": \"Production\", \"AWS_EC2_METADATA_DISABLED\": \"true\",\n                 \"AWS_CONFIG_FILE\": \"/dev/null\", \"AWS_SHARED_CREDENTIALS_FILE\": \"/dev/null\",\n                 \"AWS_LAMBDA_RUNTIME_API\": f\"127.0.0.1:{server.server_port}\", \"AWS_REGION\": \"eu-central-1\"}\n    started = time.perf_counter_ns()\n    process = subprocess.Popen([str(executable)], env=child_env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)\n    try:\n        assert server.ready.wait(10), \"Diagnostic bootstrap did not reach the local Runtime API\"\n        hwm = None\n        for line in Path(f\"/proc/{process.pid}/status\").read_text().splitlines():\n            if line.startswith(\"VmHWM:\"):\n                hwm = int(line.split()[1])\n        process.terminate()\n        output, _ = process.communicate(timeout=5)\n        match = pattern.search(output)\n        assert match is not None and hwm is not None, \"Missing reduced startup metrics\"\n        router, logger = int(match[1]), int(match[2])\n        assert 0 < logger <= router, \"Invalid measured initialization boundary\"\n        rows.append({\"launch\": launch, \"routerManagedAllocatedBytes\": router, \"loggerManagedAllocatedBytes\": logger,\n                     \"versionManagedAllocatedBytes\": int(match[5]), \"configurationManagedAllocatedBytes\": int(match[6]),\n                     \"routerMicroseconds\": float(match[3]), \"loggerMicroseconds\": float(match[4]),\n                     \"instrumentedProcessReadyMs\": (server.ready_ns - started) / 1e6,\n                     \"instrumentedProcessHighWaterKiB\": hwm})\n    finally:\n        if process.poll() is None:\n            process.kill()\n            process.wait(timeout=5)\n        server.stop.set()\n        server.shutdown()\n        server.server_close()\n        thread.join(timeout=5)\n\nsummary = {key: statistics.median(row[key] for row in rows) for key in rows[0] if key != \"launch\"}\ndata = {\"kind\": \"instrumented-diagnostic-native-aot-startup-not-performance-baseline\", \"rid\": \"linux-x64\",\n        \"telemetryCompiled\": False, \"localStackCompiled\": False, \"invocationsSent\": 0,\n        \"productionSourceModified\": False, \"zipSha256\": hashlib.sha256(archive_path.read_bytes()).hexdigest(),\n        \"bootstrapSha256\": hashlib.sha256(executable_bytes).hexdigest(), \"rows\": rows, \"medians\": summary,\n        \"limits\": [\"Instrumentation changes the executable; readiness/RSS are not uninstrumented A/B evidence.\",\n                   \"Allocated bytes are cumulative managed allocation, not live heap or CloudWatch memory.\",\n                   \"Logger allocation is a nested window inside router initialization, not additive.\",\n                   \"Five local x64 launches are not a production INIT percentile or ARM64 proof.\"]}\nassert all(row[\"versionManagedAllocatedBytes\"] == 0 for row in rows), \"Unused version lookup must not execute\"\nwith (HERE / \"native-deferred-version-diagnostic.json\").open(\"x\") as stream:\n    json.dump(data, stream, indent=2, allow_nan=False)\n    stream.write(\"\\n\")\nprint(json.dumps(summary, indent=2))\n"
+    }
+  },
+  "notProven": [
+    "Production <=100ms INIT p95",
+    "Production <=50MB memory p95",
+    "ARM64 size or runtime impact",
+    "Whole logger allocation elimination",
+    "Semantic OTLP correctness",
+    "World-leading performance"
+  ]
+}

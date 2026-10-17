@@ -13,6 +13,9 @@ namespace BadgeSmith.Api.Tests.Routing;
 [Trait("Category", TestCategories.Unit)]
 public sealed class ResponseHelperTests
 {
+    private const string BadgeEntityTagValue = "E24A8A8C2B7F48A8D9A54E94B26732DA86C90E2F1AAAFB0B2AA8A5D3BAE7DF64";
+    private const string BadgeEntityTag = "\"" + BadgeEntityTagValue + "\"";
+
     [Fact]
     public void CreateResponse_Should_Set_Status_Body_And_Default_ContentType_When_Custom_Headers_Are_Provided()
     {
@@ -78,6 +81,36 @@ public sealed class ResponseHelperTests
 
         Assert.Equal(200, response.StatusCode);
         Assert.NotNull(response.Body);
+    }
+
+    [Theory]
+    [InlineData(null, 200)]
+    [InlineData("", 200)]
+    [InlineData(" \t\u2003 ", 200)]
+    [InlineData(" \u2003*\t ", 304)]
+    [InlineData(",, " + BadgeEntityTag + ",,", 304)]
+    [InlineData("\"different\", " + BadgeEntityTag, 304)]
+    [InlineData("w/\t" + BadgeEntityTag + " \u2003", 304)]
+    [InlineData(" \u2003W/ " + BadgeEntityTagValue + " ,\"other\"", 304)]
+    [InlineData("w/ \"e24a8a8c2b7f48a8d9a54e94b26732da86c90e2f1aaafb0b2aa8a5d3bae7df64\"", 304)]
+    [InlineData("W/*", 200)]
+    [InlineData("\"different\", *", 200)]
+    [InlineData("W /" + BadgeEntityTag, 200)]
+    [InlineData("W/W/" + BadgeEntityTag, 200)]
+    [InlineData("\"W/" + BadgeEntityTagValue + "\"", 200)]
+    [InlineData("\"", 200)]
+    [InlineData("\"\"", 200)]
+    [InlineData(", , W/ ,", 200)]
+    [InlineData(BadgeEntityTagValue + "0", 200)]
+    public void OkCached_Should_Preserve_Validator_Compatibility_When_Header_Contains_Whitespace_Or_List_Tokens(string? header, int expectedStatus)
+    {
+        var response = CreateCachedResponse(header);
+
+        Assert.Equal(expectedStatus, response.StatusCode);
+        Assert.Equal(BadgeEntityTag, response.Headers["ETag"]);
+        Assert.Equal("public, s-maxage=600, max-age=300, stale-while-revalidate=1200, stale-if-error=3600", response.Headers["Cache-Control"]);
+        Assert.Equal("application/json; charset=utf-8", response.Headers["Content-Type"]);
+        Assert.Equal(expectedStatus == 304 ? null : "{\"schemaVersion\":1,\"label\":\"NuGet\",\"message\":\"1.2.3\",\"color\":\"blue\"}", response.Body);
     }
 
     [Theory]

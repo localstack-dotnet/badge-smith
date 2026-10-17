@@ -1,0 +1,645 @@
+{
+  "schemaVersion": 1,
+  "repository": "github.com/localstack-dotnet/badge-smith",
+  "baseCommit": "1044b6d6e7160fc8a3dedcd3154337a4dfb4bd9f",
+  "candidateCommitted": false,
+  "verdict": "managed-allocation-reduction-confirmed; end-to-end-speed-and-resident-memory-benefit-unproven; full-test-suite-unverified",
+  "scope": {
+    "deploy": false,
+    "productionTraffic": false,
+    "awsApiCalls": 0,
+    "packageOrBuildPolicyChanged": false,
+    "hmacRoutesCacheSemanticsChanged": false
+  },
+  "source": {
+    "path": "src/BadgeSmith.Api/Core/Routing/Helpers/ResponseHelper.cs",
+    "beforeSha256": "b4c9cd5f254295b955836870ce3a43563c46cdf8117a48261b6ea01901fbf2e8",
+    "afterSha256": "4e2dce0368667e492834eaf38aafe927cbdbfe08a1fccd2fcb39387ed6e7e983",
+    "beforeUtf8": "using System.Buffers;\nusing System.Net;\nusing System.Security.Cryptography;\nusing System.Text;\nusing System.Text.Json;\nusing System.Text.Json.Serialization.Metadata;\nusing Amazon.Lambda.APIGatewayEvents;\nusing BadgeSmith.Api.Core.Infrastructure;\n\nnamespace BadgeSmith.Api.Core.Routing.Helpers;\n\n/// <summary>\n/// Helper methods for creating standardized API Gateway HTTP responses\n/// </summary>\ninternal static class ResponseHelper\n{\n    private const string DefaultContentType = \"application/json; charset=utf-8\";\n    private const string NoStoreValue = \"no-store\";\n    private const string UpperHexDigits = \"0123456789ABCDEF\";\n    private const int StackallocThresholdBytes = 512;\n\n    /// <summary>\n    /// Creates a custom HTTP response with the specified status code and optional body/headers.\n    /// </summary>\n    /// <param name=\"statusCode\">The HTTP status code.</param>\n    /// <param name=\"responseBody\">The optional response body content.</param>\n    /// <param name=\"customHeaders\">Optional function that returns custom headers to include in the response.</param>\n    /// <returns>An API Gateway HTTP response with the specified parameters.</returns>\n    public static APIGatewayHttpApiV2ProxyResponse CreateResponse(HttpStatusCode statusCode, string? responseBody = null, Func<Dictionary<string, string>>? customHeaders = null)\n    {\n        var headers = customHeaders?.Invoke() ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);\n\n        headers.TryAdd(\"Content-Type\", DefaultContentType);\n\n        var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse\n        {\n            StatusCode = (int)statusCode,\n            Headers = headers,\n        };\n\n        if (responseBody != null)\n        {\n            apiGatewayHttpApiV2ProxyResponse.Body = responseBody;\n        }\n\n        return apiGatewayHttpApiV2ProxyResponse;\n    }\n\n    /// <summary>\n    /// Creates a custom HTTP response with a serialized object body.\n    /// </summary>\n    /// <typeparam name=\"T\">The type of the response object.</typeparam>\n    /// <param name=\"statusCode\">The HTTP status code.</param>\n    /// <param name=\"responseObject\">The object to serialize as the response body.</param>\n    /// <param name=\"jsonTypeInfo\">The JSON type info for AOT serialization.</param>\n    /// <param name=\"customHeaders\">Optional function that returns custom headers to include in the response.</param>\n    /// <returns>An API Gateway HTTP response with the serialized object body.</returns>\n    public static APIGatewayHttpApiV2ProxyResponse CreateResponse<T>(\n        HttpStatusCode statusCode,\n        T responseObject,\n        JsonTypeInfo<T> jsonTypeInfo,\n        Func<Dictionary<string, string>>? customHeaders = null)\n    {\n        return CreateResponse(statusCode, JsonSerializer.Serialize(responseObject, jsonTypeInfo), customHeaders);\n    }\n\n    public static APIGatewayHttpApiV2ProxyResponse OkCached<T>(\n        T responseObject,\n        JsonTypeInfo<T> jsonTypeInfo,\n        PublicCachePolicy cachePolicy,\n        string? ifNoneMatchHeader = null,\n        DateTimeOffset? lastModifiedUtc = null)\n    {\n        ArgumentNullException.ThrowIfNull(cachePolicy);\n        var body = JsonSerializer.Serialize(responseObject, jsonTypeInfo);\n        var etag = ComputeStrongEtag(body);\n\n        if (IfNoneMatchMatches(ifNoneMatchHeader, etag))\n        {\n            return CreateResponse(HttpStatusCode.NotModified, responseBody: null,\n                customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));\n        }\n\n        return CreateResponse(HttpStatusCode.OK, body,\n            customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));\n    }\n\n    public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.OK, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Ok<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.OK, responseObject, jsonTypeInfo, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Created(string responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Created, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Created<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo,\n        Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Created, responseObject, jsonTypeInfo, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse BadRequest(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.BadRequest, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse BadRequest(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.BadRequest, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse NotFound(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.NotFound, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse NotFound(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.NotFound, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Conflict(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Conflict, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.InternalServerError, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.InternalServerError, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Unauthorized(Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Unauthorized, responseBody: null, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Forbidden(Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Forbidden, responseBody: null, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectCached(string location, PublicCachePolicy cachePolicy) =>\n        RedirectCached(location, RedirectStatus.Found, cachePolicy);\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectCached(string location, RedirectStatus status, PublicCachePolicy cachePolicy)\n    {\n        ArgumentNullException.ThrowIfNull(cachePolicy);\n        return CreateRedirect(location, status, cachePolicy.CacheControl);\n    }\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectNoStore(string location) =>\n        RedirectNoStore(location, RedirectStatus.Found);\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectNoStore(string location, RedirectStatus status) =>\n        CreateRedirect(location, status, NoStoreValue);\n\n    public static APIGatewayHttpApiV2ProxyResponse OptionsResponse(Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.NoContent, responseBody: null, customHeaders);\n\n    public static Dictionary<string, string> NoStoreHeaders(string contentType = DefaultContentType)\n        => new(StringComparer.OrdinalIgnoreCase)\n        {\n            [\"Cache-Control\"] = NoStoreValue,\n            [\"Content-Type\"] = contentType,\n        };\n\n    private static APIGatewayHttpApiV2ProxyResponse CreateRedirect(string location, RedirectStatus status, string cacheControl)\n    {\n        if (string.IsNullOrWhiteSpace(location))\n        {\n            throw new ArgumentException(\"Location cannot be null, empty, or whitespace.\", nameof(location));\n        }\n\n        if (status.Code is < 300 or > 399)\n        {\n            throw new ArgumentOutOfRangeException(nameof(status), status.Code, \"Redirect status must be a 3xx redirect code.\");\n        }\n\n        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)\n        {\n            [\"Location\"] = location,\n            [\"Cache-Control\"] = cacheControl,\n        };\n\n        return CreateResponse((HttpStatusCode)status.Code, responseBody: null, customHeaders: () => headers);\n    }\n\n    private static string ComputeStrongEtag(string payload)\n    {\n        var byteCount = Encoding.UTF8.GetByteCount(payload);\n\n        return byteCount <= StackallocThresholdBytes\n            ? HashToEtag(payload, byteCount, stackalloc byte[StackallocThresholdBytes])\n            : HashToEtagPooled(payload, byteCount);\n    }\n\n    private static string HashToEtagPooled(string payload, int byteCount)\n    {\n        var rentedBuffer = ArrayPool<byte>.Shared.Rent(byteCount);\n        try\n        {\n            return HashToEtag(payload, byteCount, rentedBuffer);\n        }\n        finally\n        {\n            ArrayPool<byte>.Shared.Return(rentedBuffer);\n        }\n    }\n\n    private static string HashToEtag(string payload, int byteCount, Span<byte> utf8Buffer)\n    {\n        var bytesWritten = Encoding.UTF8.GetBytes(payload, utf8Buffer);\n        if (bytesWritten != byteCount)\n        {\n            throw new InvalidOperationException($\"UTF-8 encoding wrote {bytesWritten} bytes but expected {byteCount}.\");\n        }\n\n        Span<byte> hash = stackalloc byte[32];\n        var hashBytesWritten = SHA256.HashData(utf8Buffer[..bytesWritten], hash);\n        if (hashBytesWritten != 32)\n        {\n            throw new InvalidOperationException($\"SHA-256 wrote {hashBytesWritten} bytes but expected 32.\");\n        }\n\n        return string.Create(66, hash, static (span, digest) =>\n        {\n            span[0] = '\"';\n            for (var index = 0; index < digest.Length; index++)\n            {\n                var value = digest[index];\n                span[1 + (index * 2)] = UpperHexDigits[(value >> 4) & 0xF];\n                span[2 + (index * 2)] = UpperHexDigits[value & 0xF];\n            }\n\n            span[65] = '\"';\n        });\n    }\n\n    private static bool IfNoneMatchMatches(string? ifNoneMatchHeader, string etag)\n    {\n        if (string.IsNullOrWhiteSpace(ifNoneMatchHeader))\n        {\n            return false;\n        }\n\n        var v = ifNoneMatchHeader.Trim();\n\n        if (string.Equals(v, \"*\", StringComparison.Ordinal))\n        {\n            return true;\n        }\n\n        foreach (var token in v.Split(','))\n        {\n            var t = token.Trim();\n\n            if (t.StartsWith(\"W/\", StringComparison.OrdinalIgnoreCase))\n            {\n                t = t[2..].Trim();\n            }\n\n            var isQuoted = t is ['\"', _, ..] && t[^1] == '\"';\n            if (!isQuoted)\n            {\n                t = $\"\\\"{t}\\\"\";\n            }\n\n            if (string.Equals(t, etag, StringComparison.OrdinalIgnoreCase))\n            {\n                return true;\n            }\n        }\n\n        return false;\n    }\n\n    private static Dictionary<string, string> BuildCacheHeaders(string etag, PublicCachePolicy cachePolicy, DateTimeOffset? lastModifiedUtc = null)\n    {\n        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)\n        {\n            [\"Cache-Control\"] = cachePolicy.CacheControl,\n            [\"ETag\"] = etag,\n        };\n\n        if (lastModifiedUtc.HasValue)\n        {\n            headers[\"Last-Modified\"] = lastModifiedUtc.Value.ToUniversalTime().ToString(\"R\");\n        }\n\n        return headers;\n    }\n}\n",
+    "afterUtf8": "using System.Buffers;\nusing System.Net;\nusing System.Security.Cryptography;\nusing System.Text;\nusing System.Text.Json;\nusing System.Text.Json.Serialization.Metadata;\nusing Amazon.Lambda.APIGatewayEvents;\nusing BadgeSmith.Api.Core.Infrastructure;\n\nnamespace BadgeSmith.Api.Core.Routing.Helpers;\n\n/// <summary>\n/// Helper methods for creating standardized API Gateway HTTP responses\n/// </summary>\ninternal static class ResponseHelper\n{\n    private const string DefaultContentType = \"application/json; charset=utf-8\";\n    private const string NoStoreValue = \"no-store\";\n    private const string UpperHexDigits = \"0123456789ABCDEF\";\n    private const int StackallocThresholdBytes = 512;\n\n    /// <summary>\n    /// Creates a custom HTTP response with the specified status code and optional body/headers.\n    /// </summary>\n    /// <param name=\"statusCode\">The HTTP status code.</param>\n    /// <param name=\"responseBody\">The optional response body content.</param>\n    /// <param name=\"customHeaders\">Optional function that returns custom headers to include in the response.</param>\n    /// <returns>An API Gateway HTTP response with the specified parameters.</returns>\n    public static APIGatewayHttpApiV2ProxyResponse CreateResponse(HttpStatusCode statusCode, string? responseBody = null, Func<Dictionary<string, string>>? customHeaders = null)\n    {\n        var headers = customHeaders?.Invoke() ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);\n\n        return CreateResponseWithHeaders(statusCode, responseBody, headers);\n    }\n\n    /// <summary>\n    /// Creates a custom HTTP response with a serialized object body.\n    /// </summary>\n    /// <typeparam name=\"T\">The type of the response object.</typeparam>\n    /// <param name=\"statusCode\">The HTTP status code.</param>\n    /// <param name=\"responseObject\">The object to serialize as the response body.</param>\n    /// <param name=\"jsonTypeInfo\">The JSON type info for AOT serialization.</param>\n    /// <param name=\"customHeaders\">Optional function that returns custom headers to include in the response.</param>\n    /// <returns>An API Gateway HTTP response with the serialized object body.</returns>\n    public static APIGatewayHttpApiV2ProxyResponse CreateResponse<T>(\n        HttpStatusCode statusCode,\n        T responseObject,\n        JsonTypeInfo<T> jsonTypeInfo,\n        Func<Dictionary<string, string>>? customHeaders = null)\n    {\n        return CreateResponse(statusCode, JsonSerializer.Serialize(responseObject, jsonTypeInfo), customHeaders);\n    }\n\n    public static APIGatewayHttpApiV2ProxyResponse OkCached<T>(\n        T responseObject,\n        JsonTypeInfo<T> jsonTypeInfo,\n        PublicCachePolicy cachePolicy,\n        string? ifNoneMatchHeader = null,\n        DateTimeOffset? lastModifiedUtc = null)\n    {\n        ArgumentNullException.ThrowIfNull(cachePolicy);\n        var body = JsonSerializer.Serialize(responseObject, jsonTypeInfo);\n        var etag = ComputeStrongEtag(body);\n\n        var notModified = IfNoneMatchMatches(ifNoneMatchHeader, etag);\n        return CreateResponseWithHeaders(\n            notModified ? HttpStatusCode.NotModified : HttpStatusCode.OK,\n            notModified ? null : body,\n            BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));\n    }\n\n    public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.OK, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Ok<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.OK, responseObject, jsonTypeInfo, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Created(string responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Created, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Created<T>(T responseObject, JsonTypeInfo<T> jsonTypeInfo,\n        Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Created, responseObject, jsonTypeInfo, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse BadRequest(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.BadRequest, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse BadRequest(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.BadRequest, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse NotFound(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.NotFound, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse NotFound(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.NotFound, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Conflict(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Conflict, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.InternalServerError, responseBody, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse InternalServerError(ErrorResponse errorResponse, Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.InternalServerError, errorResponse, LambdaFunctionJsonSerializerContext.Default.ErrorResponse, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Unauthorized(Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Unauthorized, responseBody: null, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse Forbidden(Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.Forbidden, responseBody: null, customHeaders);\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectCached(string location, PublicCachePolicy cachePolicy) =>\n        RedirectCached(location, RedirectStatus.Found, cachePolicy);\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectCached(string location, RedirectStatus status, PublicCachePolicy cachePolicy)\n    {\n        ArgumentNullException.ThrowIfNull(cachePolicy);\n        return CreateRedirect(location, status, cachePolicy.CacheControl);\n    }\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectNoStore(string location) =>\n        RedirectNoStore(location, RedirectStatus.Found);\n\n    public static APIGatewayHttpApiV2ProxyResponse RedirectNoStore(string location, RedirectStatus status) =>\n        CreateRedirect(location, status, NoStoreValue);\n\n    public static APIGatewayHttpApiV2ProxyResponse OptionsResponse(Func<Dictionary<string, string>>? customHeaders = null) =>\n        CreateResponse(HttpStatusCode.NoContent, responseBody: null, customHeaders);\n\n    public static Dictionary<string, string> NoStoreHeaders(string contentType = DefaultContentType)\n        => new(StringComparer.OrdinalIgnoreCase)\n        {\n            [\"Cache-Control\"] = NoStoreValue,\n            [\"Content-Type\"] = contentType,\n        };\n\n    private static APIGatewayHttpApiV2ProxyResponse CreateResponseWithHeaders(HttpStatusCode statusCode, string? responseBody, Dictionary<string, string> headers)\n    {\n        headers.TryAdd(\"Content-Type\", DefaultContentType);\n\n        var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse\n        {\n            StatusCode = (int)statusCode,\n            Headers = headers,\n        };\n\n        if (responseBody != null)\n        {\n            apiGatewayHttpApiV2ProxyResponse.Body = responseBody;\n        }\n\n        return apiGatewayHttpApiV2ProxyResponse;\n    }\n\n    private static APIGatewayHttpApiV2ProxyResponse CreateRedirect(string location, RedirectStatus status, string cacheControl)\n    {\n        if (string.IsNullOrWhiteSpace(location))\n        {\n            throw new ArgumentException(\"Location cannot be null, empty, or whitespace.\", nameof(location));\n        }\n\n        if (status.Code is < 300 or > 399)\n        {\n            throw new ArgumentOutOfRangeException(nameof(status), status.Code, \"Redirect status must be a 3xx redirect code.\");\n        }\n\n        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)\n        {\n            [\"Location\"] = location,\n            [\"Cache-Control\"] = cacheControl,\n        };\n\n        return CreateResponseWithHeaders((HttpStatusCode)status.Code, responseBody: null, headers);\n    }\n\n    private static string ComputeStrongEtag(string payload)\n    {\n        var byteCount = Encoding.UTF8.GetByteCount(payload);\n\n        return byteCount <= StackallocThresholdBytes\n            ? HashToEtag(payload, byteCount, stackalloc byte[StackallocThresholdBytes])\n            : HashToEtagPooled(payload, byteCount);\n    }\n\n    private static string HashToEtagPooled(string payload, int byteCount)\n    {\n        var rentedBuffer = ArrayPool<byte>.Shared.Rent(byteCount);\n        try\n        {\n            return HashToEtag(payload, byteCount, rentedBuffer);\n        }\n        finally\n        {\n            ArrayPool<byte>.Shared.Return(rentedBuffer);\n        }\n    }\n\n    private static string HashToEtag(string payload, int byteCount, Span<byte> utf8Buffer)\n    {\n        var bytesWritten = Encoding.UTF8.GetBytes(payload, utf8Buffer);\n        if (bytesWritten != byteCount)\n        {\n            throw new InvalidOperationException($\"UTF-8 encoding wrote {bytesWritten} bytes but expected {byteCount}.\");\n        }\n\n        Span<byte> hash = stackalloc byte[32];\n        var hashBytesWritten = SHA256.HashData(utf8Buffer[..bytesWritten], hash);\n        if (hashBytesWritten != 32)\n        {\n            throw new InvalidOperationException($\"SHA-256 wrote {hashBytesWritten} bytes but expected 32.\");\n        }\n\n        return string.Create(66, hash, static (span, digest) =>\n        {\n            span[0] = '\"';\n            for (var index = 0; index < digest.Length; index++)\n            {\n                var value = digest[index];\n                span[1 + (index * 2)] = UpperHexDigits[(value >> 4) & 0xF];\n                span[2 + (index * 2)] = UpperHexDigits[value & 0xF];\n            }\n\n            span[65] = '\"';\n        });\n    }\n\n    private static bool IfNoneMatchMatches(string? ifNoneMatchHeader, string etag)\n    {\n        var value = ifNoneMatchHeader.AsSpan().Trim();\n        if (value.IsEmpty)\n        {\n            return false;\n        }\n\n        if (value.Equals(\"*\", StringComparison.Ordinal))\n        {\n            return true;\n        }\n\n        foreach (var token in value.Split(','))\n        {\n            var tag = value[token].Trim();\n\n            if (tag.StartsWith(\"W/\", StringComparison.OrdinalIgnoreCase))\n            {\n                tag = tag[2..].Trim();\n            }\n\n            var isQuoted = tag is ['\"', _, ..] && tag[^1] == '\"';\n            var expectedTag = isQuoted ? etag.AsSpan() : etag.AsSpan(1, etag.Length - 2);\n            if (tag.Equals(expectedTag, StringComparison.OrdinalIgnoreCase))\n            {\n                return true;\n            }\n        }\n\n        return false;\n    }\n\n    private static Dictionary<string, string> BuildCacheHeaders(string etag, PublicCachePolicy cachePolicy, DateTimeOffset? lastModifiedUtc = null)\n    {\n        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)\n        {\n            [\"Cache-Control\"] = cachePolicy.CacheControl,\n            [\"ETag\"] = etag,\n        };\n\n        if (lastModifiedUtc.HasValue)\n        {\n            headers[\"Last-Modified\"] = lastModifiedUtc.Value.ToUniversalTime().ToString(\"R\");\n        }\n\n        return headers;\n    }\n}\n",
+    "nativeBuildContextDelta": [
+      "src/BadgeSmith.Api/Core/Routing/Helpers/ResponseHelper.cs"
+    ],
+    "nativeBuildContextTrackedFiles": 289,
+    "baselineHarnessCloneOnlyRenamedClassAndNamespaceAndAddedTwoUsings": true,
+    "preexistingUntrackedFilesPreserved": 11,
+    "productionCodeDelta": "diff --git a/src/BadgeSmith.Api/Core/Routing/Helpers/ResponseHelper.cs b/src/BadgeSmith.Api/Core/Routing/Helpers/ResponseHelper.cs\nindex 6ca6a21..12e70cc 100644\n--- a/src/BadgeSmith.Api/Core/Routing/Helpers/ResponseHelper.cs\n+++ b/src/BadgeSmith.Api/Core/Routing/Helpers/ResponseHelper.cs\n@@ -30,20 +30,7 @@ internal static class ResponseHelper\n     {\n         var headers = customHeaders?.Invoke() ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);\n \n-        headers.TryAdd(\"Content-Type\", DefaultContentType);\n-\n-        var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse\n-        {\n-            StatusCode = (int)statusCode,\n-            Headers = headers,\n-        };\n-\n-        if (responseBody != null)\n-        {\n-            apiGatewayHttpApiV2ProxyResponse.Body = responseBody;\n-        }\n-\n-        return apiGatewayHttpApiV2ProxyResponse;\n+        return CreateResponseWithHeaders(statusCode, responseBody, headers);\n     }\n \n     /// <summary>\n@@ -75,14 +62,11 @@ internal static class ResponseHelper\n         var body = JsonSerializer.Serialize(responseObject, jsonTypeInfo);\n         var etag = ComputeStrongEtag(body);\n \n-        if (IfNoneMatchMatches(ifNoneMatchHeader, etag))\n-        {\n-            return CreateResponse(HttpStatusCode.NotModified, responseBody: null,\n-                customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));\n-        }\n-\n-        return CreateResponse(HttpStatusCode.OK, body,\n-            customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));\n+        var notModified = IfNoneMatchMatches(ifNoneMatchHeader, etag);\n+        return CreateResponseWithHeaders(\n+            notModified ? HttpStatusCode.NotModified : HttpStatusCode.OK,\n+            notModified ? null : body,\n+            BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));\n     }\n \n     public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>\n@@ -150,6 +134,24 @@ internal static class ResponseHelper\n             [\"Content-Type\"] = contentType,\n         };\n \n+    private static APIGatewayHttpApiV2ProxyResponse CreateResponseWithHeaders(HttpStatusCode statusCode, string? responseBody, Dictionary<string, string> headers)\n+    {\n+        headers.TryAdd(\"Content-Type\", DefaultContentType);\n+\n+        var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse\n+        {\n+            StatusCode = (int)statusCode,\n+            Headers = headers,\n+        };\n+\n+        if (responseBody != null)\n+        {\n+            apiGatewayHttpApiV2ProxyResponse.Body = responseBody;\n+        }\n+\n+        return apiGatewayHttpApiV2ProxyResponse;\n+    }\n+\n     private static APIGatewayHttpApiV2ProxyResponse CreateRedirect(string location, RedirectStatus status, string cacheControl)\n     {\n         if (string.IsNullOrWhiteSpace(location))\n@@ -168,7 +170,7 @@ internal static class ResponseHelper\n             [\"Cache-Control\"] = cacheControl,\n         };\n \n-        return CreateResponse((HttpStatusCode)status.Code, responseBody: null, customHeaders: () => headers);\n+        return CreateResponseWithHeaders((HttpStatusCode)status.Code, responseBody: null, headers);\n     }\n \n     private static string ComputeStrongEtag(string payload)\n@@ -224,34 +226,29 @@ internal static class ResponseHelper\n \n     private static bool IfNoneMatchMatches(string? ifNoneMatchHeader, string etag)\n     {\n-        if (string.IsNullOrWhiteSpace(ifNoneMatchHeader))\n+        var value = ifNoneMatchHeader.AsSpan().Trim();\n+        if (value.IsEmpty)\n         {\n             return false;\n         }\n \n-        var v = ifNoneMatchHeader.Trim();\n-\n-        if (string.Equals(v, \"*\", StringComparison.Ordinal))\n+        if (value.Equals(\"*\", StringComparison.Ordinal))\n         {\n             return true;\n         }\n \n-        foreach (var token in v.Split(','))\n+        foreach (var token in value.Split(','))\n         {\n-            var t = token.Trim();\n-\n-            if (t.StartsWith(\"W/\", StringComparison.OrdinalIgnoreCase))\n-            {\n-                t = t[2..].Trim();\n-            }\n+            var tag = value[token].Trim();\n \n-            var isQuoted = t is ['\"', _, ..] && t[^1] == '\"';\n-            if (!isQuoted)\n+            if (tag.StartsWith(\"W/\", StringComparison.OrdinalIgnoreCase))\n             {\n-                t = $\"\\\"{t}\\\"\";\n+                tag = tag[2..].Trim();\n             }\n \n-            if (string.Equals(t, etag, StringComparison.OrdinalIgnoreCase))\n+            var isQuoted = tag is ['\"', _, ..] && tag[^1] == '\"';\n+            var expectedTag = isQuoted ? etag.AsSpan() : etag.AsSpan(1, etag.Length - 2);\n+            if (tag.Equals(expectedTag, StringComparison.OrdinalIgnoreCase))\n             {\n                 return true;\n             }\n"
+  },
+  "benchmarkDotNet": {
+    "version": "0.15.8",
+    "sdk": "10.0.402",
+    "runtime": "10.0.13",
+    "os": "Ubuntu 26.04.1 LTS",
+    "architecture": "x64",
+    "cpu": "AMD Ryzen Threadripper 2970WX",
+    "job": "ShortRun",
+    "toolchain": "InProcessEmitToolchain",
+    "launchCount": 1,
+    "warmupCount": 3,
+    "actualIterationCount": 3,
+    "executedCases": 10,
+    "dryCasesExecuted": 10,
+    "rawExportSha256": "b49ce1d0bc13fc4389596594a11bbcce7c9c2b819fe52e5d7de150f5b4932183",
+    "cases": [
+      {
+        "variant": "Before",
+        "scenario": "Miss",
+        "samplesNsPerOperation": [
+          1491.367784500122,
+          1489.5073280334473,
+          1479.5870552062988
+        ],
+        "meanNs": 1486.820722579956,
+        "standardDeviationNs": 6.3332284279530615,
+        "confidenceInterval999": {
+          "Lower": 1371.2790600284823,
+          "Upper": 1602.3623851314298,
+          "Margin": 115.54166255147386
+        },
+        "allocatedBytesPerOperation": 1056
+      },
+      {
+        "variant": "After",
+        "scenario": "Miss",
+        "samplesNsPerOperation": [
+          1302.2931022644043,
+          1310.8757705688477,
+          1273.3171882629395
+        ],
+        "meanNs": 1295.4953536987305,
+        "standardDeviationNs": 19.68041705297453,
+        "confidenceInterval999": {
+          "Lower": 936.4512844889932,
+          "Upper": 1654.5394229084677,
+          "Margin": 359.0440692097373
+        },
+        "allocatedBytesPerOperation": 584
+      },
+      {
+        "variant": "Before",
+        "scenario": "NoHeader",
+        "samplesNsPerOperation": [
+          1256.9241352081299,
+          1270.4029521942139,
+          1230.6643924713135
+        ],
+        "meanNs": 1252.6638266245525,
+        "standardDeviationNs": 20.208932533241537,
+        "confidenceInterval999": {
+          "Lower": 883.9776676072354,
+          "Upper": 1621.3499856418696,
+          "Margin": 368.6861590173171
+        },
+        "allocatedBytesPerOperation": 704
+      },
+      {
+        "variant": "After",
+        "scenario": "NoHeader",
+        "samplesNsPerOperation": [
+          1300.1376190185547,
+          1282.919942855835,
+          1263.7671146392822
+        ],
+        "meanNs": 1282.2748921712239,
+        "standardDeviationNs": 18.193830410058162,
+        "confidenceInterval999": {
+          "Lower": 950.3516972838559,
+          "Upper": 1614.198087058592,
+          "Margin": 331.9231948873681
+        },
+        "allocatedBytesPerOperation": 584
+      },
+      {
+        "variant": "Before",
+        "scenario": "Quoted",
+        "samplesNsPerOperation": [
+          1289.6381797790527,
+          1316.1160011291504,
+          1336.5093784332275
+        ],
+        "meanNs": 1314.0878531138103,
+        "standardDeviationNs": 23.50132664550824,
+        "confidenceInterval999": {
+          "Lower": 885.3361692486978,
+          "Upper": 1742.8395369789228,
+          "Margin": 428.75168386511245
+        },
+        "allocatedBytesPerOperation": 736
+      },
+      {
+        "variant": "After",
+        "scenario": "Quoted",
+        "samplesNsPerOperation": [
+          1321.6644439697266,
+          1341.3519477844238,
+          1278.9224853515625
+        ],
+        "meanNs": 1313.9796257019043,
+        "standardDeviationNs": 31.916324487182138,
+        "confidenceInterval999": {
+          "Lower": 731.7070556008417,
+          "Upper": 1896.252195802967,
+          "Margin": 582.2725701010626
+        },
+        "allocatedBytesPerOperation": 584
+      },
+      {
+        "variant": "Before",
+        "scenario": "Redirect",
+        "samplesNsPerOperation": [
+          140.11222863197327,
+          147.38431406021118,
+          142.5252287387848
+        ],
+        "meanNs": 143.34059047698975,
+        "standardDeviationNs": 3.7039732304640123,
+        "confidenceInterval999": {
+          "Lower": 75.76633037213422,
+          "Upper": 210.91485058184526,
+          "Margin": 67.57426010485553
+        },
+        "allocatedBytesPerOperation": 352
+      },
+      {
+        "variant": "After",
+        "scenario": "Redirect",
+        "samplesNsPerOperation": [
+          133.2231993675232,
+          130.69906997680664,
+          130.86655974388123
+        ],
+        "meanNs": 131.59627636273703,
+        "standardDeviationNs": 1.4114432518332178,
+        "confidenceInterval999": {
+          "Lower": 105.84629722191244,
+          "Upper": 157.34625550356162,
+          "Margin": 25.749979140824585
+        },
+        "allocatedBytesPerOperation": 264
+      },
+      {
+        "variant": "Before",
+        "scenario": "WeakList",
+        "samplesNsPerOperation": [
+          1577.0603618621826,
+          1817.7166137695312,
+          1803.1974716186523
+        ],
+        "meanNs": 1732.6581490834553,
+        "standardDeviationNs": 134.94704484840236,
+        "confidenceInterval999": {
+          "Lower": -729.2783017437494,
+          "Upper": 4194.59459991066,
+          "Margin": 2461.9364508272047
+        },
+        "allocatedBytesPerOperation": 1696
+      },
+      {
+        "variant": "After",
+        "scenario": "WeakList",
+        "samplesNsPerOperation": [
+          1346.5581817626953,
+          1315.3492393493652,
+          1311.2139434814453
+        ],
+        "meanNs": 1324.3737881978352,
+        "standardDeviationNs": 19.32318960107935,
+        "confidenceInterval999": {
+          "Lower": 971.8468775227279,
+          "Upper": 1676.9006988729425,
+          "Margin": 352.5269106751073
+        },
+        "allocatedBytesPerOperation": 584
+      }
+    ],
+    "instrumentLimits": [
+      "Same-process JIT comparison, not Native AOT or Lambda.",
+      "Only three actual iterations, wide confidence intervals; no definitive latency speedup claim.",
+      "Two generated-project Dry attempts executed zero cases due to duplicate benchmark assembly/project names in frozen snapshots; switched explicitly to in-process."
+    ]
+  },
+  "nativeAot": {
+    "rid": "linux-x64",
+    "publishOwner": "tools/badgesmith.cs lambda build",
+    "sdkDockerDigest": "sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa",
+    "productionCompilationFlags": {
+      "PublishAot": true,
+      "EnableTelemetry": false,
+      "EnableLocalStack": false
+    },
+    "executionOs": "Ubuntu 26.04.1 LTS; not AL2023 or ARM64",
+    "binaries": [
+      {
+        "variant": "before",
+        "zipBytes": 6319260,
+        "zipSha256": "b360e11a0d35b1a81e2deb7ba6ae5c609ca603b944db02a61d7f12a369122254",
+        "bootstrapBytes": 14055608,
+        "bootstrapSha256": "e394e3ce2296cd38a36d9d23bacc191e0304479a9fe59a9db27d65f25c4f9f75"
+      },
+      {
+        "variant": "after",
+        "zipBytes": 6320515,
+        "zipSha256": "968638cc2c2e62478c78eba4fd151eecf2ff86d0b5635b3038e6516fb89f7b47",
+        "bootstrapBytes": 14055608,
+        "bootstrapSha256": "6c002848d5417152a5be9c53ec02b64f0cc3ce0937950ed5f84982297b86266e"
+      }
+    ],
+    "launchOrder": "AB,BA repeated four times",
+    "launches": [
+      {
+        "variant": "before",
+        "launch": 0,
+        "readyNs": 16197615,
+        "firstInvokeNs": 36934785,
+        "processHighWaterKiB": 34920,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 0,
+        "readyNs": 14526249,
+        "firstInvokeNs": 33706373,
+        "processHighWaterKiB": 34552,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 1,
+        "readyNs": 15516170,
+        "firstInvokeNs": 35919193,
+        "processHighWaterKiB": 34928,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 1,
+        "readyNs": 16388322,
+        "firstInvokeNs": 35299184,
+        "processHighWaterKiB": 34776,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 2,
+        "readyNs": 14977643,
+        "firstInvokeNs": 34241986,
+        "processHighWaterKiB": 34520,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 2,
+        "readyNs": 16053074,
+        "firstInvokeNs": 34437863,
+        "processHighWaterKiB": 34908,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 3,
+        "readyNs": 15599126,
+        "firstInvokeNs": 35219394,
+        "processHighWaterKiB": 34576,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 3,
+        "readyNs": 15429828,
+        "firstInvokeNs": 34078439,
+        "processHighWaterKiB": 34340,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 4,
+        "readyNs": 15258849,
+        "firstInvokeNs": 34450296,
+        "processHighWaterKiB": 34640,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 4,
+        "readyNs": 14446409,
+        "firstInvokeNs": 33130656,
+        "processHighWaterKiB": 34848,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 5,
+        "readyNs": 15325964,
+        "firstInvokeNs": 33042793,
+        "processHighWaterKiB": 34924,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 5,
+        "readyNs": 16509698,
+        "firstInvokeNs": 37300949,
+        "processHighWaterKiB": 34896,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 6,
+        "readyNs": 16913584,
+        "firstInvokeNs": 36463582,
+        "processHighWaterKiB": 34468,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 6,
+        "readyNs": 14530736,
+        "firstInvokeNs": 36601060,
+        "processHighWaterKiB": 34780,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "after",
+        "launch": 7,
+        "readyNs": 14657824,
+        "firstInvokeNs": 34475904,
+        "processHighWaterKiB": 34620,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      },
+      {
+        "variant": "before",
+        "launch": 7,
+        "readyNs": 14300254,
+        "firstInvokeNs": 35611950,
+        "processHighWaterKiB": 34160,
+        "upstreamRequests": 145,
+        "upstreamStatuses": {
+          "200": 1,
+          "304": 144
+        },
+        "contractChecksPassed": true
+      }
+    ],
+    "summary": {
+      "before": {
+        "processToFirstRuntimeGetMs": {
+          "n": 8,
+          "min": 14.300254,
+          "median": 15.8137215,
+          "p95NearestRank": 16.913584,
+          "max": 16.913584
+        },
+        "firstInvokeRoundTripMs": {
+          "n": 8,
+          "min": 34.078439,
+          "median": 35.455567,
+          "p95NearestRank": 37.300949,
+          "max": 37.300949
+        },
+        "processHighWaterKiB": {
+          "n": 8,
+          "min": 34160.0,
+          "median": 34580.0,
+          "p95NearestRank": 34920.0,
+          "max": 34920.0
+        },
+        "warmRuntimeRoundTripMs": {
+          "NoHeader": {
+            "n": 256,
+            "min": 0.478625,
+            "median": 0.5925944999999999,
+            "p95NearestRank": 0.743101,
+            "max": 1.211367
+          },
+          "Quoted": {
+            "n": 256,
+            "min": 0.479777,
+            "median": 0.5936159999999999,
+            "p95NearestRank": 0.723314,
+            "max": 4.723728
+          },
+          "WeakList": {
+            "n": 256,
+            "min": 0.490097,
+            "median": 0.5982555,
+            "p95NearestRank": 0.74359,
+            "max": 0.959655
+          },
+          "Miss": {
+            "n": 256,
+            "min": 0.480629,
+            "median": 0.595955,
+            "p95NearestRank": 0.844199,
+            "max": 5.330293
+          }
+        }
+      },
+      "after": {
+        "processToFirstRuntimeGetMs": {
+          "n": 8,
+          "min": 14.446409,
+          "median": 14.991894,
+          "p95NearestRank": 16.053074,
+          "max": 16.053074
+        },
+        "firstInvokeRoundTripMs": {
+          "n": 8,
+          "min": 33.042793,
+          "median": 34.4568835,
+          "p95NearestRank": 36.60106,
+          "max": 36.60106
+        },
+        "processHighWaterKiB": {
+          "n": 8,
+          "min": 34552.0,
+          "median": 34814.0,
+          "p95NearestRank": 34928.0,
+          "max": 34928.0
+        },
+        "warmRuntimeRoundTripMs": {
+          "NoHeader": {
+            "n": 256,
+            "min": 0.482042,
+            "median": 0.5924235,
+            "p95NearestRank": 0.708895,
+            "max": 5.497946
+          },
+          "Quoted": {
+            "n": 256,
+            "min": 0.481591,
+            "median": 0.5937815,
+            "p95NearestRank": 0.79127,
+            "max": 5.19472
+          },
+          "WeakList": {
+            "n": 256,
+            "min": 0.47578,
+            "median": 0.596321,
+            "p95NearestRank": 0.775781,
+            "max": 1.301847
+          },
+          "Miss": {
+            "n": 256,
+            "min": 0.484046,
+            "median": 0.5925185,
+            "p95NearestRank": 0.789348,
+            "max": 5.022567
+          }
+        }
+      }
+    },
+    "warmInvocationCsv": "2026-10-17-response-allocation-native-invocations.csv",
+    "warmInvocationCsvSha256": "409bdc5eb21c882f27277a041e52c7eba98ba886dfc73215e599468172c837dd",
+    "measuredWarmInvocations": 2048,
+    "allInvocationsIncludingFirstAndWarmup": 2320,
+    "upstreamRevalidatedEveryInvocation": true,
+    "fixture": "Loopback Runtime API and HTTPS NuGet fixture; production Live mode, generated fixture-only certificate, SSL_CERT_FILE set only for child processes; app logs discarded.",
+    "limits": [
+      "Process-to-first-Runtime-GET is not CloudWatch Init Duration.",
+      "Runtime round trips include local fixture dispatch, TLS/upstream, serialization, logging and transport; not client latency.",
+      "VmHWM is process RSS high-water in KiB, not CloudWatch Max Memory Used or managed allocated bytes.",
+      "Eight launches per variant; OS page cache and uncontrolled scheduler; within-process requests are correlated.",
+      "Native allocation bytes were not instrumented; byte-allocation claim comes from JIT probe/BDN and regression tests.",
+      "No proven resident-memory reduction: median rose 234 KiB. ZIP grew 1255 bytes; executable length unchanged."
+    ]
+  },
+  "validation": {
+    "beforeUnit": {
+      "passed": 523,
+      "failed": 0,
+      "skipped": 0
+    },
+    "afterUnit": {
+      "passed": 542,
+      "failed": 0,
+      "skipped": 0
+    },
+    "redGreen": [
+      "Weak-list parser: 1696 B exceeds 704 B; passed after span parsing.",
+      "Cache response: 704 B exceeds 584 B; passed after removing capturing delegates.",
+      "Both redirects: 352 B exceeds 264 B; passed after direct header composition."
+    ],
+    "slopwatchIssues": 0,
+    "analyzerPolicyWeakened": false,
+    "isolatedCorsContract": {
+      "baselinePassed": 1,
+      "candidatePassed": 1
+    },
+    "fullSuite": {
+      "verdict": "UNVERIFIED",
+      "attemptTimeoutSeconds": [
+        240,
+        360
+      ],
+      "observedFailureTests": [
+        "RoutingContractTests.Responses_Should_Carry_Cors_Header",
+        "PackageBadgeContractTests.NuGet_Badge_Should_Return_Matching_Version_When_Version_Range_Is_Valid"
+      ],
+      "observedFailure": "HttpClient 60-second response timeout",
+      "functionalOnlyAttemptTimeoutSeconds": 180,
+      "cause": "Unresolved; isolated CORS passed on both revisions. Do not assert infrastructure-only or pre-existing without reproduction.",
+      "testTimeoutsOrSkipsChanged": false
+    }
+  },
+  "reproducerFiles": {
+    "harness/BadgeSmith.Api.Performance.Tests.csproj": {
+      "sha256": "4c574d0446ee651d908e636df1693e476453e40ea2a7dba52c10f0bfd93e43db",
+      "utf8Content": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n    <OutputType>Exe</OutputType>\n    <AssemblyName>BadgeSmith.Api.Performance.Tests</AssemblyName>\n    <RootNamespace>ResponseOptimization</RootNamespace>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageReference Include=\"BenchmarkDotNet\" />\n    <ProjectReference Include=\"../../../src/BadgeSmith.Api/BadgeSmith.Api.csproj\" />\n  </ItemGroup>\n</Project>\n"
+    },
+    "harness/Program.cs": {
+      "sha256": "7c7470fb294ed00d7a1151154df507f80f0b9c5951af89118dc85755536177a0",
+      "utf8Content": "using BenchmarkDotNet.Running;\nusing ResponseOptimization;\n\nif (args is [\"--probe\"])\n{\n    ResponseComparison.Probe();\n    return;\n}\n\nBenchmarkSwitcher.FromAssembly(typeof(ResponseComparison).Assembly).Run(args);\n"
+    },
+    "harness/ResponseComparison.cs": {
+      "sha256": "0df1ab62c8422028da20d9d617b6e6051ece406c42ba8614edab0ecd0c0e6823",
+      "utf8Content": "#pragma warning disable CA1812, CA1852, CA1515 // BenchmarkDotNet activates public benchmark classes from generated code.\n\nusing System.Globalization;\nusing Amazon.Lambda.APIGatewayEvents;\nusing BadgeSmith.Api.Core.Infrastructure;\nusing BadgeSmith.Api.Core.Routing.Helpers;\nusing BadgeSmith.Api.Features;\nusing BenchmarkDotNet.Attributes;\n\nnamespace ResponseOptimization;\n\n[MemoryDiagnoser]\npublic class ResponseComparison\n{\n    private static readonly ShieldsBadgeResponse Badge = new(1, \"NuGet\", \"1.2.3\", \"blue\");\n    private string? _header;\n\n    [Params(\"NoHeader\", \"Quoted\", \"WeakList\", \"Miss\", \"Redirect\")]\n    public string Scenario { get; set; } = \"NoHeader\";\n\n    [GlobalSetup]\n    public void Setup()\n    {\n        var etag = BaselineResponseHelper.OkCached(Badge, LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse, BadgeResponsePolicy.PublicCache).Headers[\"ETag\"];\n        _header = Scenario switch\n        {\n            \"Quoted\" => etag,\n            \"WeakList\" => $\" \\t\\\"different\\\", w/ {etag.ToLowerInvariant()} , \\\"other\\\" \",\n            \"Miss\" => \"\\\"different\\\", W/\\\"other\\\", unquoted\",\n            _ => null,\n        };\n        var before = Before();\n        var after = After();\n        if (before.StatusCode != after.StatusCode || !string.Equals(before.Body, after.Body, StringComparison.Ordinal)\n            || before.Headers.Count != after.Headers.Count || before.Headers.Any(header => !after.Headers.TryGetValue(header.Key, out var value) || !string.Equals(header.Value, value, StringComparison.Ordinal)))\n        {\n            throw new InvalidOperationException(\"Response mismatch between baseline and candidate.\");\n        }\n    }\n\n    [Benchmark(Baseline = true)]\n    public APIGatewayHttpApiV2ProxyResponse Before() => string.Equals(Scenario, \"Redirect\", StringComparison.Ordinal)\n        ? BaselineResponseHelper.RedirectCached(\"https://example.com/results/42\", BadgeResponsePolicy.PublicCache)\n        : BaselineResponseHelper.OkCached(Badge, LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse, BadgeResponsePolicy.PublicCache, _header);\n\n    [Benchmark]\n    public APIGatewayHttpApiV2ProxyResponse After() => string.Equals(Scenario, \"Redirect\", StringComparison.Ordinal)\n        ? ResponseHelper.RedirectCached(\"https://example.com/results/42\", BadgeResponsePolicy.PublicCache)\n        : ResponseHelper.OkCached(Badge, LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse, BadgeResponsePolicy.PublicCache, _header);\n\n    internal static void Probe()\n    {\n        foreach (var scenario in new[] { \"NoHeader\", \"Quoted\", \"WeakList\", \"Miss\", \"Redirect\" })\n        {\n            var comparison = new ResponseComparison { Scenario = scenario };\n            comparison.Setup();\n            var before = Measure(comparison.Before);\n            var after = Measure(comparison.After);\n            Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $\"{scenario}: before={before} B, after={after} B\"));\n        }\n    }\n\n    private static long Measure(Func<APIGatewayHttpApiV2ProxyResponse> action)\n    {\n        for (var index = 0; index < 128; index++)\n        {\n            GC.KeepAlive(action());\n        }\n\n        var initial = GC.GetAllocatedBytesForCurrentThread();\n        var response = action();\n        var bytes = GC.GetAllocatedBytesForCurrentThread() - initial;\n        GC.KeepAlive(response);\n        return bytes;\n    }\n}\n\n#pragma warning restore CA1812, CA1852, CA1515\n"
+    },
+    "native_compare.py": {
+      "sha256": "2d2673a8fa585dc521869a0555b439608ef812518ce6dc3cd666c3a375d48983",
+      "utf8Content": "\"\"\"Local-only Runtime API + TLS NuGet fixture. No AWS, RIE, or production traffic.\"\"\"\nimport collections\nimport hashlib\nimport http.server\nimport json\nimport os\nfrom pathlib import Path\nimport socket\nimport ssl\nimport statistics\nimport subprocess\nimport threading\nimport time\nimport zipfile\n\nROOT = Path(__file__).resolve().parent\nBODY = '{\"schemaVersion\":1,\"label\":\"nuget\",\"message\":\"1.2.3\",\"color\":\"blue\",\"namedLogo\":\"nuget\"}'\nTAG = '\"' + hashlib.sha256(BODY.encode()).hexdigest().upper() + '\"'\nCASES = [\"NoHeader\", \"Quoted\", \"WeakList\", \"Miss\"]\nHEADERS = {\"NoHeader\": {}, \"Quoted\": {\"if-none-match\": TAG},\n           \"WeakList\": {\"if-none-match\": ' \\t\"different\", w/ ' + TAG.lower() + ' , \"other\" '},\n           \"Miss\": {\"if-none-match\": '\"different\", W/\"other\", unquoted'}}\n\n\nclass QuietHandler(http.server.BaseHTTPRequestHandler):\n    protocol_version = \"HTTP/1.1\"\n\n    def setup(self):\n        super().setup()\n        self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)\n\n    def log_message(self, *_args):\n        pass\n\n    def reply(self, status, body=b\"\", headers=None):\n        self.send_response(status)\n        self.send_header(\"Content-Length\", str(len(body)))\n        for key, value in (headers or {}).items():\n            self.send_header(key, value)\n        self.end_headers()\n        if body:\n            self.wfile.write(body)\n            self.wfile.flush()\n\n\nclass UpstreamHandler(QuietHandler):\n    def do_GET(self):\n        if self.path != \"/v3-flatcontainer/badgesmith-fixture/index.json\":\n            self.server.failures.append(\"unexpected upstream path\")\n            self.reply(404)\n            return\n        self.server.requests += 1\n        conditional = self.headers.get(\"If-None-Match\") == '\"fixture-v1\"'\n        self.server.statuses[304 if conditional else 200] += 1\n        self.reply(304 if conditional else 200,\n                   b\"\" if conditional else b'{\"versions\":[\"1.0.0\",\"1.2.3\",\"2.0.0-preview.1\"]}',\n                   {\"ETag\": '\"fixture-v1\"', \"Last-Modified\": \"Fri, 16 Oct 2026 12:00:00 GMT\",\n                    \"Content-Type\": \"application/json; charset=utf-8\"})\n\n\nclass RuntimeHandler(QuietHandler):\n    def do_GET(self):\n        state = self.server.state\n        if self.path != \"/2018-06-01/runtime/invocation/next\":\n            state[\"failures\"].append(\"unexpected Runtime API GET\")\n            self.reply(404)\n            return\n        if state[\"readyNs\"] is None:\n            state[\"readyNs\"] = time.perf_counter_ns()\n        index = len(state[\"results\"])\n        if index >= len(state[\"cases\"]):\n            state[\"finished\"].set()\n            state[\"stop\"].wait(10)\n            self.close_connection = True\n            return\n        case = state[\"cases\"][index]\n        event = {\"version\": \"2.0\", \"routeKey\": \"GET /badges/packages/{provider}/{package}\",\n                 \"rawPath\": \"/badges/packages/nuget/badgesmith-fixture\", \"rawQueryString\": \"\",\n                 \"headers\": HEADERS[case], \"queryStringParameters\": {}, \"isBase64Encoded\": False,\n                 \"requestContext\": {\"requestId\": \"local-fixture\", \"stage\": \"$default\",\n                                    \"http\": {\"method\": \"GET\", \"path\": \"/badges/packages/nuget/badgesmith-fixture\",\n                                             \"protocol\": \"HTTP/1.1\", \"sourceIp\": \"127.0.0.1\", \"userAgent\": \"local-fixture\"}}}\n        payload = json.dumps(event, separators=(\",\", \":\")).encode()\n        state[\"sentNs\"] = time.perf_counter_ns()\n        self.reply(200, payload, {\"Content-Type\": \"application/json\",\n                                 \"Lambda-Runtime-Aws-Request-Id\": f\"local-{index}\",\n                                 \"Lambda-Runtime-Deadline-Ms\": str(int(time.time() * 1000) + 30000),\n                                 \"Lambda-Runtime-Invoked-Function-Arn\": \"arn:aws:lambda:eu-central-1:000000000000:function:local-fixture\"})\n\n    def do_POST(self):\n        state = self.server.state\n        elapsed = time.perf_counter_ns() - state[\"sentNs\"]\n        payload = self.rfile.read(int(self.headers.get(\"Content-Length\", 0)))\n        index = len(state[\"results\"])\n        if self.path != f\"/2018-06-01/runtime/invocation/local-{index}/response\":\n            state[\"failures\"].append(\"unexpected Runtime API POST/error\")\n        try:\n            response = json.loads(payload)\n            case = state[\"cases\"][index]\n            expected_status = 304 if case in (\"Quoted\", \"WeakList\") else 200\n            headers = {key.lower(): value for key, value in response[\"headers\"].items()}\n            assert response[\"statusCode\"] == expected_status\n            assert response.get(\"body\") == (None if expected_status == 304 else BODY)\n            assert headers[\"etag\"] == TAG\n            assert headers[\"cache-control\"] == \"public, s-maxage=600, max-age=300, stale-while-revalidate=1200, stale-if-error=3600\"\n            assert headers[\"last-modified\"] == \"Fri, 16 Oct 2026 12:00:00 GMT\"\n            assert headers[\"content-type\"] == \"application/json; charset=utf-8\"\n            state[\"results\"].append({\"case\": case, \"elapsedNs\": elapsed, \"statusCode\": expected_status})\n        except (ValueError, KeyError, IndexError, AssertionError):\n            state[\"failures\"].append(\"native response contract mismatch\")\n            state[\"finished\"].set()\n        self.reply(202)\n\n\ndef hwm_kib(pid):\n    for line in Path(f\"/proc/{pid}/status\").read_text().splitlines():\n        if line.startswith(\"VmHWM:\"):\n            return int(line.split()[1])\n    raise AssertionError(\"missing native process HWM\")\n\n\ndef launch(variant, launch_index):\n    upstream = http.server.ThreadingHTTPServer((\"127.0.0.1\", 0), UpstreamHandler)\n    upstream.requests, upstream.statuses, upstream.failures = 0, collections.Counter(), []\n    tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)\n    tls.load_cert_chain(ROOT / \"fixture-cert.pem\", ROOT / \"fixture-key.pem\")\n    upstream.socket = tls.wrap_socket(upstream.socket, server_side=True)\n    runtime = http.server.ThreadingHTTPServer((\"127.0.0.1\", 0), RuntimeHandler)\n    state = {\"readyNs\": None, \"sentNs\": 0, \"results\": [], \"failures\": [],\n             \"cases\": [\"NoHeader\"] + CASES * (4 + 32),\n             \"stop\": threading.Event(), \"finished\": threading.Event()}\n    runtime.state = state\n    threads = [threading.Thread(target=server.serve_forever, daemon=True) for server in (upstream, runtime)]\n    for thread in threads:\n        thread.start()\n    env = {\"PATH\": os.environ[\"PATH\"], \"HOME\": str(ROOT / \"empty-home\"),\n           \"TMPDIR\": str(ROOT / \"tmp\"), \"DOTNET_ENVIRONMENT\": \"Production\",\n           \"AWS_LAMBDA_RUNTIME_API\": f\"127.0.0.1:{runtime.server_port}\",\n           \"AWS_REGION\": \"eu-central-1\", \"AWS_EC2_METADATA_DISABLED\": \"true\",\n           \"AWS_CONFIG_FILE\": \"/dev/null\", \"AWS_SHARED_CREDENTIALS_FILE\": \"/dev/null\",\n           \"AWS_ENDPOINT_URL\": f\"http://127.0.0.1:{runtime.server_port}\",\n           \"BADGESMITH_UPSTREAM_MODE\": \"Live\",\n           \"HTTP_NUGET_BASE_URL\": f\"https://127.0.0.1:{upstream.server_port}/\",\n           \"HTTP_GITHUB_BASE_URL\": f\"https://127.0.0.1:{upstream.server_port}/\",\n           \"SSL_CERT_FILE\": str(ROOT / \"fixture-cert.pem\")}\n    started = time.perf_counter_ns()\n    process = subprocess.Popen([str(ROOT / f\"native-{variant}\" / \"bootstrap\")], env=env,\n                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n    try:\n        assert state[\"finished\"].wait(30), \"native launch timed out\"\n        assert not state[\"failures\"], \";\".join(state[\"failures\"])\n        assert not upstream.failures\n        assert len(state[\"results\"]) == len(state[\"cases\"])\n        assert upstream.requests == len(state[\"cases\"]), \"upstream revalidation was skipped\"\n        assert upstream.statuses == {200: 1, 304: len(state[\"cases\"]) - 1}\n        return {\"variant\": variant, \"launch\": launch_index,\n                \"readyNs\": state[\"readyNs\"] - started,\n                \"firstInvokeNs\": state[\"results\"][0][\"elapsedNs\"],\n                \"processHighWaterKiB\": hwm_kib(process.pid),\n                \"upstreamRequests\": upstream.requests, \"upstreamStatuses\": dict(upstream.statuses),\n                \"warmInvocations\": state[\"results\"][17:], \"contractChecksPassed\": True}\n    finally:\n        process.terminate()\n        try:\n            process.wait(timeout=5)\n        except subprocess.TimeoutExpired:\n            process.kill()\n            process.wait(timeout=5)\n        state[\"stop\"].set()\n        for server in (runtime, upstream):\n            server.shutdown()\n            server.server_close()\n        for thread in threads:\n            thread.join(timeout=5)\n\n\ndef summary(values, scale=1):\n    values = sorted(value / scale for value in values)\n    return {\"n\": len(values), \"min\": min(values), \"median\": statistics.median(values),\n            \"p95NearestRank\": values[(95 * len(values) + 99) // 100 - 1], \"max\": max(values)}\n\n\ndef main():\n    for variant in (\"before\", \"after\"):\n        destination = ROOT / f\"native-{variant}\"\n        destination.mkdir(exist_ok=False)\n        with zipfile.ZipFile(ROOT / f\"aot-{variant}\" / \"badge-lambda-linux-x64.zip\") as archive:\n            assert archive.namelist() == [\"bootstrap\"] and archive.testzip() is None\n            data = archive.read(\"bootstrap\")\n            assert data.startswith(b\"\\x7fELF\")\n            executable = destination / \"bootstrap\"\n            executable.write_bytes(data)\n            executable.chmod(0o755)\n    rows = []\n    for index in range(8):\n        for variant in ((\"before\", \"after\") if index % 2 == 0 else (\"after\", \"before\")):\n            row = launch(variant, index)\n            rows.append(row)\n            print(json.dumps({key: value for key, value in row.items() if key != \"warmInvocations\"}), flush=True)\n    result = {\"kind\": \"local-x64-native-aot-runtime-api-tls-fixture-not-aws-init-or-cloudwatch-memory\",\n              \"launchOrder\": \"AB,BA repeated four times\", \"launches\": rows, \"summary\": {}}\n    for variant in (\"before\", \"after\"):\n        subset = [row for row in rows if row[\"variant\"] == variant]\n        result[\"summary\"][variant] = {\n            \"processToFirstRuntimeGetMs\": summary([row[\"readyNs\"] for row in subset], 1e6),\n            \"firstInvokeRoundTripMs\": summary([row[\"firstInvokeNs\"] for row in subset], 1e6),\n            \"processHighWaterKiB\": summary([row[\"processHighWaterKiB\"] for row in subset]),\n            \"warmRuntimeRoundTripMs\": {case: summary([invocation[\"elapsedNs\"] for row in subset\n                                                      for invocation in row[\"warmInvocations\"] if invocation[\"case\"] == case], 1e6)\n                                       for case in CASES}}\n    (ROOT / \"native-comparison.json\").write_text(json.dumps(result, indent=2) + \"\\n\")\n    print(json.dumps(result[\"summary\"], indent=2))\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    }
+  },
+  "notProven": [
+    "World-leading Lambda performance",
+    "Production <=100 ms INIT p95",
+    "Production <=50 MB memory p95",
+    "ARM64 ZIP impact",
+    "Full functional/integration suite passing",
+    "AWS deployed revision improvement"
+  ]
+}

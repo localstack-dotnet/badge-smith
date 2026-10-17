@@ -30,20 +30,7 @@ internal static class ResponseHelper
     {
         var headers = customHeaders?.Invoke() ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        headers.TryAdd("Content-Type", DefaultContentType);
-
-        var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse
-        {
-            StatusCode = (int)statusCode,
-            Headers = headers,
-        };
-
-        if (responseBody != null)
-        {
-            apiGatewayHttpApiV2ProxyResponse.Body = responseBody;
-        }
-
-        return apiGatewayHttpApiV2ProxyResponse;
+        return CreateResponseWithHeaders(statusCode, responseBody, headers);
     }
 
     /// <summary>
@@ -75,14 +62,11 @@ internal static class ResponseHelper
         var body = JsonSerializer.Serialize(responseObject, jsonTypeInfo);
         var etag = ComputeStrongEtag(body);
 
-        if (IfNoneMatchMatches(ifNoneMatchHeader, etag))
-        {
-            return CreateResponse(HttpStatusCode.NotModified, responseBody: null,
-                customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));
-        }
-
-        return CreateResponse(HttpStatusCode.OK, body,
-            customHeaders: () => BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));
+        var notModified = IfNoneMatchMatches(ifNoneMatchHeader, etag);
+        return CreateResponseWithHeaders(
+            notModified ? HttpStatusCode.NotModified : HttpStatusCode.OK,
+            notModified ? null : body,
+            BuildCacheHeaders(etag, cachePolicy, lastModifiedUtc));
     }
 
     public static APIGatewayHttpApiV2ProxyResponse Ok(string? responseBody, Func<Dictionary<string, string>>? customHeaders = null) =>
@@ -150,6 +134,24 @@ internal static class ResponseHelper
             ["Content-Type"] = contentType,
         };
 
+    private static APIGatewayHttpApiV2ProxyResponse CreateResponseWithHeaders(HttpStatusCode statusCode, string? responseBody, Dictionary<string, string> headers)
+    {
+        headers.TryAdd("Content-Type", DefaultContentType);
+
+        var apiGatewayHttpApiV2ProxyResponse = new APIGatewayHttpApiV2ProxyResponse
+        {
+            StatusCode = (int)statusCode,
+            Headers = headers,
+        };
+
+        if (responseBody != null)
+        {
+            apiGatewayHttpApiV2ProxyResponse.Body = responseBody;
+        }
+
+        return apiGatewayHttpApiV2ProxyResponse;
+    }
+
     private static APIGatewayHttpApiV2ProxyResponse CreateRedirect(string location, RedirectStatus status, string cacheControl)
     {
         if (string.IsNullOrWhiteSpace(location))
@@ -168,7 +170,7 @@ internal static class ResponseHelper
             ["Cache-Control"] = cacheControl,
         };
 
-        return CreateResponse((HttpStatusCode)status.Code, responseBody: null, customHeaders: () => headers);
+        return CreateResponseWithHeaders((HttpStatusCode)status.Code, responseBody: null, headers);
     }
 
     private static string ComputeStrongEtag(string payload)
@@ -224,34 +226,29 @@ internal static class ResponseHelper
 
     private static bool IfNoneMatchMatches(string? ifNoneMatchHeader, string etag)
     {
-        if (string.IsNullOrWhiteSpace(ifNoneMatchHeader))
+        var value = ifNoneMatchHeader.AsSpan().Trim();
+        if (value.IsEmpty)
         {
             return false;
         }
 
-        var v = ifNoneMatchHeader.Trim();
-
-        if (string.Equals(v, "*", StringComparison.Ordinal))
+        if (value.Equals("*", StringComparison.Ordinal))
         {
             return true;
         }
 
-        foreach (var token in v.Split(','))
+        foreach (var token in value.Split(','))
         {
-            var t = token.Trim();
+            var tag = value[token].Trim();
 
-            if (t.StartsWith("W/", StringComparison.OrdinalIgnoreCase))
+            if (tag.StartsWith("W/", StringComparison.OrdinalIgnoreCase))
             {
-                t = t[2..].Trim();
+                tag = tag[2..].Trim();
             }
 
-            var isQuoted = t is ['"', _, ..] && t[^1] == '"';
-            if (!isQuoted)
-            {
-                t = $"\"{t}\"";
-            }
-
-            if (string.Equals(t, etag, StringComparison.OrdinalIgnoreCase))
+            var isQuoted = tag is ['"', _, ..] && tag[^1] == '"';
+            var expectedTag = isQuoted ? etag.AsSpan() : etag.AsSpan(1, etag.Length - 2);
+            if (tag.Equals(expectedTag, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

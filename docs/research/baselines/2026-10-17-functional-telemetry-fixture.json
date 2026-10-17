@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "repository": "github.com/localstack-dotnet/badge-smith",
+  "baseCommit": "1044b6d6e7160fc8a3dedcd3154337a4dfb4bd9f",
+  "candidateCommitted": false,
+  "verdict": "local-functional-fixture-blocker-resolved",
+  "rootCause": "Development Lambda wrapper synchronously flushes telemetry; Aspire Testing disables dashboard but defaults exporter endpoint to localhost:4317, with no receiver during diagnosis.",
+  "controlledChange": "Provide an owned WireMock HTTP/protobuf receiver; telemetry, retries, ForceFlush and HTTP assertions remain enabled.",
+  "limits": [
+    "Older individual 60-second failures lacked flush-level traces and cannot each be forensically attributed.",
+    "Receiver acknowledges/discards telemetry; does not validate semantic OTLP contents.",
+    "This is local test-harness behavior, not production Lambda INIT/RSS or ARM64 proof."
+  ],
+  "testRuns": {
+    "originalNarrowed": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "outcome": "Completed",
+      "wallSeconds": 64.40233,
+      "trxSha256": "29f07f5e6389260fa3f8613b569fd497170f62410fe0aa591120896e51f053c3"
+    },
+    "instrumentedWithoutReceiver": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "outcome": "Completed",
+      "wallSeconds": 61.174748,
+      "trxSha256": "fa8f8575a7f75e08c67417863c3cc0da59e807acdd99771d6711cd0ab170de40"
+    },
+    "instrumentedWithReceiver": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "outcome": "Completed",
+      "wallSeconds": 35.658105,
+      "trxSha256": "40650accb3dd72d7d548af61d88a35d8b6f8dea6221693064b6c936845f80893"
+    },
+    "regressionRedFinalObserver": {
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "total": 1,
+      "outcome": "Failed",
+      "wallSeconds": 45.878436,
+      "trxSha256": "2576c1c5a79305cd45df1d09d7a099cb6f1f373df083ee5629b150fa15343146"
+    },
+    "targetedGreen": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "total": 5,
+      "outcome": "Completed",
+      "wallSeconds": 42.054411,
+      "trxSha256": "2bfbe97b96003b46509164a2cf3164d330332b298cc788e8a89164032929c42a"
+    },
+    "fullApi": {
+      "passed": 579,
+      "failed": 0,
+      "skipped": 0,
+      "total": 579,
+      "outcome": "Completed",
+      "wallSeconds": 68.572738,
+      "trxSha256": "5b20e0204d9a124e2894cacb351950ab71990499e6cd0494bd6d07e444ef2c9f"
+    },
+    "fullApiFreshTemp": {
+      "passed": 579,
+      "failed": 0,
+      "skipped": 0,
+      "total": 579,
+      "outcome": "Completed",
+      "wallSeconds": 67.673506,
+      "trxSha256": "14e2562d232c60f39b46f67737d6bdbb92be4635deadfe422797aa60760930ca"
+    }
+  },
+  "timeToHeaders": {
+    "withoutReceiver": [
+      {
+        "requestIndex": 1,
+        "status": 200,
+        "timeToHeadersMs": 1913.702
+      },
+      {
+        "requestIndex": 2,
+        "status": 200,
+        "timeToHeadersMs": 9336.734
+      },
+      {
+        "requestIndex": 3,
+        "status": 204,
+        "timeToHeadersMs": 6401.823
+      },
+      {
+        "requestIndex": 4,
+        "status": 404,
+        "timeToHeadersMs": 8503.019
+      }
+    ],
+    "withReceiver": [
+      {
+        "requestIndex": 1,
+        "status": 200,
+        "timeToHeadersMs": 954.694
+      },
+      {
+        "requestIndex": 2,
+        "status": 200,
+        "timeToHeadersMs": 71.872
+      },
+      {
+        "requestIndex": 3,
+        "status": 204,
+        "timeToHeadersMs": 103.37
+      },
+      {
+        "requestIndex": 4,
+        "status": 404,
+        "timeToHeadersMs": 104.034
+      }
+    ]
+  },
+  "diagnosticReceiverObservedExports": 4,
+  "pinnedSources": [
+    {
+      "package": "Aspire.Hosting/Testing",
+      "version": "13.4.6",
+      "commit": "87fe259e4fc244c599019a7b1304c85a1488f248",
+      "files": [
+        "src/Aspire.Hosting.Testing/DistributedApplicationFactory.cs",
+        "src/Aspire.Hosting/ApplicationModel/ResourceLoggerService.cs"
+      ]
+    },
+    {
+      "package": "Aspire.Hosting.AWS",
+      "version": "13.3.1",
+      "tag": "release_2026-06-19",
+      "commit": "b8f5c040b2a41a655ab9ae4d2c528803d5066ae6",
+      "files": [
+        "src/Aspire.Hosting.AWS/Lambda/LambdaExtensions.cs"
+      ]
+    },
+    {
+      "package": "OpenTelemetry.Instrumentation.AWSLambda",
+      "version": "1.16.0",
+      "commit": "e88c07f7d6a0bd8c09346b75cf951d61222e76bb",
+      "files": [
+        "src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaWrapper.cs"
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "tests/BadgeSmith.Api.Tests/Testing/Infrastructure/AspireContractFixture.cs": "edaa600faa8c4349064aa38b11a23555425b64a20394baa4fef480c0f1f6b0a4",
+    "tests/BadgeSmith.Api.Tests/Functional/TelemetryContractTests.cs": "babda362aa124c59746eace6e7e0a0434db064141c63d10af57e9d4d33c0b2c6",
+    "tests/BadgeSmith.Api.Tests/Testing/Infrastructure/wiremock/mappings/otlp-exports.json": "0555c6646cb4749eeb8f637ad545b36ce3e83d2dc0427fd2524aa690301f1f32",
+    "tests/BadgeSmith.Api.Tests/Testing/Infrastructure/ContractHttpClient.cs": "686b1574beb521fd2f327edd8b1309384721b871db6ff50f8f52685d401fe898",
+    "src/BadgeSmith.Api/Core/Routing/Helpers/ResponseHelper.cs": "4e2dce0368667e492834eaf38aafe927cbdbfe08a1fccd2fcb39387ed6e7e983",
+    "src/BadgeSmith.Api/Program.Telemetry.cs": "f218daecea709f24230d1d30f2e037a4e4ca0dc77e303ab87cd5dad3ceb9b129",
+    "Directory.Packages.props": "6541a1108e5492f079d0f0aa7cf9e2dd69da746493f3e5ec1d6de20bf13a53af",
+    "Directory.Build.props": "45149e7f7e34157c0b8231899e0f334db86e28bbba0316a8e22313a94f883421"
+  },
+  "validation": {
+    "performanceProjectBuildWarnings": 0,
+    "performanceProjectBuildErrors": 0,
+    "slopwatchIssues": 0,
+    "temporaryDiagnosticsRemoved": true,
+    "originalHttpClientRestored": true,
+    "priorAllocationPacketUnchanged": true,
+    "productionSourceUnchangedFromAllocationCandidate": true,
+    "allOtherInitialFilesPreserved": true,
+    "initialFilesChecked": 303,
+    "httpClientTimeoutSecondsUnchanged": 60,
+    "orchestrationBoundSeconds": 240,
+    "testSkipsOrTimeoutsRelaxed": false,
+    "dependenciesOrPolicyChanged": false,
+    "headAndIndexUnchanged": true
+  },
+  "earlierAllocationPacketSha256": "8b0b155dd99c6e355284066c2218d456a404146c6fe58b7830457e8ca7144cbd",
+  "productionDeployOrTraffic": false,
+  "notRun": [
+    "new Native AOT publication (no production-source delta)",
+    "hosted CI",
+    "ARM64 runtime execution",
+    "independent review",
+    "commit/push/deploy"
+  ]
+}
