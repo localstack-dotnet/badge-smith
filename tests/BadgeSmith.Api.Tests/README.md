@@ -22,6 +22,11 @@ Contract tests start `src/BadgeSmith.Host` through Aspire Testing and call `APIG
 LocalStack-backed tests require Docker; see [AppHost and contract-test setup](../../docs/engineering/local-development.md#apphost-and-contract-tests)
 for seeding and startup details.
 
+The fixture-owned WireMock server also acknowledges OTLP protobuf exports. Aspire Testing runs
+without the dashboard, so the Lambda exporter points to this test receiver instead of the dashboard
+default. Telemetry and per-invocation flushing stay enabled; the receiver discards telemetry and
+does not validate OTLP payload semantics.
+
 ### Emulator Culture
 
 `APIGatewayEmulator` is started with invariant/C culture in `src/BadgeSmith.Host` so header normalization matches API Gateway HTTP API v2. This prevents Turkish-culture lowercasing from converting `If-None-Match` to `ıf-none-match` and keeps the 304 contract tests executable locally.
