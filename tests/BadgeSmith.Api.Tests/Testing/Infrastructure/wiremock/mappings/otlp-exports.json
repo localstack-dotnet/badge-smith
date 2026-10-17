@@ -1,0 +1,19 @@
+{
+  "id": "908d95fe-8260-4321-a97d-55b57c5d0f8e",
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/otlp(/v1/(traces|logs|metrics))?",
+    "headers": {
+      "Content-Type": {
+        "contains": "application/x-protobuf"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/x-protobuf"
+    },
+    "body": ""
+  }
+}

@@ -3,7 +3,7 @@
 Date: 2026-07-09
 
 Historical evidence for the Iteration 0 local benchmark boundary and the Wave 1 platform refresh.
-Current behavior, commands, and package versions live in [`ARCHITECTURE.md`](../../ARCHITECTURE.md),
+Current behavior, commands, and package versions live in [platform architecture](../architecture/platform-and-delivery.md),
 [`tools/README.md`](../../tools/README.md), the CDK app guides,
 [`docs/ROADMAP.md`](../ROADMAP.md), and [`Directory.Packages.props`](../../Directory.Packages.props).
 

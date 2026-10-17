@@ -1,10 +1,40 @@
----
-name: "S2 Wave 3 hygiene specification ready"
-description: "Priming prompt for the next agent entering BadgeSmith after the Wave 3 hygiene specification was revised and committed at b090992 on 2026-08-20. The spec is implementation-ready and approval-gated; no production code has changed. Recommended next: Increment 1a (Api test safety net + allocation baselines), then Increment 1b (CDK safety net)."
-argument-hint: "Optional focus area, constraints, or reason to start with a different increment"
-agent: "agent"
-model: "inherit"
----
+# Wave 3 specification-ready snapshot
+
+**Attributed historical snapshot:** the original pickup describes itself as authored on
+2026-08-20 at `b0909926e1978094a888dd7934e7f09f480ff71c`. That is the source's stated
+snapshot, not a newly verified authoring or commit date. Its useful body is preserved below
+from the [immutable pickup record](https://github.com/localstack-dotnet/badge-smith/blob/df953f247aed5d03d89b4d1af6bb78e10214effb/docs/agents/handover-prompts/s2-wave3-spec-ready.prompt.md#L9-L181);
+native invocation frontmatter is not part of this research record.
+
+**Superseded as instructions:** Wave 3 is complete. All imperatives, package/tool versions,
+test counts, local state and old paths in the original body are historical statements,
+not current tasks, current configuration or permission to run commands. The former hygiene
+plan is retired. Use [ROADMAP](../ROADMAP.md) for status,
+[runtime and routing](../architecture/runtime-and-routing.md) for HTTP/cache behavior,
+[security and storage](../architecture/security-and-storage.md) for authentication,
+[platform and delivery](../architecture/platform-and-delivery.md) for topology/performance,
+and [coding style](../engineering/coding-style.md) for current authoring rules.
+
+## Recorded completed outcome
+
+The roadmap at [df953f2](https://github.com/localstack-dotnet/badge-smith/blob/df953f247aed5d03d89b4d1af6bb78e10214effb/docs/ROADMAP.md#L19)
+records six delivered increments: shared `LambdaRequestProcessor`; named TestResults route
+extraction with a OneOf result and standard `ErrorResponse` 400s (`MISSING_ROUTE_PARAMETER`);
+provider consistency without a fetch collaborator (`UpstreamCacheEntry`, verbatim weak ETags,
+`Uri.EscapeDataString`, GitHub label fix and an 11-scenario matrix over both providers);
+typed redirect/cache APIs (`RedirectStatus`, validated `PublicCachePolicy`, one
+`BadgeResponsePolicy.PublicCache` preset, exact `no-store` and single-allocation strong ETag);
+`ImmutableArray` route inventory;
+and the cross-layer CDK safety net in `BadgeSmith.CDK.Tests`.
+
+Its recorded allocation evidence was OkCached 1208→704 bytes, NuGet cold/warm 3.28/3.23 KB,
+and GitHub 4.29/3.95 KB per operation. The public `BadgeSmithCloudFrontFactory` extraction
+was recorded as logical-ID/property-neutral by before/after synth comparison; hosted CDK
+tests used setup-node only. These are retained closeout observations, not rerun measurements
+or production INIT/memory evidence. The [CDK test guide](../../tests/BadgeSmith.CDK.Tests/README.md)
+owns current in-process assertion scope.
+
+## Original pickup body
 
 You are the engineer entering BadgeSmith after the Wave 3 hygiene specification was challenged,
 revised, and committed on `master` as `b090992` (`docs: clarify wave 3 allocation and consistency

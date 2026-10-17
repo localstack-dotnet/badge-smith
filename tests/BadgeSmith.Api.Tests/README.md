@@ -2,6 +2,12 @@
 
 The test project uses xUnit v3 on VSTest.
 
+For test authorship and naming, read [coding style](../../docs/engineering/coding-style.md)
+and [testing style](../../docs/engineering/testing-style.md). [Quality gates](../../docs/engineering/quality-gates.md)
+owns validation and evidence boundaries; [local development](../../docs/engineering/local-development.md)
+owns setup, [test triage](../../docs/engineering/local-development.md#test-triage), and
+[required environment](../../docs/engineering/local-development.md#required-environment).
+
 ## Categories
 
 - `Category=Unit`: in-process unit tests.
@@ -13,8 +19,13 @@ The test project uses xUnit v3 on VSTest.
 ## Contract Tests
 
 Contract tests start `src/BadgeSmith.Host` through Aspire Testing and call `APIGatewayEmulator` over HTTP. They do not use Lambda RIE or the Lambda invocation endpoint.
-LocalStack-backed tests require Docker; see the current [agent triage notes](../../docs/agents/KNOWN_ISSUES.md)
+LocalStack-backed tests require Docker; see [AppHost and contract-test setup](../../docs/engineering/local-development.md#apphost-and-contract-tests)
 for seeding and startup details.
+
+The fixture-owned WireMock server also acknowledges OTLP protobuf exports. Aspire Testing runs
+without the dashboard, so the Lambda exporter points to this test receiver instead of the dashboard
+default. Telemetry and per-invocation flushing stay enabled; the receiver discards telemetry and
+does not validate OTLP payload semantics.
 
 ### Emulator Culture
 

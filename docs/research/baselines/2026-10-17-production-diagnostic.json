@@ -1,0 +1,243 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "bounded-report-diagnostic-sample",
+  "investigationLabelDate": "2026-10-17",
+  "runId": "2026-10-16-222505Z",
+  "observedUtcClockDate": "2026-10-16",
+  "clockSource": "local UTC clock; not externally attested",
+  "reviewState": "TWO_OFFLINE_REVIEWS_CONFIRMED",
+  "offlineReviewProvenance": {
+    "hashAlgorithm": "SHA-256",
+    "reviews": [
+      { "lens": "retained-calculations", "verdict": "CONFIRMED", "reportSha256": "7b3b424768a54c18b98a34745f965e9be2e746b3dd662d525c2c6069c0a645b2" },
+      { "lens": "contract-interpretation", "verdict": "CONFIRMED", "reportSha256": "c92d51c557277a62e8907af4159a85dfb43ee52054e1af063b202d7c9dd22ac9" }
+    ],
+    "reviewedArtifactSha256": {
+      "report": "b10861b6bf19ae56d80e8ccd27999d7da28bfcae2cb56583c0bba8122128d5ac",
+      "manifest": "6ce9bdbc94dc2dbf2179bd3131b01d22d8b28dc4aab438a5b8ef3a83000c010a",
+      "sample": "57a378ab87a5f4169e018d1c4446c2bb32827534c92e102878b88ef7ca93c844"
+    },
+    "acquisitionAndProcessIndependentlyAttested": false,
+    "physicalAcceptance": "SEPARATE_GATE_RECEIPT"
+  },
+  "isNumericPerformanceBaseline": false,
+  "fullCohortAuthorized": false,
+  "incrementComplete": false,
+  "report": "../2026-10-17-production-evidence-diagnostic.md",
+  "repository": {
+    "identity": "github.com/localstack-dotnet/badge-smith",
+    "localHead": "1044b6d6e7160fc8a3dedcd3154337a4dfb4bd9f",
+    "deployedSourceCommit": null
+  },
+  "authorization": {
+    "basis": "explicit autonomous execution instruction after presentation of the concrete bounded existing-REPORT diagnostic proposal",
+    "diagnosticOnly": true,
+    "scanCostUncertaintyDisclosed": true,
+    "laterBudgetExpansionAuthorized": false,
+    "newTrafficOrMutationAuthorized": false
+  },
+  "subject": {
+    "account": "377140207735",
+    "region": "eu-central-1",
+    "functionArn": "arn:aws:lambda:eu-central-1:377140207735:function:badge-smith-function",
+    "logGroupName": "/aws/lambda/badge-smith-function",
+    "historicalVersionAttribution": "UNVERIFIED",
+    "route": "unknown",
+    "workload": "unknown"
+  },
+  "acceptedMetadata": {
+    "report": "../2026-10-17-production-evidence-phase-a.md",
+    "reportSha256": "3e832c6853aafd3beb5d6ce8a24445aeeea8328e4dbd4cce31a746635537059e",
+    "manifest": "2026-10-17-phase-a-preflight.json",
+    "manifestSha256": "b719c7ad9f3f8b4d8081a6ab6b2e56080ab32c69bb25912e57a33e4da2f1102c",
+    "functionFieldsPointer": "/currentSnapshot/functionConfiguration/fields"
+  },
+  "caller": {
+    "operation": "sts.GetCallerIdentity",
+    "observedUtc": "2026-10-16T22:25:05.426711Z",
+    "expectedAccountMatched": true,
+    "exactExpectedCallerMatched": true,
+    "checkedBeforeResourceReads": true,
+    "effectivePermissionsAudited": false
+  },
+  "snapshots": {
+    "normalization": "CodeSha256 base64 decoded to hex; LastModified parsed and emitted as microsecond UTC; canonical sorted compact JSON of all 16 accepted fields for digest",
+    "before": {
+      "operation": "lambda.GetFunctionConfiguration",
+      "observedUtc": "2026-10-16T22:25:05.677957Z",
+      "all16FieldsMatchAcceptedManifest": true,
+      "normalizedFieldsSha256": "6e52a1836ec9aff9c81199766c54318a770ca682a2c948c686397cb2e4742935"
+    },
+    "after": {
+      "operation": "lambda.GetFunctionConfiguration",
+      "observedUtc": "2026-10-16T22:25:06.705446Z",
+      "all16FieldsMatchAcceptedManifest": true,
+      "normalizedFieldsSha256": "6e52a1836ec9aff9c81199766c54318a770ca682a2c948c686397cb2e4742935"
+    },
+    "continuousStabilityProven": false,
+    "historicalPackageExecutionProven": false
+  },
+  "retrieval": {
+    "operation": "logs.FilterLogEvents",
+    "windowStartUtc": "2026-10-16T20:58:32.206173Z",
+    "windowEndUtc": "2026-10-16T21:58:32.206173Z",
+    "startTimeEpochMs": 1792184312207,
+    "endTimeEpochMs": 1792187912206,
+    "boundaryRule": "inclusive milliseconds; ceil start and floor end of exact selected window",
+    "filterPattern": "\"REPORT RequestId:\"",
+    "unmask": false,
+    "ordering": "default ascending; no direction parameter supplied",
+    "pageLimitRule": "20 minus ALL previous returned candidates, including rejected and duplicate rows",
+    "stop": "two_page_cap_with_continuation_present",
+    "collectorStopCategory": "page_cap_or_repeated_continuation",
+    "separateRepeatedTokenFactRetained": false,
+    "completePopulation": false,
+    "selection": "capped earliest matching prefix; not random or representative",
+    "pages": [
+      { "page": 1, "observedUtc": "2026-10-16T22:25:06.218379Z", "requestedLimit": 20, "returnedCandidates": 9, "cumulativeCandidates": 9, "continuationPresent": true },
+      { "page": 2, "observedUtc": "2026-10-16T22:25:06.581125Z", "requestedLimit": 11, "returnedCandidates": 5, "cumulativeCandidates": 14, "continuationPresent": true }
+    ],
+    "scanBytes": null,
+    "currencyCost": null,
+    "resultLimitIsHardScanOrSpendCap": false,
+    "documentedEventPayloadBound": "up to 1 MB per page; not exact HTTP/JSON bytes or internal scan bytes"
+  },
+  "limits": {
+    "maxAwsSdkEntriesIncludingAuth": 6,
+    "maxHttpDispatchesIncludingAuth": 6,
+    "maxEventPages": 2,
+    "maxReturnedCandidates": 20,
+    "totalMaxAttemptsPerSdkCall": 1,
+    "retries": 0,
+    "concurrency": 1,
+    "connectTimeoutSeconds": 3,
+    "readTimeoutSeconds": 5,
+    "liveHorizonSeconds": 120,
+    "maxCombinedNewReportJsonCsvBytes": 65536,
+    "officialRegionalHttpsOnly": true,
+    "rawMessagesAndTokensRetained": false
+  },
+  "acquisition": {
+    "outcome": "ACQUIRED_SAMPLE",
+    "failureCategory": null,
+    "stopStage": "complete",
+    "liveStartedUtc": "2026-10-16T22:25:05.079064Z",
+    "finishedUtc": "2026-10-16T22:25:06.705519Z",
+    "elapsedSeconds": "1.626455",
+    "sdkEntries": 6,
+    "httpDispatches": 6,
+    "normalAuthSdkEntriesIncluded": 1,
+    "retriesRecorded": 0,
+    "accountingAttestation": "collector in-process SDK-entry/transport hooks and controls, not independent forensic attestation",
+    "sdkEntryOrder": [ "sts.GetCallerIdentity", "sts.AssumeRole", "lambda.GetFunctionConfiguration", "logs.FilterLogEvents", "logs.FilterLogEvents", "lambda.GetFunctionConfiguration" ],
+    "httpReceipts": [
+      { "dispatch": 1, "sdkEntry": 2, "operation": "sts.AssumeRole", "startedUtc": "2026-10-16T22:25:05.126278Z", "finishedUtc": "2026-10-16T22:25:05.286964Z", "httpStatus": 200 },
+      { "dispatch": 2, "sdkEntry": 1, "operation": "sts.GetCallerIdentity", "startedUtc": "2026-10-16T22:25:05.288900Z", "finishedUtc": "2026-10-16T22:25:05.426308Z", "httpStatus": 200 },
+      { "dispatch": 3, "sdkEntry": 3, "operation": "lambda.GetFunctionConfiguration", "startedUtc": "2026-10-16T22:25:05.434033Z", "finishedUtc": "2026-10-16T22:25:05.677064Z", "httpStatus": 200 },
+      { "dispatch": 4, "sdkEntry": 4, "operation": "logs.FilterLogEvents", "startedUtc": "2026-10-16T22:25:05.685656Z", "finishedUtc": "2026-10-16T22:25:06.217957Z", "httpStatus": 200 },
+      { "dispatch": 5, "sdkEntry": 5, "operation": "logs.FilterLogEvents", "startedUtc": "2026-10-16T22:25:06.219632Z", "finishedUtc": "2026-10-16T22:25:06.580803Z", "httpStatus": 200 },
+      { "dispatch": 6, "sdkEntry": 6, "operation": "lambda.GetFunctionConfiguration", "startedUtc": "2026-10-16T22:25:06.582152Z", "finishedUtc": "2026-10-16T22:25:06.704980Z", "httpStatus": 200 }
+    ]
+  },
+  "counts": {
+    "returnedCandidates": 14,
+    "acceptedUniqueRows": 14,
+    "reportedInitRows": 8,
+    "missingInitRows": 6,
+    "pairedInitPlusDurationRows": 8,
+    "distinctOpaqueStreams": 9,
+    "rejectedRows": 0,
+    "rejectionsByReason": {},
+    "duplicateRows": 0,
+    "duplicatesByReason": {},
+    "reportedMemoryMismatchRows": 0,
+    "statusCounts": { "not_reported": 14 },
+    "errorTypePresentRows": 0,
+    "reportedInitAbove100MsRows": 7,
+    "reportedMaxMemoryAbove50MbRows": 8,
+    "completeWindowReportCount": null,
+    "completeColdCount": null
+  },
+  "sample": {
+    "csv": "2026-10-17-production-report-sample.csv",
+    "sha256": "57a378ab87a5f4169e018d1c4446c2bb32827534c92e102878b88ef7ca93c844",
+    "bytes": 3240,
+    "rows": 14,
+    "firstEventUtc": "2026-10-16T21:00:20.392000Z",
+    "lastEventUtc": "2026-10-16T21:45:48.462000Z",
+    "nullEncoding": "empty CSV cells for absent Init Duration and Error Type; reportedInitPresent is explicit true/false",
+    "decimalEncoding": "exact observed unsigned decimal strings in CSV and exact decimal-string statistics in JSON",
+    "units": { "durationMs": "ms", "billedDurationMs": "ms; billing, not client latency", "initDurationMs": "ms when reported; otherwise null", "memorySizeMb": "MB configured", "maxMemoryUsedMb": "MB; invocation-weighted environment high-water observation", "eventEpochMs": "integer Unix epoch milliseconds", "ingestionEpochMs": "integer Unix epoch milliseconds" },
+    "opaqueKeyRule": "first 24 lowercase hex characters of SHA-256(UTF8(namespace + NUL + group + NUL + kind + NUL + sourceIdentifier)); namespace=badgesmith-report-diagnostic-20261017; kind=event/request/stream; request UUID normalized lowercase; no message hashes",
+    "deduplication": "event key first across all metadata-valid candidates, then request key across fully parsed candidates; all returned candidates count toward cap",
+    "rowSnapshotReferences": "before and after are collection-time references only, not per-row historical package attribution"
+  },
+  "statisticsMethod": {
+    "scope": "descriptive sample only",
+    "p95": "ascending exact decimals; one-based rank ceil(0.95*n), equivalently (95*n+99)//100; empty groups have null values",
+    "median": "middle value for odd n; arithmetic mean of two middle values for even n",
+    "pairing": "add reported Init Duration and Duration from the same row before sorting; missing INIT is not zero",
+    "isRepresentativeProductionP95": false
+  },
+  "statistics": {
+    "durationMs": { "n": 14, "min": "3.00", "median": "164.27", "p95Rank": 14, "sampleP95": "256.03", "max": "256.03" },
+    "maxMemoryUsedMb": { "n": 14, "min": "46", "median": "51", "p95Rank": 14, "sampleP95": "53", "max": "53" },
+    "reportedInitDurationMs": { "n": 8, "min": "90.05", "median": "112.485", "p95Rank": 8, "sampleP95": "144.64", "max": "144.64" },
+    "pairedInitPlusDurationMs": { "n": 8, "min": "212.06", "median": "340.695", "p95Rank": 8, "sampleP95": "369.43", "max": "369.43" },
+    "billedDurationMs": { "n": 14, "min": "3", "median": "238.5", "p95Rank": 14, "sampleP95": "370", "max": "370" }
+  },
+  "parser": {
+    "kind": "anchored full-line Text REPORT grammar; fullmatch, never substring extraction",
+    "exactPythonRegex": "REPORT RequestId: (?P<request>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[ \\t]+Duration: (?P<duration>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms[ \\t]+Billed Duration: (?P<billed>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms[ \\t]+Memory Size: (?P<memory>[0-9]{1,9}) MB[ \\t]+Max Memory Used: (?P<maximum>[0-9]{1,9}) MB(?:[ \\t]+Init Duration: (?P<init>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms)?(?:[ \\t]+Status: (?P<status>success|error|timeout)(?:[ \\t]+Error Type: (?P<error>Runtime\\.ExitError|Extension\\.Crash))?)?[ \\t]*",
+    "flags": "re.ASCII",
+    "lineEndingRule": "remove one terminal LF and then one terminal CR; no arbitrary strip/substrings",
+    "maxMessageCharactersTransient": 4096,
+    "numericRule": "finite nonnegative Decimal; configured memory must be positive",
+    "statusRule": "Error Type only permitted with Status error; absent Status remains not_reported, not success",
+    "metadataRule": "integer event timestamp inside selected bounds, nonnegative bounded ingestion time, numeric source event ID and standard date/version/hex stream layout before opaque projection",
+    "rejectionCategories": [ "unsupported_layout", "unsupported_status_combination", "invalid_numeric", "unsafe_event_metadata", "invalid_timestamp_or_outside_window" ],
+    "duplicateCategories": [ "event_overlap", "request_overlap" ],
+    "cryptographicPlatformOriginProven": false,
+    "unsupportedLayoutsEchoed": false
+  },
+  "controls": {
+    "attribution": "Producer acquisition/process controls remain collector-reported; two fresh offline reviews independently exercised retained parsing methods, reproduced calculations and checked contract interpretation; no independent acquisition/process attestation. Synthetic fixtures are not observations.",
+    "sdk": "Boto3 1.40.72 / Botocore 1.40.72; installed existing environment",
+    "anchored_parser_units_numeric_status_app_text_rejection": "PASS",
+    "missing_init_remains_null": "PASS",
+    "synthetic_exact_report_shape_not_origin_proof": "PASS",
+    "wrong_caller_rejected": "PASS",
+    "safe_config_projection_and_each_source_field_drift": "PASS",
+    "nearest_rank_median_empty_and_paired_before_percentile": "PASS",
+    "exact_ceil_floor_window_remaining_candidate_count": "PASS",
+    "nested_auth_global_sdk_send_caps_retry_endpoint_rejection": "PASS",
+    "default_and_explicit_client_transport_policy": "PASS",
+    "synthetic_data_never_observed_rows": "PASS",
+    "rawProjection": "allowlisted fields only; Environment/raw responses/messages/tokens/credential values/debug logs/arbitrary exceptions excluded before retained output",
+    "authenticationPrecondition": "normal sanctioned SDK role resolution; no guessed role ARN or session-name precondition on auth parameters"
+  },
+  "proofStates": {
+    "performanceCompliance": "UNVERIFIED",
+    "initCompliance": "UNVERIFIED",
+    "memoryCompliance": "UNVERIFIED",
+    "consumedZipSizeCompliance": "UNVERIFIED",
+    "executedPackageAndRuntime": "UNVERIFIED",
+    "historicalSourceAndCleanInterval": "UNVERIFIED",
+    "completeReportAndColdCensus": "UNVERIFIED",
+    "routeAndClientLatency": "UNVERIFIED",
+    "suppressedInitVisibility": "LIMITED_REPORT_ONLY",
+    "noAutomaticNumericalErasureForAttributionGaps": true
+  },
+  "preservation": {
+    "excludedFromAggregate": [ "docs/ROADMAP.md", "docs/plans/2026-10-16-production-evidence-collection.md", "the three new diagnostic report/JSON/CSV paths" ],
+    "previousFileCount": 292,
+    "previousFilesAggregateSha256": "92158c19a0ee05f15c145060bbc9e6d27e6faf2c94455c69adab04d79b2a33e0",
+    "aggregateMethod": "sorted nonempty Git cached/other exclude-standard regular-file paths; SHA-256 of newline-joined path + NUL + file SHA-256, excluding this run's five allowed repository paths"
+  },
+  "notRun": [ "full-cohort collection or other AWS sources", "Insights or stream/resource discovery", "production HTTP, Lambda invoke or new traffic", "downloads or GitHub requests", "mutations, deployment or configuration changes", "builds, tests, benchmarks, installs, commits or push" ],
+  "methodReferences": [
+    "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html",
+    "https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html"
+  ]
+}

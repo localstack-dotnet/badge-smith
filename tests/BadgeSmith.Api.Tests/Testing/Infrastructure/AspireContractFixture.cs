@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Amazon.DynamoDBv2;
 using Amazon.Runtime;
 using Amazon.SecretsManager;
 using Aspire.Hosting;
+using Aspire.Hosting.AWS.Lambda;
 using Aspire.Hosting.Testing;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
@@ -21,6 +23,7 @@ public sealed class AspireContractFixtureRegistration : ICollectionFixture<Aspir
 public sealed class AspireContractFixture : IAsyncLifetime
 {
     private const string Region = "eu-central-1";
+    private const string TelemetryStubId = "908d95fe-8260-4321-a97d-55b57c5d0f8e";
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(5);
 
     private DistributedApplication? _app;
@@ -56,6 +59,13 @@ public sealed class AspireContractFixture : IAsyncLifetime
             .CreateAsync<Projects.BadgeSmith_Host>()
             .ConfigureAwait(false);
 
+        // Testing runs without the dashboard. Keep Lambda's telemetry flush enabled,
+        // but give its exporter a test-owned endpoint instead of the dashboard default.
+        var lambda = builder.Resources.OfType<LambdaProjectResource>().Single();
+        builder.CreateResourceBuilder(lambda)
+            .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", wiremockBaseUrl + "/otlp")
+            .WithEnvironment("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf");
+
         _app = await builder.BuildAsync().ConfigureAwait(false);
 
         using var startupCts = new CancellationTokenSource(StartupTimeout);
@@ -80,6 +90,26 @@ public sealed class AspireContractFixture : IAsyncLifetime
         });
 
         await AwsTestSeeder.CreateTablesAndSecretsAsync(DynamoDb, Secrets).ConfigureAwait(false);
+    }
+
+    public async Task<int> CountTelemetryExportsAsync(CancellationToken ct)
+    {
+        var wiremock = _wiremock ?? throw new InvalidOperationException("The contract fixture has not started.");
+        using var client = new HttpClient();
+        var endpoint = new Uri($"http://{wiremock.Hostname}:{wiremock.GetMappedPublicPort(8080)}/__admin/requests?matchingStub={TelemetryStubId}");
+        using var response = await client.GetAsync(endpoint, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+        var count = 0;
+        foreach (var export in document.RootElement.GetProperty("requests").EnumerateArray())
+        {
+            if (export.GetProperty("wasMatched").GetBoolean() && export.GetProperty("responseDefinition").GetProperty("status").GetInt32() == 200)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public async ValueTask DisposeAsync()

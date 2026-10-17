@@ -53,7 +53,7 @@ planned request without mutating anything.
 Both `tests ingest` and `badge update` sign the canonical `POST` method, logical
 ingestion route, trimmed timestamp and nonce, and exact request body. The resulting
 `X-Signature` uses `sha256=` followed by 64 lowercase hexadecimal characters. See
-[ARCHITECTURE.md](../ARCHITECTURE.md#canonical-hmac-authentication) for the exact field
+[security architecture](../docs/architecture/security-and-storage.md#canonical-hmac-authentication) for the exact field
 order, normalization, escaping, timestamp policy, and nonce behavior.
 
 Both commands read the shared secret from `BADGESMITH_HMAC_SECRET`; neither accepts
@@ -139,7 +139,7 @@ export BADGESMITH_HMAC_SECRET="$HMAC_SECRET"
   --dry-run
 ```
 
-See [ARCHITECTURE.md](../ARCHITECTURE.md#canonical-hmac-authentication) for the HMAC
+See [security architecture](../docs/architecture/security-and-storage.md#canonical-hmac-authentication) for the HMAC
 authentication contract and replay protection.
 
 ### `badge update`
@@ -278,4 +278,4 @@ orchestration — remains deferred. When implemented, it will consume the dedica
 LocalStack-only `BadgeSmith.CDK.LocalPerformance` app as its infrastructure boundary;
 the app is never deployed to AWS. See the
 [local-performance CDK guide](../build/BadgeSmith.CDK.LocalPerformance/README.md) for the current manual build and
-synthesis workflow, and `docs/ROADMAP.md` (Inbox / Untriaged) for the planned command.
+synthesis workflow, and [the roadmap backlog](../docs/ROADMAP.md#backlog) for the planned command.

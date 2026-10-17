@@ -7,4 +7,4 @@ Naming: `YYYY-MM-DD-<workstream>.md`. A plan should produce working, verifiable 
 on its own and should not become a permanent duplicate history.
 
 Plans are transient and cannot override current canon. See the
-[documentation guide](../README.md) for authority and lossless-relocation rules.
+[documentation policy](../engineering/documentation.md) for authority and lossless-relocation rules.

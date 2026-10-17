@@ -35,7 +35,7 @@
   signature verification succeeds
 
 Canonical request construction is a hard-cut contract. See
-**[ARCHITECTURE.md](ARCHITECTURE.md#canonical-hmac-authentication)** for the exact field
+**[security architecture](docs/architecture/security-and-storage.md#canonical-hmac-authentication)** for the exact field
 order, normalization, escaping, and signature envelope.
 
 ### **⚡ Performance Optimizations**
@@ -48,7 +48,7 @@ order, normalization, escaping, and signature envelope.
 - **CloudFront-compatible** with proper cache headers
 
 These are design targets, not claims about every deployed revision. See
-**[ARCHITECTURE.md](ARCHITECTURE.md#performance-goals)** for the measurement contract and
+**[platform architecture](docs/architecture/platform-and-delivery.md#performance-goals)** for the measurement contract and
 the dated baselines linked from it.
 
 ### **🎯 Flexible Design**
@@ -110,7 +110,10 @@ Client → CloudFront → API Gateway → Lambda → DynamoDB/Secrets Manager
 - **DynamoDB** - NoSQL storage with GSI optimization
 - **Custom routing** - High-performance request handling
 
-For detailed architectural decisions, performance considerations, data design, and deployment strategies, see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+For detailed architecture, see **[runtime and routing](docs/architecture/runtime-and-routing.md)**,
+**[security and storage](docs/architecture/security-and-storage.md)**, and
+**[platform and delivery](docs/architecture/platform-and-delivery.md)**. Accepted trade-offs live in
+the **[decision records](docs/adr/README.md)**.
 
 ## 🚀 **Quick Start**
 
@@ -219,7 +222,9 @@ Contributions are welcome! The codebase includes:
 - Zero warnings policy for code quality
 - Native AOT compatibility throughout
 
-The [documentation guide](docs/README.md) explains where current architecture,
+The [consumer guide](docs/guide/README.md) covers package badges and test-result publication;
+the [glossary](GLOSSARY.md) defines domain terms.
+The [documentation policy](docs/engineering/documentation.md) explains where current architecture,
 operational instructions, roadmap state, decisions, and dated evidence belong.
 Hand-written C# follows the repository's
 [decomposition and composition guidance](docs/engineering/coding-style.md).

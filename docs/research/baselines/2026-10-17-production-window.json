@@ -1,0 +1,1369 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "bounded-frozen-last24hour-available-matched-report-population",
+  "isNumericPerformanceBaseline": false,
+  "boundedReadConcluded": true,
+  "incrementComplete": false,
+  "investigationLabelDate": "2026-10-17",
+  "runId": "2026-10-16-230023Z",
+  "observedUtcClockDate": "2026-10-16",
+  "clockSource": "local UTC clock, not externally attested",
+  "report": "../2026-10-17-production-evidence-window.md",
+  "repository": {
+    "identity": "github.com/localstack-dotnet/badge-smith",
+    "localHead": "1044b6d6e7160fc8a3dedcd3154337a4dfb4bd9f",
+    "deployedSourceCommit": null
+  },
+  "authorization": {
+    "basis": "explicit user instruction to execute the proposed bounded last24hour wider read autonomously without more questions",
+    "maxAwsAttemptsIncludingAuth": 30,
+    "maxLogPages": 20,
+    "maxReturnedCandidatesIncludingRejectedAndDuplicates": 5000,
+    "maxCombinedNewReportJsonCsvBytes": 2097152,
+    "maxOptionalMetadataCalls": 6,
+    "noTrafficOrMutations": true,
+    "scanCostUncertaintyDisclosed": true,
+    "silentExpansionAuthorized": false
+  },
+  "subject": {
+    "account": "377140207735",
+    "region": "eu-central-1",
+    "functionArn": "arn:aws:lambda:eu-central-1:377140207735:function:badge-smith-function",
+    "logGroupName": "/aws/lambda/badge-smith-function",
+    "stackId": "arn:aws:cloudformation:eu-central-1:377140207735:stack/BadgeSmithStack/1b26f040-8467-11f0-97ea-06c36a337e67",
+    "apiId": "g4yecfi5hl",
+    "route": "unknown",
+    "workload": "unknown",
+    "historicalSourceCommit": null
+  },
+  "caller": {
+    "observedUtc": "2026-10-16T23:00:23.564730Z",
+    "expectedAccountAndExactCallerMatched": true,
+    "checkedBeforeResourceReads": true,
+    "effectivePermissionsAudited": false
+  },
+  "acceptedMetadata": {
+    "manifest": "2026-10-17-phase-a-preflight.json",
+    "manifestSha256": "b719c7ad9f3f8b4d8081a6ab6b2e56080ab32c69bb25912e57a33e4da2f1102c",
+    "functionFieldsPointer": "/currentSnapshot/functionConfiguration/fields",
+    "fields": {
+      "FunctionArn": "arn:aws:lambda:eu-central-1:377140207735:function:badge-smith-function",
+      "FunctionName": "badge-smith-function",
+      "Version": "$LATEST",
+      "RevisionId": "105c54c1-24ba-4fea-bbf7-af9224362815",
+      "PackageType": "Zip",
+      "CodeSha256": "XMqT0JsfQOuIufjqVEyW+jMJpzmvajt60PVxudfwBLs=",
+      "CodeSha256Hex": "5cca93d09b1f40eb88b9f8ea544c96fa3309a739af6a3b7ad0f571b9d7f004bb",
+      "CodeSize": 5986396,
+      "LastModified": "2026-08-08T12:28:26.000+0000",
+      "LastModifiedUtc": "2026-08-08T12:28:26.000000Z",
+      "Runtime": "provided.al2023",
+      "Architectures": [
+        "arm64"
+      ],
+      "MemorySize": 512,
+      "State": "Active",
+      "LastUpdateStatus": "Successful",
+      "LoggingConfig": {
+        "LogFormat": "Text",
+        "LogGroup": "/aws/lambda/badge-smith-function"
+      }
+    }
+  },
+  "snapshots": {
+    "before": {
+      "operation": "lambda.GetFunctionConfiguration",
+      "observedUtc": "2026-10-16T23:00:23.833443Z",
+      "all16FieldsMatchAcceptedManifest": true,
+      "driftFieldNames": [],
+      "normalizedFieldsSha256": "6e52a1836ec9aff9c81199766c54318a770ca682a2c948c686397cb2e4742935"
+    },
+    "after": {
+      "operation": "lambda.GetFunctionConfiguration",
+      "observedUtc": "2026-10-16T23:00:33.543407Z",
+      "all16FieldsMatchAcceptedManifest": true,
+      "driftFieldNames": [],
+      "normalizedFieldsSha256": "6e52a1836ec9aff9c81199766c54318a770ca682a2c948c686397cb2e4742935"
+    },
+    "allBeforeAfterFieldsMatched": true,
+    "historicalExecutionOrContinuousStabilityProven": false,
+    "normalization": "CodeSha256 base64 decoded to hex; LastModified parsed and emitted as microsecond UTC; canonical sorted compact JSON of all 16 accepted fields for digest"
+  },
+  "retrieval": {
+    "operation": "logs.FilterLogEvents",
+    "windowStartUtc": "2026-10-15T23:00:23.833443Z",
+    "windowEndUtc": "2026-10-16T23:00:23.833443Z",
+    "windowSeconds": 86400,
+    "startTimeEpochMs": 1792105223834,
+    "endTimeEpochMs": 1792191623833,
+    "boundaryRule": "inclusive API milliseconds, ceil exact start and floor exact end",
+    "filterPattern": "\"REPORT RequestId:\"",
+    "unmask": false,
+    "ordering": "default ascending; no direction parameter",
+    "limitRule": "min(10000,5000 minus ALL previously returned candidates)",
+    "stop": "page_cap_with_continuation",
+    "pages": [
+      {
+        "page": 1,
+        "observedUtc": "2026-10-16T23:00:24.465484Z",
+        "requestedLimit": 5000,
+        "returnedCandidates": 8,
+        "cumulativeCandidates": 8,
+        "acceptedUniqueRows": 8,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 2,
+        "observedUtc": "2026-10-16T23:00:24.865924Z",
+        "requestedLimit": 4992,
+        "returnedCandidates": 6,
+        "cumulativeCandidates": 14,
+        "acceptedUniqueRows": 6,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 3,
+        "observedUtc": "2026-10-16T23:00:25.317489Z",
+        "requestedLimit": 4986,
+        "returnedCandidates": 6,
+        "cumulativeCandidates": 20,
+        "acceptedUniqueRows": 6,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 4,
+        "observedUtc": "2026-10-16T23:00:25.839418Z",
+        "requestedLimit": 4980,
+        "returnedCandidates": 16,
+        "cumulativeCandidates": 36,
+        "acceptedUniqueRows": 16,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 5,
+        "observedUtc": "2026-10-16T23:00:26.408840Z",
+        "requestedLimit": 4964,
+        "returnedCandidates": 206,
+        "cumulativeCandidates": 242,
+        "acceptedUniqueRows": 206,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 6,
+        "observedUtc": "2026-10-16T23:00:26.905718Z",
+        "requestedLimit": 4758,
+        "returnedCandidates": 26,
+        "cumulativeCandidates": 268,
+        "acceptedUniqueRows": 26,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 7,
+        "observedUtc": "2026-10-16T23:00:27.447024Z",
+        "requestedLimit": 4732,
+        "returnedCandidates": 19,
+        "cumulativeCandidates": 287,
+        "acceptedUniqueRows": 19,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 8,
+        "observedUtc": "2026-10-16T23:00:27.704875Z",
+        "requestedLimit": 4713,
+        "returnedCandidates": 3,
+        "cumulativeCandidates": 290,
+        "acceptedUniqueRows": 3,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 9,
+        "observedUtc": "2026-10-16T23:00:28.064159Z",
+        "requestedLimit": 4710,
+        "returnedCandidates": 9,
+        "cumulativeCandidates": 299,
+        "acceptedUniqueRows": 9,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 10,
+        "observedUtc": "2026-10-16T23:00:28.642828Z",
+        "requestedLimit": 4701,
+        "returnedCandidates": 12,
+        "cumulativeCandidates": 311,
+        "acceptedUniqueRows": 12,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 11,
+        "observedUtc": "2026-10-16T23:00:29.050046Z",
+        "requestedLimit": 4689,
+        "returnedCandidates": 15,
+        "cumulativeCandidates": 326,
+        "acceptedUniqueRows": 15,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 12,
+        "observedUtc": "2026-10-16T23:00:29.470069Z",
+        "requestedLimit": 4674,
+        "returnedCandidates": 11,
+        "cumulativeCandidates": 337,
+        "acceptedUniqueRows": 11,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 13,
+        "observedUtc": "2026-10-16T23:00:29.721314Z",
+        "requestedLimit": 4663,
+        "returnedCandidates": 3,
+        "cumulativeCandidates": 340,
+        "acceptedUniqueRows": 3,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 14,
+        "observedUtc": "2026-10-16T23:00:30.247861Z",
+        "requestedLimit": 4660,
+        "returnedCandidates": 29,
+        "cumulativeCandidates": 369,
+        "acceptedUniqueRows": 29,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 15,
+        "observedUtc": "2026-10-16T23:00:30.608199Z",
+        "requestedLimit": 4631,
+        "returnedCandidates": 14,
+        "cumulativeCandidates": 383,
+        "acceptedUniqueRows": 14,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 16,
+        "observedUtc": "2026-10-16T23:00:30.994437Z",
+        "requestedLimit": 4617,
+        "returnedCandidates": 4,
+        "cumulativeCandidates": 387,
+        "acceptedUniqueRows": 4,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 17,
+        "observedUtc": "2026-10-16T23:00:31.506846Z",
+        "requestedLimit": 4613,
+        "returnedCandidates": 10,
+        "cumulativeCandidates": 397,
+        "acceptedUniqueRows": 10,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 18,
+        "observedUtc": "2026-10-16T23:00:31.757400Z",
+        "requestedLimit": 4603,
+        "returnedCandidates": 6,
+        "cumulativeCandidates": 403,
+        "acceptedUniqueRows": 6,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 19,
+        "observedUtc": "2026-10-16T23:00:32.060057Z",
+        "requestedLimit": 4597,
+        "returnedCandidates": 8,
+        "cumulativeCandidates": 411,
+        "acceptedUniqueRows": 8,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      },
+      {
+        "page": 20,
+        "observedUtc": "2026-10-16T23:00:32.354410Z",
+        "requestedLimit": 4589,
+        "returnedCandidates": 2,
+        "cumulativeCandidates": 413,
+        "acceptedUniqueRows": 2,
+        "rejectedRows": 0,
+        "duplicateRows": 0,
+        "continuationPresent": true,
+        "tokenRepeated": false,
+        "emptyPage": false
+      }
+    ],
+    "paginationComplete": false,
+    "parsedCoverage": true,
+    "priorPilotCoverageReconciled": true,
+    "filteredAvailableREPORTPopulationComplete": false,
+    "availableAsOfUtc": "2026-10-16T23:00:32.354410Z",
+    "notAtomicSnapshot": true,
+    "lateIngestionOrDroppedUnloggedReportsExcluded": false,
+    "completeColdCensusProven": false,
+    "scanBytes": null,
+    "currencyCost": null,
+    "resultLimitsAreHardScanOrSpendCap": false
+  },
+  "acquisition": {
+    "failureCategory": null,
+    "liveStartedUtc": "2026-10-16T23:00:23.210313Z",
+    "finishedUtc": "2026-10-16T23:00:33.543456Z",
+    "elapsedSeconds": "10.333146",
+    "sdkEntries": 29,
+    "httpDispatches": 29,
+    "normalAuthSdkEntriesIncluded": 1,
+    "operationCounts": {
+      "sts.GetCallerIdentity": 1,
+      "sts.AssumeRole": 1,
+      "lambda.GetFunctionConfiguration": 2,
+      "logs.FilterLogEvents": 20,
+      "cloudformation.DescribeStacks": 1,
+      "cloudformation.GetTemplate": 1,
+      "cloudformation.DescribeStackEvents": 1,
+      "apigatewayv2.GetStages": 1,
+      "apigatewayv2.GetIntegrations": 1
+    },
+    "retriesRecorded": 0,
+    "sdkEntryReceipts": [
+      {
+        "entry": 1,
+        "operation": "sts.GetCallerIdentity",
+        "startedUtc": "2026-10-16T23:00:23.249848Z",
+        "finishedUtc": "2026-10-16T23:00:23.564718Z"
+      },
+      {
+        "entry": 2,
+        "operation": "sts.AssumeRole",
+        "startedUtc": "2026-10-16T23:00:23.252090Z",
+        "finishedUtc": "2026-10-16T23:00:23.404134Z"
+      },
+      {
+        "entry": 3,
+        "operation": "lambda.GetFunctionConfiguration",
+        "startedUtc": "2026-10-16T23:00:23.571007Z",
+        "finishedUtc": "2026-10-16T23:00:23.833387Z"
+      },
+      {
+        "entry": 4,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:23.840310Z",
+        "finishedUtc": "2026-10-16T23:00:24.465465Z"
+      },
+      {
+        "entry": 5,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:24.466204Z",
+        "finishedUtc": "2026-10-16T23:00:24.865915Z"
+      },
+      {
+        "entry": 6,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:24.866461Z",
+        "finishedUtc": "2026-10-16T23:00:25.317479Z"
+      },
+      {
+        "entry": 7,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:25.318031Z",
+        "finishedUtc": "2026-10-16T23:00:25.839400Z"
+      },
+      {
+        "entry": 8,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:25.841803Z",
+        "finishedUtc": "2026-10-16T23:00:26.408828Z"
+      },
+      {
+        "entry": 9,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:26.423132Z",
+        "finishedUtc": "2026-10-16T23:00:26.905707Z"
+      },
+      {
+        "entry": 10,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:26.907912Z",
+        "finishedUtc": "2026-10-16T23:00:27.447008Z"
+      },
+      {
+        "entry": 11,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:27.448408Z",
+        "finishedUtc": "2026-10-16T23:00:27.704865Z"
+      },
+      {
+        "entry": 12,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:27.705215Z",
+        "finishedUtc": "2026-10-16T23:00:28.064149Z"
+      },
+      {
+        "entry": 13,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:28.064932Z",
+        "finishedUtc": "2026-10-16T23:00:28.642810Z"
+      },
+      {
+        "entry": 14,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:28.644061Z",
+        "finishedUtc": "2026-10-16T23:00:29.050028Z"
+      },
+      {
+        "entry": 15,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:29.051240Z",
+        "finishedUtc": "2026-10-16T23:00:29.470060Z"
+      },
+      {
+        "entry": 16,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:29.471030Z",
+        "finishedUtc": "2026-10-16T23:00:29.721304Z"
+      },
+      {
+        "entry": 17,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:29.721629Z",
+        "finishedUtc": "2026-10-16T23:00:30.247842Z"
+      },
+      {
+        "entry": 18,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:30.251760Z",
+        "finishedUtc": "2026-10-16T23:00:30.608179Z"
+      },
+      {
+        "entry": 19,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:30.609283Z",
+        "finishedUtc": "2026-10-16T23:00:30.994419Z"
+      },
+      {
+        "entry": 20,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:30.995240Z",
+        "finishedUtc": "2026-10-16T23:00:31.506828Z"
+      },
+      {
+        "entry": 21,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:31.508406Z",
+        "finishedUtc": "2026-10-16T23:00:31.757391Z"
+      },
+      {
+        "entry": 22,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:31.757937Z",
+        "finishedUtc": "2026-10-16T23:00:32.060047Z"
+      },
+      {
+        "entry": 23,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:32.060743Z",
+        "finishedUtc": "2026-10-16T23:00:32.354392Z"
+      },
+      {
+        "entry": 24,
+        "operation": "cloudformation.DescribeStacks",
+        "startedUtc": "2026-10-16T23:00:32.364629Z",
+        "finishedUtc": "2026-10-16T23:00:32.615121Z"
+      },
+      {
+        "entry": 25,
+        "operation": "cloudformation.GetTemplate",
+        "startedUtc": "2026-10-16T23:00:32.615179Z",
+        "finishedUtc": "2026-10-16T23:00:32.790749Z"
+      },
+      {
+        "entry": 26,
+        "operation": "cloudformation.DescribeStackEvents",
+        "startedUtc": "2026-10-16T23:00:32.790999Z",
+        "finishedUtc": "2026-10-16T23:00:32.936954Z"
+      },
+      {
+        "entry": 27,
+        "operation": "apigatewayv2.GetStages",
+        "startedUtc": "2026-10-16T23:00:32.943099Z",
+        "finishedUtc": "2026-10-16T23:00:33.251502Z"
+      },
+      {
+        "entry": 28,
+        "operation": "apigatewayv2.GetIntegrations",
+        "startedUtc": "2026-10-16T23:00:33.251638Z",
+        "finishedUtc": "2026-10-16T23:00:33.362542Z"
+      },
+      {
+        "entry": 29,
+        "operation": "lambda.GetFunctionConfiguration",
+        "startedUtc": "2026-10-16T23:00:33.362593Z",
+        "finishedUtc": "2026-10-16T23:00:33.543362Z"
+      }
+    ],
+    "httpReceipts": [
+      {
+        "dispatch": 1,
+        "sdkEntry": 2,
+        "operation": "sts.AssumeRole",
+        "startedUtc": "2026-10-16T23:00:23.253294Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:23.403484Z"
+      },
+      {
+        "dispatch": 2,
+        "sdkEntry": 1,
+        "operation": "sts.GetCallerIdentity",
+        "startedUtc": "2026-10-16T23:00:23.405513Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:23.564374Z"
+      },
+      {
+        "dispatch": 3,
+        "sdkEntry": 3,
+        "operation": "lambda.GetFunctionConfiguration",
+        "startedUtc": "2026-10-16T23:00:23.572172Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:23.832487Z"
+      },
+      {
+        "dispatch": 4,
+        "sdkEntry": 4,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:23.841285Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:24.464787Z"
+      },
+      {
+        "dispatch": 5,
+        "sdkEntry": 5,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:24.466815Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:24.865736Z"
+      },
+      {
+        "dispatch": 6,
+        "sdkEntry": 6,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:24.867146Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:25.317287Z"
+      },
+      {
+        "dispatch": 7,
+        "sdkEntry": 7,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:25.318644Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:25.838968Z"
+      },
+      {
+        "dispatch": 8,
+        "sdkEntry": 8,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:25.842984Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:26.407392Z"
+      },
+      {
+        "dispatch": 9,
+        "sdkEntry": 9,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:26.423854Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:26.905381Z"
+      },
+      {
+        "dispatch": 10,
+        "sdkEntry": 10,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:26.908614Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:27.446584Z"
+      },
+      {
+        "dispatch": 11,
+        "sdkEntry": 11,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:27.449024Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:27.704711Z"
+      },
+      {
+        "dispatch": 12,
+        "sdkEntry": 12,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:27.705874Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:28.063962Z"
+      },
+      {
+        "dispatch": 13,
+        "sdkEntry": 13,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:28.065593Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:28.642412Z"
+      },
+      {
+        "dispatch": 14,
+        "sdkEntry": 14,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:28.644989Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:29.049633Z"
+      },
+      {
+        "dispatch": 15,
+        "sdkEntry": 15,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:29.051863Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:29.469784Z"
+      },
+      {
+        "dispatch": 16,
+        "sdkEntry": 16,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:29.471722Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:29.721142Z"
+      },
+      {
+        "dispatch": 17,
+        "sdkEntry": 17,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:29.722257Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:30.247305Z"
+      },
+      {
+        "dispatch": 18,
+        "sdkEntry": 18,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:30.252922Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:30.607938Z"
+      },
+      {
+        "dispatch": 19,
+        "sdkEntry": 19,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:30.609894Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:30.994127Z"
+      },
+      {
+        "dispatch": 20,
+        "sdkEntry": 20,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:30.996507Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:31.506469Z"
+      },
+      {
+        "dispatch": 21,
+        "sdkEntry": 21,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:31.509256Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:31.757233Z"
+      },
+      {
+        "dispatch": 22,
+        "sdkEntry": 22,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:31.758528Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:32.059869Z"
+      },
+      {
+        "dispatch": 23,
+        "sdkEntry": 23,
+        "operation": "logs.FilterLogEvents",
+        "startedUtc": "2026-10-16T23:00:32.061334Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:32.354112Z"
+      },
+      {
+        "dispatch": 24,
+        "sdkEntry": 24,
+        "operation": "cloudformation.DescribeStacks",
+        "startedUtc": "2026-10-16T23:00:32.365549Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:32.613924Z"
+      },
+      {
+        "dispatch": 25,
+        "sdkEntry": 25,
+        "operation": "cloudformation.GetTemplate",
+        "startedUtc": "2026-10-16T23:00:32.616144Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:32.789591Z"
+      },
+      {
+        "dispatch": 26,
+        "sdkEntry": 26,
+        "operation": "cloudformation.DescribeStackEvents",
+        "startedUtc": "2026-10-16T23:00:32.792060Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:32.926100Z"
+      },
+      {
+        "dispatch": 27,
+        "sdkEntry": 27,
+        "operation": "apigatewayv2.GetStages",
+        "startedUtc": "2026-10-16T23:00:32.944011Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:33.250787Z"
+      },
+      {
+        "dispatch": 28,
+        "sdkEntry": 28,
+        "operation": "apigatewayv2.GetIntegrations",
+        "startedUtc": "2026-10-16T23:00:33.252614Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:33.361998Z"
+      },
+      {
+        "dispatch": 29,
+        "sdkEntry": 29,
+        "operation": "lambda.GetFunctionConfiguration",
+        "startedUtc": "2026-10-16T23:00:33.363236Z",
+        "httpStatus": 200,
+        "finishedUtc": "2026-10-16T23:00:33.543132Z"
+      }
+    ],
+    "accountingAttestation": "collector in-process SDK-entry/transport hooks; not independent forensic attestation"
+  },
+  "limits": {
+    "concurrency": 1,
+    "connectTimeoutSeconds": 3,
+    "readTimeoutSeconds": 5,
+    "totalMaxAttemptsPerSdkCall": 1,
+    "liveHorizonSeconds": 120,
+    "stopStartingNonfinalReadsAfterSeconds": 110,
+    "officialRegionalHttpsOnly": true,
+    "nestedAuthAndAllClientsUseSamePolicy": true,
+    "noGuessedAuthRoleOrSessionPrecondition": true,
+    "rawMessagesTokensResponsesRetained": false,
+    "csvByteCeilingWithManifestReportReserve": 1835008
+  },
+  "counts": {
+    "returnedCandidates": 413,
+    "parsedCandidatesBeforeRequestDedup": 413,
+    "acceptedUniqueRows": 413,
+    "rejectedRows": 0,
+    "rejectionsByReason": {},
+    "duplicateRows": 0,
+    "duplicatesByReason": {},
+    "storageExcludedRows": 0,
+    "reportedInitRows": 102,
+    "missingInitRows": 311,
+    "pairedInitPlusDurationRows": 102,
+    "distinctOpaqueStreams": 102,
+    "statusCounts": {
+      "not_reported": 413
+    },
+    "errorTypePresentRows": 0,
+    "reportedMemoryMismatchRows": 0,
+    "versionCounts": {
+      "$LATEST": 413
+    },
+    "reportedInitAbove100MsRows": 88,
+    "reportedMaxMemoryAbove50MbRows": 99,
+    "completeAvailableMatchedReportCount": null,
+    "completeReportedInitCount": null
+  },
+  "pilotReconciliation": {
+    "eligiblePriorRows": 14,
+    "matchedImmutableRows": 14,
+    "missingPriorEventKeys": [],
+    "differingPriorEventKeys": [],
+    "comparisonColumns": [
+      "eventKey",
+      "requestKey",
+      "streamKey",
+      "eventEpochMs",
+      "eventUtc",
+      "ingestionEpochMs",
+      "ingestionUtc",
+      "durationMs",
+      "billedDurationMs",
+      "memorySizeMb",
+      "maxMemoryUsedMb",
+      "reportedInitPresent",
+      "initDurationMs",
+      "status",
+      "errorType"
+    ],
+    "pageAndSnapshotReferencesIgnored": true,
+    "priorSampleSha256": "57a378ab87a5f4169e018d1c4446c2bb32827534c92e102878b88ef7ca93c844"
+  },
+  "sample": {
+    "csv": "2026-10-17-production-window-reports.csv",
+    "sha256": "2fcb51664cfbd520f6007174f0939d3f059a24321a494a19497503af812c12d1",
+    "bytes": 116289,
+    "rows": 413,
+    "firstEventUtc": "2026-10-15T23:04:40.018000Z",
+    "lastEventUtc": "2026-10-16T22:36:16.440000Z",
+    "nullEncoding": "empty initDurationMs/errorType cells; reportedInitPresent explicit true/false",
+    "decimalEncoding": "original exact unsigned decimal tokens in CSV; exact Decimal-string calculations in JSON",
+    "units": {
+      "durationMs": "ms",
+      "billedDurationMs": "ms; billing, not client latency",
+      "initDurationMs": "ms when reported; otherwise null",
+      "memorySizeMb": "MB configured",
+      "maxMemoryUsedMb": "MB; invocation-weighted environment high-water observation",
+      "eventEpochMs": "integer Unix epoch milliseconds",
+      "ingestionEpochMs": "integer Unix epoch milliseconds"
+    },
+    "opaqueKeyRule": "first 24 lowercase hex characters of SHA-256(UTF8(namespace + NUL + group + NUL + kind + NUL + sourceIdentifier)); namespace=badgesmith-report-diagnostic-20261017; kind=event/request/stream; request UUID normalized lowercase; no message hashes",
+    "deduplication": "event key first across all metadata-valid candidates, then request key across fully parsed candidates; all returned candidates count toward cap",
+    "versionRule": "standard YYYY/MM/DD/[$LATEST or positive integer]hex32 stream layout; version only, never source/config attribution",
+    "snapshotReferences": "collection-time before/after references only, not per-row historical package proof"
+  },
+  "parser": {
+    "kind": "anchored full-line Text REPORT grammar; fullmatch, never substring extraction",
+    "exactPythonRegex": "REPORT RequestId: (?P<request>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[ \\t]+Duration: (?P<duration>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms[ \\t]+Billed Duration: (?P<billed>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms[ \\t]+Memory Size: (?P<memory>[0-9]{1,9}) MB[ \\t]+Max Memory Used: (?P<maximum>[0-9]{1,9}) MB(?:[ \\t]+Init Duration: (?P<init>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms)?(?:[ \\t]+Status: (?P<status>success|error|timeout)(?:[ \\t]+Error Type: (?P<error>Runtime\\.ExitError|Extension\\.Crash))?)?[ \\t]*",
+    "flags": "re.ASCII",
+    "lineEndingRule": "remove one terminal LF and then one terminal CR; no arbitrary strip/substrings",
+    "maxMessageCharactersTransient": 4096,
+    "numericRule": "finite nonnegative Decimal; configured memory must be positive",
+    "statusRule": "Error Type only permitted with Status error; absent Status remains not_reported, not success",
+    "metadataRule": "integer event time inside frozen bounds; nonnegative ingestion time <= page observation +5s; numeric event ID; validated standard stream date/version/hex32 layout",
+    "rejectionCategories": [
+      "unsupported_layout",
+      "unsupported_status_combination",
+      "invalid_numeric",
+      "unsafe_event_metadata",
+      "invalid_timestamp_or_outside_window"
+    ],
+    "duplicateCategories": [
+      "event_overlap",
+      "request_overlap"
+    ],
+    "cryptographicPlatformOriginProven": false,
+    "unsupportedLayoutsEchoed": false
+  },
+  "statisticsMethod": {
+    "scope": "incomplete collected-prefix descriptive population",
+    "p95": "sort exact Decimal values ascending; one-based rank (95*n+99)//100; empty -> null",
+    "median": "middle odd or mean of two middle even",
+    "pairing": "same-row INIT + Duration before sorting; absent INIT stays null",
+    "statisticLabel": "collected-prefix p95; not complete-window p95",
+    "isCompleteAvailableWindowP95": false,
+    "isQualifiedProductionP95": false
+  },
+  "statistics": {
+    "durationMs": {
+      "n": 413,
+      "min": "0.68",
+      "median": "3.02",
+      "p95Rank": 393,
+      "p95": "253.39",
+      "max": "374.94"
+    },
+    "maxMemoryUsedMb": {
+      "n": 413,
+      "min": "35",
+      "median": "46",
+      "p95Rank": 393,
+      "p95": "54",
+      "max": "56"
+    },
+    "reportedInitDurationMs": {
+      "n": 102,
+      "min": "87.98",
+      "median": "110.645",
+      "p95Rank": 97,
+      "p95": "135.15",
+      "max": "146.14"
+    },
+    "pairedInitPlusDurationMs": {
+      "n": 102,
+      "min": "90.46",
+      "median": "302.25",
+      "p95Rank": 97,
+      "p95": "408.82",
+      "max": "507.03"
+    },
+    "billedDurationMs": {
+      "n": 413,
+      "min": "1",
+      "median": "4",
+      "p95Rank": 393,
+      "p95": "367",
+      "max": "508"
+    }
+  },
+  "partitions": {
+    "byVersion": {
+      "$LATEST": {
+        "durationMs": {
+          "n": 413,
+          "min": "0.68",
+          "median": "3.02",
+          "p95Rank": 393,
+          "p95": "253.39",
+          "max": "374.94"
+        },
+        "maxMemoryUsedMb": {
+          "n": 413,
+          "min": "35",
+          "median": "46",
+          "p95Rank": 393,
+          "p95": "54",
+          "max": "56"
+        },
+        "reportedInitDurationMs": {
+          "n": 102,
+          "min": "87.98",
+          "median": "110.645",
+          "p95Rank": 97,
+          "p95": "135.15",
+          "max": "146.14"
+        },
+        "pairedInitPlusDurationMs": {
+          "n": 102,
+          "min": "90.46",
+          "median": "302.25",
+          "p95Rank": 97,
+          "p95": "408.82",
+          "max": "507.03"
+        },
+        "billedDurationMs": {
+          "n": 413,
+          "min": "1",
+          "median": "4",
+          "p95Rank": 393,
+          "p95": "367",
+          "max": "508"
+        }
+      }
+    },
+    "withReportedInit": {
+      "durationMs": {
+        "n": 102,
+        "min": "1.56",
+        "median": "197.12",
+        "p95Rank": 97,
+        "p95": "288.52",
+        "max": "374.94"
+      },
+      "maxMemoryUsedMb": {
+        "n": 102,
+        "min": "35",
+        "median": "49",
+        "p95Rank": 97,
+        "p95": "51",
+        "max": "52"
+      },
+      "reportedInitDurationMs": {
+        "n": 102,
+        "min": "87.98",
+        "median": "110.645",
+        "p95Rank": 97,
+        "p95": "135.15",
+        "max": "146.14"
+      },
+      "pairedInitPlusDurationMs": {
+        "n": 102,
+        "min": "90.46",
+        "median": "302.25",
+        "p95Rank": 97,
+        "p95": "408.82",
+        "max": "507.03"
+      },
+      "billedDurationMs": {
+        "n": 102,
+        "min": "91",
+        "median": "302.5",
+        "p95Rank": 97,
+        "p95": "409",
+        "max": "508"
+      }
+    },
+    "withoutReportedInit": {
+      "durationMs": {
+        "n": 311,
+        "min": "0.68",
+        "median": "1.11",
+        "p95Rank": 296,
+        "p95": "148.59",
+        "max": "241.64"
+      },
+      "maxMemoryUsedMb": {
+        "n": 311,
+        "min": "35",
+        "median": "38",
+        "p95Rank": 296,
+        "p95": "55",
+        "max": "56"
+      },
+      "reportedInitDurationMs": {
+        "n": 0,
+        "min": null,
+        "median": null,
+        "p95Rank": null,
+        "p95": null,
+        "max": null
+      },
+      "pairedInitPlusDurationMs": {
+        "n": 0,
+        "min": null,
+        "median": null,
+        "p95Rank": null,
+        "p95": null,
+        "max": null
+      },
+      "billedDurationMs": {
+        "n": 311,
+        "min": "1",
+        "median": "2",
+        "p95Rank": 296,
+        "p95": "149",
+        "max": "242"
+      }
+    },
+    "byReportedStatus": {
+      "not_reported": {
+        "durationMs": {
+          "n": 413,
+          "min": "0.68",
+          "median": "3.02",
+          "p95Rank": 393,
+          "p95": "253.39",
+          "max": "374.94"
+        },
+        "maxMemoryUsedMb": {
+          "n": 413,
+          "min": "35",
+          "median": "46",
+          "p95Rank": 393,
+          "p95": "54",
+          "max": "56"
+        },
+        "reportedInitDurationMs": {
+          "n": 102,
+          "min": "87.98",
+          "median": "110.645",
+          "p95Rank": 97,
+          "p95": "135.15",
+          "max": "146.14"
+        },
+        "pairedInitPlusDurationMs": {
+          "n": 102,
+          "min": "90.46",
+          "median": "302.25",
+          "p95Rank": 97,
+          "p95": "408.82",
+          "max": "507.03"
+        },
+        "billedDurationMs": {
+          "n": 413,
+          "min": "1",
+          "median": "4",
+          "p95Rank": 393,
+          "p95": "367",
+          "max": "508"
+        }
+      }
+    },
+    "byReportedMemorySizeMb": {
+      "512": {
+        "durationMs": {
+          "n": 413,
+          "min": "0.68",
+          "median": "3.02",
+          "p95Rank": 393,
+          "p95": "253.39",
+          "max": "374.94"
+        },
+        "maxMemoryUsedMb": {
+          "n": 413,
+          "min": "35",
+          "median": "46",
+          "p95Rank": 393,
+          "p95": "54",
+          "max": "56"
+        },
+        "reportedInitDurationMs": {
+          "n": 102,
+          "min": "87.98",
+          "median": "110.645",
+          "p95Rank": 97,
+          "p95": "135.15",
+          "max": "146.14"
+        },
+        "pairedInitPlusDurationMs": {
+          "n": 102,
+          "min": "90.46",
+          "median": "302.25",
+          "p95Rank": 97,
+          "p95": "408.82",
+          "max": "507.03"
+        },
+        "billedDurationMs": {
+          "n": 413,
+          "min": "1",
+          "median": "4",
+          "p95Rank": 393,
+          "p95": "367",
+          "max": "508"
+        }
+      }
+    }
+  },
+  "qualification": {
+    "totalCountAtLeast100": true,
+    "reportedInitCountAtLeast100": true,
+    "sourceAttributionEligibility": false,
+    "canonicalIntervalEligibility": false,
+    "performanceCompliance": "UNVERIFIED",
+    "initCompliance": "UNVERIFIED",
+    "memoryCompliance": "UNVERIFIED",
+    "executedPackageAndRuntime": "UNVERIFIED",
+    "consumedZipSizeCompliance": "UNVERIFIED",
+    "platformOriginCryptographicallyProven": false,
+    "suppressedInitVisibility": "REPORT_ONLY_INCOMPLETE",
+    "numericalInitP95Vs100Ms": "ABOVE",
+    "numericalMemoryP95Vs50Mb": "ABOVE",
+    "numericalComparisonIsFormalPassFail": false,
+    "sourceGapsDoNotEraseActualNumbers": true
+  },
+  "boundedSourceMetadata": {
+    "stack": {
+      "StackId": "arn:aws:cloudformation:eu-central-1:377140207735:stack/BadgeSmithStack/1b26f040-8467-11f0-97ea-06c36a337e67",
+      "StackName": "BadgeSmithStack",
+      "StackStatus": "UPDATE_COMPLETE",
+      "CreationTime": "2025-08-28T23:31:22.289000Z",
+      "LastUpdatedTime": "2026-08-08T12:28:16.247000Z",
+      "observedUtc": "2026-10-16T23:00:32.615131Z",
+      "state": "observed"
+    },
+    "template": {
+      "logicalResourceId": "BadgeSmithFunctionConstructBadgeSmithFunction8A29E743",
+      "codeLocator": {
+        "S3Bucket": "cdk-hnb659fds-assets-377140207735-eu-central-1",
+        "S3Key": "20e2f278cbbbb7d5322fa7799454f6d0b1657271e3a32a4b34798164db5693dc.zip"
+      },
+      "codeLocatorSafeRecognized": true,
+      "selectedConfiguration": {
+        "runtimeMatchesAccepted": true,
+        "architecturesMatchAccepted": true,
+        "memoryMatchesAccepted": true,
+        "handlerIsBootstrap": true,
+        "resourceMetadataPresent": true
+      },
+      "sourceCommit": null,
+      "wholeTemplateRetained": false,
+      "rawTemplateHashRetained": false,
+      "metadataValuesOrEnvironmentRetained": false,
+      "observedUtc": "2026-10-16T23:00:32.790761Z",
+      "state": "observed"
+    },
+    "history": {
+      "state": "observed",
+      "observedUtc": [
+        "2026-10-16T23:00:32.936967Z"
+      ],
+      "pages": [
+        {
+          "page": 1,
+          "returnedRowsTransiently": 100,
+          "olderThanWindowRowsDiscarded": 100,
+          "newerThanWindowRowsDiscarded": 0,
+          "continuationPresent": true
+        }
+      ],
+      "reachedOlderBoundary": true,
+      "reverseChronologicalOrderValidated": true,
+      "availableCloudFormationWindowExhausted": true,
+      "retainedRelevantEvents": [],
+      "outOfBandHistoryExcluded": false
+    },
+    "stages": {
+      "returnedRows": 1,
+      "retainedRows": 1,
+      "continuationPresent": false,
+      "stages": [
+        {
+          "StageName": "$default",
+          "DeploymentId": "lccyot",
+          "AutoDeploy": true,
+          "LastUpdatedDate": "2025-08-28T23:55:55.000000Z"
+        }
+      ],
+      "observedUtc": "2026-10-16T23:00:33.251512Z",
+      "state": "observed"
+    },
+    "integrations": {
+      "returnedRows": 1,
+      "retainedRows": 1,
+      "continuationPresent": false,
+      "integrations": [
+        {
+          "IntegrationId": "nkcccpl",
+          "sameUnqualifiedFunctionTarget": true,
+          "integrationTypeIsAwsProxy": true,
+          "methodIsPost": true,
+          "payloadFormatIs2": true
+        }
+      ],
+      "observedUtc": "2026-10-16T23:00:33.362553Z",
+      "state": "observed"
+    }
+  },
+  "localSourceClues": {
+    "record": "../2026-08-08-pr5-second-pass-closeout.md",
+    "reportedMergedCommitShort": "2b147de",
+    "reportedDeployRunId": "31257227036",
+    "reportedCiRunId": "31255516767",
+    "reportedCiAttempt": 2,
+    "currentPackageDigestRecordedInThatNote": false,
+    "noteProvesCurrentPackageSource": false,
+    "gitShaInferredFromDateOrCodeLocator": false,
+    "sourceHuntStoppedAtAuthorizedSources": true
+  },
+  "controls": {
+    "parser_fullmatch_units_numeric_status_and_null": "PASS",
+    "caller_and_pre_resource_identity": "PASS",
+    "all_source_field_drift_and_environment_projection": "PASS",
+    "nearest_rank_1_to_100_median_empty_pairing": "PASS",
+    "inclusive_ceil_floor_window": "PASS",
+    "remaining_count_and_scope": "PASS",
+    "nested_auth_and_global_sdk_http_caps": "PASS",
+    "retry_concurrency_endpoint_tls_guards": "PASS",
+    "standard_stream_version_and_event_metadata": "PASS",
+    "opaque_namespace_and_duplicate_key_control": "PASS",
+    "default_explicit_nested_client_configuration": "PASS",
+    "attribution": "pre-live synthetic controls and acquisition hooks are collector-reported, fixtures are not observations",
+    "sdk": "Boto3 1.40.72 / Botocore 1.40.72",
+    "projection": "allowlisted numerical/system fields before output; no Environment/templates/raw logs/errors/tokens/credentials retained"
+  },
+  "preservation": {
+    "before": {
+      "count": 295,
+      "sha256": "de05cc312571f10ce3bedef9804863ae6ad73da9c8fa987eb8500cec595f9df6"
+    },
+    "afterDataGeneration": {
+      "count": 295,
+      "sha256": "de05cc312571f10ce3bedef9804863ae6ad73da9c8fa987eb8500cec595f9df6"
+    },
+    "head": "1044b6d6e7160fc8a3dedcd3154337a4dfb4bd9f",
+    "indexSha256Before": "b189c90dbfe0b343f48ae52a40db36d281793c1384bb4bb4b59a6bc6e43b21e0",
+    "indexSha256AfterDataGeneration": "b189c90dbfe0b343f48ae52a40db36d281793c1384bb4bb4b59a6bc6e43b21e0",
+    "excludedRepositoryPaths": [
+      "docs/ROADMAP.md",
+      "docs/plans/2026-10-16-production-evidence-collection.md",
+      "docs/research/2026-10-17-production-evidence-window.md",
+      "docs/research/baselines/2026-10-17-production-window-reports.csv",
+      "docs/research/baselines/2026-10-17-production-window.json"
+    ],
+    "aggregateMethod": "sorted unique Git cached/other exclude-standard regular paths; SHA-256 of newline-joined path + NUL + file SHA-256; exclude five allowed paths"
+  },
+  "offlineVerification": {
+    "attribution": "collector self-check, not independent peer acceptance or raw-source authentication",
+    "awsCalls": 0,
+    "strictJsonAndReducedCsvSchema": "PASS",
+    "allDecimalStatisticsAndPartitionsRecomputed": "PASS",
+    "independentArithmeticMethod": "Decimal 0.95*n ceiling and standard-library statistics.median",
+    "rankPairingEmptyLiteralControls": "PASS",
+    "publishedOfflineReproducerExecutedVerbatim": "PASS",
+    "epochUtcBoundsAndIngestionTimes": "PASS",
+    "all20PageCountsLimitsAnd29RequestReceipts": "PASS",
+    "pilotImmutableFieldsReconciled": "PASS",
+    "safeRetainedContentChecks": "PASS",
+    "localMarkdownLinksAndFragmentsChecked": 53,
+    "outsideFivePathsInventoryMatched": "PASS",
+    "headAndIndexUnchanged": "PASS"
+  },
+  "notRun": [
+    "Insights/query or stream/resource discovery",
+    "CloudTrail/IAM/SSM/SecretsManager/S3/DynamoDB/CloudFront or other resources",
+    "GitHub live reads or downloads",
+    "Lambda invoke, production HTTP or new traffic",
+    "mutations/deploy/configuration changes",
+    "code/build/test/benchmark/install/commit/push"
+  ],
+  "methodReferences": [
+    "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html",
+    "https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_GetTemplate.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeStackEvents.html"
+  ]
+}

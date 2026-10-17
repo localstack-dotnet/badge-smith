@@ -13,9 +13,9 @@ namespace BadgeSmith.Api.Tests.Routing;
 public sealed class AllocationBaselineTests
 {
     private const int WarmupIterations = 64;
-    private const long CachedBadgeResponseAllocationBaselineBytes = 704;
-    private const long CachedRedirectAllocationBaselineBytes = 352;
-    private const long NoStoreRedirectAllocationBaselineBytes = 352;
+    private const long CachedBadgeResponseAllocationBaselineBytes = 584;
+    private const long CachedRedirectAllocationBaselineBytes = 264;
+    private const long NoStoreRedirectAllocationBaselineBytes = 264;
     private const long TestResultRouteParameterExtractionAllocationBaselineBytes = 64;
     private const string RedirectLocation = "https://example.com/results/42";
 
@@ -37,6 +37,14 @@ public sealed class AllocationBaselineTests
     public void OkCached_Should_Not_Exceed_Allocation_Baseline_When_Warmed()
     {
         var allocatedBytes = MeasureAllocation(CreateCachedBadgeResponse);
+
+        Assert.InRange(allocatedBytes, 0, CachedBadgeResponseAllocationBaselineBytes);
+    }
+
+    [Fact]
+    public void OkCached_Should_Not_Allocate_For_Validator_Parsing_When_Weak_Tag_Is_In_A_List()
+    {
+        var allocatedBytes = MeasureAllocation(CreateConditionalCachedBadgeResponse);
 
         Assert.InRange(allocatedBytes, 0, CachedBadgeResponseAllocationBaselineBytes);
     }
@@ -78,6 +86,15 @@ public sealed class AllocationBaselineTests
     private static APIGatewayHttpApiV2ProxyResponse CreateCachedRedirectResponse()
     {
         return ResponseHelper.RedirectCached(RedirectLocation, PublicCacheSettings);
+    }
+
+    private static APIGatewayHttpApiV2ProxyResponse CreateConditionalCachedBadgeResponse()
+    {
+        return ResponseHelper.OkCached(
+            CachedBadge,
+            LambdaFunctionJsonSerializerContext.Default.ShieldsBadgeResponse,
+            cachePolicy: PublicCacheSettings,
+            ifNoneMatchHeader: " \t\"different\", w/ \"e24a8a8c2b7f48a8d9a54e94b26732da86c90e2f1aaafb0b2aa8a5d3bae7df64\" , \"other\" ");
     }
 
     private static APIGatewayHttpApiV2ProxyResponse CreateNoStoreRedirectResponse()

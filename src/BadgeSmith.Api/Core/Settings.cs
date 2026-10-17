@@ -8,7 +8,6 @@ internal static class Settings
     private static readonly string? DotNetEnvironmentFromEnv = GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
     private const string DefaultAppName = LambdaName;
-    private static readonly string DefaultAppVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
     private const string DefaultDotNetEnvironment = "Production";
     private const bool DefaulEnableTelemetryFactoryPerfLogs = true;
@@ -32,6 +31,8 @@ internal static class Settings
     public static bool UseLocalStack => _useLocalStack ??= ParseEnvironmentVariable("LocalStack__UseLocalStack") ?? DefaultUseLocalStack;
 
     public static string? LocalStackEndpoint => GetEnvironmentVariable("ConnectionStrings__localstack");
+
+    private static string DefaultAppVersion => typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
 #if !DEBUG
     public static TimeSpan LambdaTimeout => TimeSpan.FromSeconds(Constants.LambdaTimeoutInSeconds).Subtract(TimeSpan.FromSeconds(2));

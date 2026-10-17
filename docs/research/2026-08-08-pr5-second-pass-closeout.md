@@ -3,7 +3,8 @@
 Date: 2026-08-08
 
 Historical closeout evidence for the PR #5 second-pass remediation. Current architecture and
-operational state live in `ARCHITECTURE.md` and `docs/ROADMAP.md`; this document preserves the
+operational state live in [security and storage](../architecture/security-and-storage.md),
+[platform and delivery](../architecture/platform-and-delivery.md), and [ROADMAP](../ROADMAP.md); this document preserves the
 verification trail without turning the roadmap status table into a changelog.
 
 ## Scope
