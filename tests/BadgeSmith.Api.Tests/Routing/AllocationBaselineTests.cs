@@ -2,6 +2,7 @@ using Amazon.Lambda.APIGatewayEvents;
 using BadgeSmith.Api.Core.Infrastructure;
 using BadgeSmith.Api.Core.Routing;
 using BadgeSmith.Api.Core.Routing.Helpers;
+using BadgeSmith.Api.Core.Routing.Patterns;
 using BadgeSmith.Api.Features;
 using BadgeSmith.Api.Features.TestResults.Models;
 using BadgeSmith.Api.Tests.Testing;
@@ -13,6 +14,8 @@ namespace BadgeSmith.Api.Tests.Routing;
 public sealed class AllocationBaselineTests
 {
     private const int WarmupIterations = 64;
+    private const long TemplatePatternConstructorAllocationBaselineBytes = 752;
+    private const long TemplatePatternConstructorImprovedAllocationCeilingBytes = TemplatePatternConstructorAllocationBaselineBytes - 1;
     private const long CachedBadgeResponseAllocationBaselineBytes = 584;
     private const long CachedRedirectAllocationBaselineBytes = 264;
     private const long NoStoreRedirectAllocationBaselineBytes = 264;
@@ -32,6 +35,27 @@ public sealed class AllocationBaselineTests
             ["repo"] = "repo",
             ["branch"] = "main"
         });
+
+    [Fact]
+    public void Constructor_Should_Not_Exceed_TemplatePattern_Allocation_Baseline_When_Warmed()
+    {
+        TestContext.Current.TestOutputHelper?.WriteLine($"H2_RUNTIME version={Environment.Version} architecture={System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
+        var retained = CreateTemplatePattern();
+        for (var sample = 0; sample < 5; sample++)
+        {
+            var controlBytes = MeasureAllocation(() => retained);
+            var allocatedBytes = MeasureAllocation(CreateTemplatePattern);
+            TestContext.Current.TestOutputHelper?.WriteLine($"H2_ALLOCATION sample={sample} bytes={allocatedBytes} controlBytes={controlBytes}");
+
+            Assert.Equal(0, controlBytes);
+            Assert.InRange(allocatedBytes, 0, TemplatePatternConstructorImprovedAllocationCeilingBytes);
+        }
+    }
+
+    private static TemplatePattern CreateTemplatePattern()
+    {
+        return new TemplatePattern("/badges/tests/{platform}/{owner}/{repo}/{branch}");
+    }
 
     [Fact]
     public void OkCached_Should_Not_Exceed_Allocation_Baseline_When_Warmed()

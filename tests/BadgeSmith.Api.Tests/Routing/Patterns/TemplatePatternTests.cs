@@ -9,6 +9,177 @@ namespace BadgeSmith.Api.Tests.Routing.Patterns;
 [Trait("Category", TestCategories.Unit)]
 public sealed class TemplatePatternTests
 {
+    [Theory]
+    [InlineData(null, "")]
+    [InlineData(null, "/x")]
+    [InlineData("", "")]
+    [InlineData("", "/x")]
+    [InlineData("/", "/")]
+    [InlineData("/", "x")]
+    [InlineData("///", "")]
+    [InlineData("///", "/x")]
+    public void TryMatch_Should_Preserve_Null_Key_When_Template_Is_Null_Empty_Or_Slashes(string? template, string path)
+    {
+        // Null is an intentional runtime witness for the constructor's existing AsSpan behavior.
+        var pattern = new TemplatePattern(template!);
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        Assert.True(pattern.TryMatch(path.AsSpan(), ref values));
+        Assert.False(values.TryGetString("unrelated", out _));
+        Assert.True(values.TryGetSpan(null!, out var raw));
+        Assert.Equal(path.TrimStart('/'), raw.ToString());
+        Assert.Throws<ArgumentNullException>(() => MatchAndMaterialize(template, path));
+    }
+
+    [Theory]
+    [InlineData("/a/", "/a/", "")]
+    [InlineData("/a/", "/a/x", "x")]
+    [InlineData("/a/", "/a/x/", "x")]
+    [InlineData("/a//b", "/a//b", "")]
+    [InlineData("/a//b", "/a/x/b", "x")]
+    [InlineData("/a//{x}", "/a//v", "")]
+    [InlineData("/a//{x}", "/a/anything/v", "anything")]
+    public void TryMatch_Should_Preserve_Null_Key_When_Template_Has_Empty_Segments(string template, string path, string expectedRaw)
+    {
+        var pattern = new TemplatePattern(template);
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        Assert.True(pattern.TryMatch(path.AsSpan(), ref values));
+        Assert.True(values.TryGetSpan(null!, out var raw));
+        Assert.Equal(expectedRaw, raw.ToString());
+        if (template.EndsWith("{x}", StringComparison.Ordinal))
+        {
+            Assert.True(values.TryGetString("x", out var named));
+            Assert.Equal("v", named);
+        }
+
+        Assert.Throws<ArgumentNullException>(() => MatchAndMaterialize(template, path));
+    }
+
+    [Theory]
+    [InlineData("/a/", "/a")]
+    [InlineData("/a/", "/a/x/y")]
+    [InlineData("/a//b", "/a/b")]
+    [InlineData("/a//{x}", "/a/v")]
+    [InlineData("a/{x}", "//a/v")]
+    [InlineData("/{branch}", "/feature/fix")]
+    [InlineData("/a%2Fb/{x}", "/a/b/v")]
+    public void TryMatch_Should_Reject_Different_Segment_Count_When_Template_Is_Constructed(string template, string path)
+    {
+        var pattern = new TemplatePattern(template);
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        Assert.False(pattern.TryMatch(path.AsSpan(), ref values));
+    }
+
+    [Theory]
+    [InlineData("a/{x}", "/a/v")]
+    [InlineData("/a/{x}", "a/v")]
+    [InlineData("///a/{x}", "/a/v")]
+    [InlineData("////a/{x}", "a/v")]
+    public void TryMatch_Should_Preserve_Named_Value_When_Template_Has_Leading_Slashes(string template, string path)
+    {
+        var parameters = MatchAndMaterialize(template, path);
+
+        Assert.Single(parameters);
+        Assert.Equal("v", parameters["x"]);
+    }
+
+    [Theory]
+    [InlineData("/{")]
+    [InlineData("/}")]
+    [InlineData("/{x")]
+    [InlineData("/x}")]
+    [InlineData("/{x}tail")]
+    [InlineData("/prefix{x}")]
+    [InlineData("/a{b}c")]
+    public void TryMatch_Should_Preserve_Literal_Braces_When_Template_Is_Not_Enclosed(string template)
+    {
+        var pattern = new TemplatePattern(template);
+        var values = RouteTestBuilder.CreateRouteValues(template);
+        var differentPath = template + "different";
+        var differentValues = RouteTestBuilder.CreateRouteValues(differentPath);
+
+        Assert.True(pattern.TryMatch(template.AsSpan(), ref values));
+        Assert.Empty(values.ToImmutableDictionary());
+        Assert.False(pattern.TryMatch(differentPath.AsSpan(), ref differentValues));
+    }
+
+    [Theory]
+    [InlineData("/{}", "")]
+    [InlineData("/{{x}}", "{x}")]
+    [InlineData("/{{x}", "{x")]
+    [InlineData("/{x}}", "x}")]
+    [InlineData("/{a{b}c}", "a{b}c")]
+    [InlineData("/{şube}", "şube")]
+    public void TryMatch_Should_Strip_Only_Outer_Braces_When_Template_Segment_Is_Enclosed(string template, string expectedKey)
+    {
+        var parameters = MatchAndMaterialize(template, "/value");
+
+        Assert.Single(parameters);
+        Assert.Equal("value", parameters[expectedKey]);
+    }
+
+    [Theory]
+    [InlineData("/a/{x}", "/A/Value", "x")]
+    [InlineData("/İstanbul/雪/{名}", "/İstanbul/雪/Value", "名")]
+    [InlineData("/a%2Fb/{x}", "/a%2fb/Value", "x")]
+    public void TryMatch_Should_Preserve_Literal_Comparison_And_Value_Case_When_Template_Is_Constructed(string template, string path, string key)
+    {
+        var parameters = MatchAndMaterialize(template, path);
+
+        Assert.Single(parameters);
+        Assert.Equal("Value", parameters[key]);
+    }
+
+    [Theory]
+    [InlineData("/{x}/{x}")]
+    [InlineData("/{x}/{X}")]
+    public void TryMatch_Should_Preserve_First_Lookup_And_Last_Dictionary_Value_When_Keys_Repeat(string template)
+    {
+        const string path = "/first%2Fvalue/last+value";
+        var pattern = new TemplatePattern(template);
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        Assert.True(pattern.TryMatch(path.AsSpan(), ref values));
+        Assert.True(values.TryGetSpan("X", out var raw));
+        Assert.Equal("first%2Fvalue", raw.ToString());
+        Assert.True(values.TryGetString("x", out var first));
+        Assert.Equal("first/value", first);
+        var parameters = values.ToImmutableDictionary();
+        Assert.Single(parameters);
+        Assert.Equal("last value", parameters["x"]);
+    }
+
+    [Theory]
+    [InlineData("/feature%2Ffix", "feature%2Ffix", "feature/fix")]
+    [InlineData("/a%20b", "a%20b", "a b")]
+    [InlineData("/a+b", "a+b", "a b")]
+    [InlineData("/a%2Bb", "a%2Bb", "a+b")]
+    [InlineData("/a%252Fb", "a%252Fb", "a%2Fb")]
+    public void TryMatch_Should_Decode_Only_Materialized_Values_When_Template_Is_Constructed(string path, string expectedRaw, string expectedDecoded)
+    {
+        var pattern = new TemplatePattern("/{branch}");
+        var values = RouteTestBuilder.CreateRouteValues(path);
+
+        Assert.True(pattern.TryMatch(path.AsSpan(), ref values));
+        Assert.True(values.TryGetSpan("branch", out var raw));
+        Assert.Equal(expectedRaw, raw.ToString());
+        Assert.True(values.TryGetString("branch", out var decoded));
+        Assert.Equal(expectedDecoded, decoded);
+        var parameters = values.ToImmutableDictionary();
+        Assert.Single(parameters);
+        Assert.Equal(expectedDecoded, parameters["branch"]);
+    }
+
+    private static IReadOnlyDictionary<string, string> MatchAndMaterialize(string? template, string path)
+    {
+        var pattern = new TemplatePattern(template!);
+        var values = RouteTestBuilder.CreateRouteValues(path);
+        Assert.True(pattern.TryMatch(path.AsSpan(), ref values));
+        return values.ToImmutableDictionary();
+    }
+
     [Fact]
     public void Constructor_Should_Parse_Template_Correctly()
     {

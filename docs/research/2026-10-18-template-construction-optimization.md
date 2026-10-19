@@ -15,6 +15,10 @@ public-package, completeness and whole-candidate Standards/Spec gates. **Local c
 publication pending.** The active [plan](../plans/2026-10-18-performance-candidate.md)
 and [specification](../plans/2026-10-18-performance-candidate-spec.md) remain present.
 
+**2026-10-19 follow-up:** [current-package release validation](2026-10-19-template-construction-release.md)
+records fresh RED/GREEN, managed tests and a new Native compatibility artifact. It does not rewrite
+this dated study's source, counters, pending-at-authoring labels or lack of latency/RSS benefit.
+
 ## Sources and working-byte identity
 
 Repository: `localstack-dotnet/badge-smith`; authoring HEAD

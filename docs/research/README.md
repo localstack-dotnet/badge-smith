@@ -12,6 +12,9 @@ Every research doc MUST include its evidence snapshot date. Naming:
 
 ## Recent performance evidence
 
+- [2026-10-19 template-construction release validation](2026-10-19-template-construction-release.md):
+  fresh current-package allocation RED/GREEN, full tests and a new Native/AL2023 compatibility smoke;
+  separate from the older Native counter study and package rollout.
 - [2026-10-19 latest-stable package refresh](2026-10-19-package-refresh.md): package/API adaptations,
   preserved VSTest behavior and fresh managed validation; new Native qualification remains separate.
 - [2026-10-19 AWS packages and Native AOT](2026-10-19-aws-native-aot-package-review.md):
