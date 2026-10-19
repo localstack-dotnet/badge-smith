@@ -19,10 +19,11 @@ Keep warnings-as-errors and the analyzer wall intact. A valid analyzer exception
 documented beside its file-scoped arbitration, and names the winning contract; do not weaken the
 global policy to avoid a local design decision. Apply [authoring enforcement](coding-style.md#enforcement).
 
-Removing or weakening coverage requires explicit approval. The same applies to skipping, deleting,
-or substantially rewriting tests to change verified behavior. A raised allocation ceiling is a
-reviewed performance-contract change with a stated reason, not a test edit. Diagnose the failure
-before proposing production changes; the [root gate](../../AGENTS.md#approval-gate) still applies.
+Deleting, skipping, or weakening a test, or changing what an existing test asserts, is an
+ask-first action under the [root rules](../../AGENTS.md#autonomy-and-approval) unless the request
+asked for that behavior change. A raised allocation ceiling is a reviewed performance-contract
+change with a stated reason, not a test edit. Diagnose a failure before changing production code
+for it.
 
 Use the existing [Slopwatch trigger and command](quality-gates.md#slopwatch) when available. Missing
 optional tooling is not permission to invent a substitute or weaken a required check. State unrun
@@ -34,6 +35,6 @@ verification and distinguish evidence from an assumption; follow the
 Lead with findings ordered by severity, with file/line references. If there are no findings, say so
 and identify residual risk or unrun verification.
 
-For interactive reviews, recommend an option with **effort, risk, impact, and maintenance cost**,
-and give reasonable alternatives. Confirm before large changes. Review reporting does not grant
-implementation, test-weakening, commit, or publication approval.
+When a finding has more than one reasonable fix, recommend one with its **effort, risk, impact,
+and maintenance cost**, and name an alternative only when it is close. A review request is answered
+with findings; implement fixes only when the request asks for them.

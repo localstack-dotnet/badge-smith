@@ -100,7 +100,7 @@ lookup is already done; blanket handler laziness and cache deferral remain rejec
 - Use one parent-owned heavy lease for every build/test/native/profile/benchmark phase, at most four live children and 20 unique children overall; reserve one possible child for the separate passive baseline follow-up.
 
 The existing production-build authorization for this local experiment is specific to the approved
-goal; it does not alter [repository approval gates](../../AGENTS.md#approval-gate). The
+goal; it does not alter [repository approval rules](../../AGENTS.md#autonomy-and-approval). The
 [coding](../engineering/coding-style.md), [testing](../engineering/testing-style.md),
 [quality](../engineering/quality-gates.md), [runtime](../architecture/runtime-and-routing.md),
 [security](../architecture/security-and-storage.md) and [platform](../architecture/platform-and-delivery.md)

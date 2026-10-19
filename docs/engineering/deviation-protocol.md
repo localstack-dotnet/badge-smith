@@ -3,8 +3,8 @@
 Use this protocol when implementation, external reality, or two current canonical documents appear
 to disagree. Repository files beat memory, transient plans, dated research, and handovers.
 
-When uncertain, classify at the higher level. Stop only the affected scope; unrelated work may
-continue when it is safe and independent.
+When unsure whether evidence challenges a locked decision, treat it as Level 3. Stop only the
+affected scope; unrelated work continues when it is safe and independent.
 
 ## Level 0: Implementation Detail
 
@@ -26,17 +26,21 @@ document whose wording must change. No additional design stop is required.
 Evidence contradicts a current non-decision claim such as roadmap status, a living operational
 note, an agent-integration boundary, or an active plan constraint, and no fallback exists.
 
-Action: stop the affected work, capture reproducible evidence, propose the corrected owner and text,
-and obtain approval before continuing if the correction changes policy or behavior.
+Action: when the correction is documentation-only and changes no policy or behavior, make it in the
+same change and cite the evidence in the summary. When it changes policy or behavior, leave the
+affected scope unchanged, finish the independent work, and end with reproducible evidence and the
+proposed corrected owner and text.
 
 ## Level 3: Locked Decision Challenge
 
-Evidence contradicts normative architecture, engineering policy, the approval gate, a public
-contract, or an accepted ADR.
+Evidence contradicts normative architecture, engineering policy, the autonomy and approval rules, a
+public contract, or an accepted ADR.
 
-Action: stop the affected slice. Re-evaluate the decision from source, tests, measurements, and
-external evidence. Resume only after an approved outcome updates current canon and, when present,
-revises or supersedes the ADR. Never reopen a decision merely because compliance is inconvenient.
+Action: leave the affected slice unchanged. Re-evaluate the decision from source, tests,
+measurements, and external evidence, finish the independent work, and end with the evidence and a
+recommended outcome. The slice changes only after an approved outcome updates current canon and,
+when present, revises or supersedes the ADR. Never reopen a decision merely because compliance is
+inconvenient.
 
 ## Cross-Cutting Rules
 

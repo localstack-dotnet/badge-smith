@@ -2,7 +2,8 @@
 
 This document owns existing validation requirements and the limits of evidence claims. Test
 authorship lives in [testing style](testing-style.md), authoring contracts in
-[coding style](coding-style.md), and approval remains in [AGENTS.md](../../AGENTS.md#approval-gate).
+[coding style](coding-style.md), and autonomy and approval rules in
+[AGENTS.md](../../AGENTS.md#autonomy-and-approval).
 
 ## Mechanical Authorities And Analyzer Policy
 
@@ -30,8 +31,7 @@ claims need mechanical validation. Always validate affected links, as required b
 `PublishAot=true` and trim/AOT warnings are load-bearing runtime-safety boundaries. Check serialized
 types against `LambdaFunctionJsonSerializerContext`; a successful ordinary compilation does not
 prove Native AOT runtime safety. Native AOT publishing goes through
-`tools/badgesmith.cs lambda build`, requires the existing publish/release approval, and is not part
-of a normal build loop. The [tooling guide](../../tools/README.md) owns exact build operations.
+`tools/badgesmith.cs lambda build` and is not part of a normal build loop. The [tooling guide](../../tools/README.md) owns exact build operations.
 
 ## Shared-Source Consumers
 

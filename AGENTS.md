@@ -1,8 +1,8 @@
 # Agent Instructions
 
-Harness-neutral entry point for LLM/code agents working in BadgeSmith. It keeps always-on safety and
-approval rules; task-specific guidance is loaded through the routing table. Documentation ownership
-and lifecycle are defined in [`docs/engineering/documentation.md`](docs/engineering/documentation.md).
+Harness-neutral entry point for coding agents working in BadgeSmith: always-on rules plus a routing
+table for task-specific guidance. Documentation ownership and lifecycle are defined in
+[`docs/engineering/documentation.md`](docs/engineering/documentation.md).
 
 ## Purpose
 
@@ -11,41 +11,31 @@ AOT AWS Lambda behind API Gateway and CloudFront, with DynamoDB and Secrets Mana
 performance, AOT/trim safety, secure request handling, and predictable HTTP contracts are core
 behavior. Aspire and LocalStack integrations are consumed for local development, not built here.
 
-## Approval Gate
+## Autonomy And Approval
 
-### Require Explicit Approval
+Work toward the goal of the request and carry it through to verified completion. Make the code,
+test, build, CI, CDK, and documentation changes the goal needs without stopping to ask, and call
+out anything beyond the obvious scope in your summary. Answer a question or review request without
+editing unless it asks for the fix. Diagnose a bug before changing production code for it.
 
-- Start a feature, refactor production code, or apply a production-code bug fix not already
-  requested with an action such as `go`, `apply`, `proceed`, `başla`, or `yap`.
-- Change build or package behavior (`Directory.Build.props`, `Directory.Packages.props`, MSBuild,
-  `.editorconfig` analyzer policy, `Dockerfile`, or `tools/badgesmith.cs`).
-- Change CI/CD under `.github/workflows/**`.
-- Change repository policy in `AGENTS.md` or `docs/engineering/` (including documentation,
-  coding/testing style, quality, workflow, and deviation policy), or policy in any other location;
-  or change approval gates, repository routing, discovery relays, or agent-integration behavior.
-- Weaken, skip, delete, or substantially rewrite tests to change verified behavior.
-- Change CDK/infrastructure under `build/`, public HTTP routes, or response schemas.
-- Run CDK deploy, Lambda publish/release builds, or any AWS mutation.
-- Commit, amend, push, create a PR, or publish a release.
+Ask first only before destructive or outward-facing actions. A request that names the action is the
+approval. When you reach one, finish the rest of the work first and ask once at the end. A plan,
+handoff, or tool's presence is not that approval.
+
+- CDK deploy, Lambda publish, or any other AWS mutation.
+- Push, create a PR, or publish a release.
+- Amend or rewrite Git history, discard uncommitted changes you did not make, or delete files
+  unrelated to the task.
+- Delete, skip, or weaken a test, or change what an existing test asserts, unless the request asked
+  for the behavior change that test covers.
+- Loosen a rule in this section or in Always-On Safety.
 
 Production CDK operations must target `BadgeSmithStack` explicitly; never use `--all` for
 production synth, diff, or deploy. The local-performance app must never be deployed to AWS.
 
-### Allowed Without Additional Approval
-
-- Read-only discovery, dry-run checks, diagnosis, and test-failure investigation.
-- Documentation-only edits that do not alter repository policy, routing, approval gates, or harness
-  behavior.
-- Broken internal-link fixes and behavior-neutral comment improvements.
-
-Test-code approval follows the behavior under change. Removing or weakening coverage always
-requires approval. Diagnose bugs before proposing or applying production changes.
-
-### Before Any Commit
-
-Present a concise change summary and proposed Conventional Commit message, then ask for approval.
-Use `feat`, `fix`, `docs`, `test`, `refactor`, `build`, `ci`, or `chore`; do not add AI attribution
-trailers.
+Commit only when the request asks for it; otherwise end with a concise change summary and a
+proposed Conventional Commit message. Use `feat`, `fix`, `docs`, `test`, `refactor`, `build`, `ci`,
+or `chore`, and do not add AI attribution trailers.
 
 ## Always-On Safety
 
@@ -56,10 +46,8 @@ These constraints prevent runtime-invisible Lambda failures and repository-wide 
 - Register every serialized type in `LambdaFunctionJsonSerializerContext`; missing registrations
   can compile successfully and fail only in the Native AOT Lambda.
 - The Lambda uses `ApplicationRegistry` with `Lazy<T>`, not a DI container, and reads required
-  configuration directly from environment variables.
-- That composition rule is scoped: `tools/` intentionally uses `HostApplicationBuilder`,
-  `IServiceCollection`, and `IConfiguration`; `src/BadgeSmith.Host` uses Aspire composition. Do not
-  normalize these projects onto the Lambda pattern.
+  configuration directly from environment variables. `tools/` (DI and `IConfiguration`) and
+  `src/BadgeSmith.Host` (Aspire) compose differently on purpose; do not normalize them.
 - UTC is mandatory. Follow `BannedSymbols.txt`; do not use `DateTime.Now`, `DateTimeOffset.Now`, or
   `DateTimeOffset.DateTime`.
 - `ENABLE_TELEMETRY` and `ENABLE_LOCALSTACK` exist in ordinary builds but are disabled by the
@@ -80,8 +68,8 @@ These constraints prevent runtime-invisible Lambda failures and repository-wide 
 
 ## Load Before Acting
 
-Read the relevant canon before proposing or changing design. Source and tests define runtime
-behavior; dated research and handovers may intentionally describe superseded states.
+Read the relevant canon before changing design. Source and tests define runtime behavior; dated
+research and handovers may intentionally describe superseded states.
 
 | Task | Read first |
 | --- | --- |
@@ -97,39 +85,27 @@ behavior; dated research and handovers may intentionally describe superseded sta
 | Aspire/LocalStack contract tests or AppHost setup | [Local development](docs/engineering/local-development.md#apphost-and-contract-tests) and [`tests/BadgeSmith.Api.Tests/README.md`](tests/BadgeSmith.Api.Tests/README.md) |
 | Failing tests or internals visibility | [Test triage](docs/engineering/local-development.md#test-triage) |
 | Required table environment variables | [Required environment](docs/engineering/local-development.md#required-environment) |
-| Collaboration, review, commits, or session handoffs | [Workflow](docs/engineering/workflow.md); [slop review](docs/engineering/slop-review.md) for review and narrow arbitration |
+| Reviews, commits, or session handoffs | [Workflow](docs/engineering/workflow.md); [slop review](docs/engineering/slop-review.md) for review reporting and narrow arbitration |
 | Agent relays or discovery shims | [Agent-integration boundaries](docs/engineering/workflow.md#agent-integration-boundaries) |
 | Runtime-tool visibility or version limits | [Runtime-tool boundaries](docs/engineering/local-development.md#runtime-tool-boundaries) |
 | Aspire/AWS/LocalStack source compatibility | [Aspire source navigation](docs/engineering/aspire-source-navigation.md) |
 | Documentation placement, refactoring, research, or ADRs | [Documentation](docs/engineering/documentation.md); [ADR convention](docs/adr/README.md) when a real decision needs a record |
 | Domain terminology | [`GLOSSARY.md`](GLOSSARY.md) |
 | Backlog, current work, or deferred decisions | [`docs/ROADMAP.md`](docs/ROADMAP.md); use dated research only as evidence |
-| Canonical sources disagree | [Deviation protocol](docs/engineering/deviation-protocol.md) |
+| Implementation and canon, or two canonical sources, disagree | [Deviation protocol](docs/engineering/deviation-protocol.md) |
 
 ## Operating Style
 
-- Be direct, practical, and clear. Challenge decisions instead of agreeing into bad architecture.
+- Challenge decisions instead of agreeing into bad architecture.
 - Prefer the smallest correct change. Do not add compatibility code without a concrete consumer or
   persisted/shipped contract.
 - Deniz communicates in Turkish and English interchangeably; respond in the language that best
   matches the current message.
-- If implementation and current canon disagree, follow the deviation protocol instead of choosing a
-  convenient winner.
 
-## Documentation And Tooling
+## Repository Hygiene
 
-- Documentation refactors follow `docs/engineering/documentation.md`: relocate useful unique information before
-  deleting its source, and keep one canonical owner per current fact.
-- `AGENTS.md` is canonical. `CLAUDE.md`, `.github/copilot-instructions.md`, and project discovery shims
-  are discovery relays and cannot override it.
-- Never commit secrets, OAuth tokens, personal machine paths, local MCP configuration, or personal
-  OpenCode model-routing configuration.
-- Use runtime-discovered tools when useful; committed documentation does not pin native skill,
-  agent, plugin, model, or local-tool identifiers.
-
-## Reviews
-
-Lead with findings ordered by severity, with file/line references. If there are no findings, say so
-and identify residual risk or unrun verification. For interactive reviews, present a recommended
-option with effort, risk, impact, and maintenance cost, plus reasonable alternatives; confirm before
-large changes.
+- `AGENTS.md` is canonical; relay files point here and cannot override it.
+- Never commit secrets, OAuth tokens, personal machine paths, or personal harness, MCP, or
+  model-routing configuration.
+- Committed documentation does not pin harness-specific skill, agent, plugin, model, or tool
+  identifiers.

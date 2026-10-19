@@ -106,11 +106,11 @@ Upstream source status:
 - LocalStack.Client {version}: not involved in this change.
 ```
 
-Create or refresh `external/` checkouts only when the user has approved that setup work or when the current task explicitly includes source setup. Keep those checkouts uncommitted.
+When the task needs a missing or stale `external/` checkout, create or refresh it and report what you fetched. Keep those checkouts uncommitted.
 
 ### Setting Up Checkouts
 
-When approved, create one checkout per resolved ref. Use a shallow clone to limit size:
+Create one checkout per resolved ref. Use a shallow clone to limit size:
 
 ```bash
 git clone --depth 1 --branch {ref} {repo-url} external/{name}/{ref}

@@ -1,7 +1,6 @@
 # Local Development
 
-This guide owns AppHost operation boundaries and unique current triage notes. It is not permission
-to refactor unrelated code or change setup, infrastructure, or production resources. Universal
+This guide owns AppHost operation boundaries and unique current triage notes. Universal autonomy,
 approval, AOT, UTC, runner, and analyzer constraints remain in [AGENTS.md](../../AGENTS.md).
 
 ## AppHost And Contract Tests
