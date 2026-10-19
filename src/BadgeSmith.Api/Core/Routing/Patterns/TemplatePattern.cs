@@ -10,21 +10,32 @@ internal sealed class TemplatePattern : IRoutePattern
     public TemplatePattern(string template)
     {
         var raw = template.AsSpan().TrimStart('/');
-        var parts = raw.ToString().Split('/');
-        _keys = new string[parts.Length];
-        _literals = new string[parts.Length];
-        for (var i = 0; i < parts.Length; i++)
+        var segmentCount = 1;
+        foreach (var character in raw)
         {
-            var part = parts[i];
+            if (character == '/')
+            {
+                segmentCount++;
+            }
+        }
+
+        _keys = new string[segmentCount];
+        _literals = new string[segmentCount];
+        var i = 0;
+        foreach (var range in raw.Split('/'))
+        {
+            var part = raw[range];
             if (part.Length >= 2 && part[0] == '{' && part[^1] == '}')
             {
-                _keys[i] = part[1..^1];
+                _keys[i] = part[1..^1].ToString();
                 _literals[i] = string.Empty;
             }
             else
             {
-                _literals[i] = part;
+                _literals[i] = part.ToString();
             }
+
+            i++;
         }
     }
 

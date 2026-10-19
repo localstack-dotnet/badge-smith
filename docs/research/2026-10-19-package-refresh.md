@@ -124,6 +124,22 @@ projection postdate the actual frozen build source; no per-file compiler-input a
 
 ## Remaining boundaries and continuation
 
+**Subsequent package delivery:** PR #11 merged normally as
+`284658607433b260588b2fbc9f062b0451106363`. New successful master CI **39304440839/1**, artifact
+**12212693136**, was promoted by [deploy39305427499/1](https://github.com/localstack-dotnet/badge-smith/actions/runs/39305427499).
+All validation/synth/diff/deploy/smoke steps passed; completed **2026-10-19T18:50:04Z**. Live diff
+changed only the Lambda `Code.S3Key`; expected account/region/BadgeSmithStack were observed.
+The workflow explicitly reported **6 GET smoke checks passed** (not separately counted physical
+attempts). No IAM, resource topology or compiler-profile change was made.
+
+Actual promoted ARM64 ZIP: **6,027,393 B**, SHA256
+`d55da9453369d4404d147b22dc551ab2edf8b096c60aa17253dfec0318406207`.
+The user explicitly accepted the **27,393 B** deviation from the 6,000,000-byte design target for
+this delivery. The target remains unchanged and is not claimed met; it is not an AWS limit or
+an existing mandatory CI/release gate. No speculative Size compiler profile was applied.
+This is workflow/source/artifact/smoke evidence, not independent Lambda API readback or a new
+CloudWatch INIT/memory sample population. The retained H2 was not included in this package rollout.
+
 The earlier [Native attribution packet](2026-10-19-native-first-request-attribution.md) remains
 historical evidence for its exact old binary/dependencies. No old ELF or performance numbers are
 relabeled as the upgraded application. Compilation and managed tests cannot establish Native
