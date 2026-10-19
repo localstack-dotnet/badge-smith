@@ -25,7 +25,7 @@ internal sealed class TestIngestCommand : AsyncCommand<TestIngestSettings>
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
-    protected override async Task<int> ExecuteAsync(CommandContext context, TestIngestSettings settings, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext context, TestIngestSettings settings, CancellationToken cancellationToken)
     {
         var urls = BadgeSmithUrlBuilder.Create(settings.BaseUrl);
 

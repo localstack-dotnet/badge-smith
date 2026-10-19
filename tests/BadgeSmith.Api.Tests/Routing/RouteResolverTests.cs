@@ -207,7 +207,7 @@ public sealed class RouteResolverTests
         Assert.Equal(expectedMethods.Length, allowedMethods.Count);
         foreach (var expectedMethod in expectedMethods)
         {
-            Assert.Contains(expectedMethod, allowedMethods);
+            Assert.Contains(expectedMethod, allowedMethods, StringComparer.Ordinal);
         }
     }
 
@@ -219,9 +219,9 @@ public sealed class RouteResolverTests
 
         var allowedMethods = resolver.GetAllowedMethods("/health");
 
-        Assert.Contains("GET", allowedMethods);
-        Assert.Contains("HEAD", allowedMethods);
-        Assert.Contains("OPTIONS", allowedMethods);
+        Assert.Contains("GET", allowedMethods, StringComparer.Ordinal);
+        Assert.Contains("HEAD", allowedMethods, StringComparer.Ordinal);
+        Assert.Contains("OPTIONS", allowedMethods, StringComparer.Ordinal);
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public sealed class RouteResolverTests
 
         var allowedMethods = resolver.GetAllowedMethods("/some/random/path");
 
-        Assert.Contains("OPTIONS", allowedMethods);
+        Assert.Contains("OPTIONS", allowedMethods, StringComparer.Ordinal);
     }
 
     [Fact]

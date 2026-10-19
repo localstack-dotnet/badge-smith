@@ -134,8 +134,8 @@ public sealed class LambdaRequestProcessorTests
         Assert.Equal(500, response.StatusCode);
         Assert.Equal("An error occurred processing the request", response.Body);
         var logs = logger.Invocations.Where(call => call.Method.Name == nameof(ILogger.Log)).ToArray();
-        Assert.Equal(informationEnabled ? 1 : 0, logs.Count(call => (LogLevel)call.Arguments[0] == LogLevel.Information));
-        Assert.Equal(errorEnabled ? 1 : 0, logs.Count(call => (LogLevel)call.Arguments[0] == LogLevel.Error));
+        Assert.Equal(informationEnabled ? 1 : 0, logs.Count(call => Assert.IsType<LogLevel>(call.Arguments[0]) == LogLevel.Information));
+        Assert.Equal(errorEnabled ? 1 : 0, logs.Count(call => Assert.IsType<LogLevel>(call.Arguments[0]) == LogLevel.Error));
         Assert.Equal((informationEnabled ? 1 : 0) + (errorEnabled ? 1 : 0), logs.Length);
         var scope = Assert.Single(logger.Invocations, call => call.Method.Name == nameof(ILogger.BeginScope));
         Assert.Equal("level-request", Assert.IsType<string>(Assert.Single(scope.Arguments)));

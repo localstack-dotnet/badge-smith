@@ -159,8 +159,8 @@ public sealed class TemplatePatternTests
         Assert.True(result);
 
         var parameters = values.ToDictionary();
-        Assert.Contains(expectedParam1, parameters.Values);
-        Assert.Contains(expectedParam2, parameters.Values);
+        Assert.Contains(expectedParam1, parameters.Values, StringComparer.Ordinal);
+        Assert.Contains(expectedParam2, parameters.Values, StringComparer.Ordinal);
     }
 
     [Theory]

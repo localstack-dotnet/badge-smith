@@ -55,7 +55,7 @@ internal sealed class NuGetPackageService : INuGetPackageService
                 request.Headers.IfNoneMatch.ParseAdd(cached.ETag);
             }
 
-            if (cached!.LastModified.HasValue)
+            if (cached.LastModified.HasValue)
             {
                 request.Headers.IfModifiedSince = cached.LastModified.Value;
             }
@@ -74,8 +74,8 @@ internal sealed class NuGetPackageService : INuGetPackageService
                 return new Error("Received 304 Not Modified without a cached entry");
             case HttpStatusCode.NotModified when hasCache:
                 content = cached!.Payload;
-                etag = response.Headers.ETag?.ToString() ?? cached!.ETag;
-                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date ?? cached!.LastModified;
+                etag = response.Headers.ETag?.ToString() ?? cached.ETag;
+                lastMod = response.Content.Headers.LastModified ?? response.Headers.Date ?? cached.LastModified;
                 break;
             case HttpStatusCode.NotFound:
                 return new PackageNotFound($"Package '{packageId}' not found");

@@ -1,0 +1,143 @@
+using System.Diagnostics;
+using System.Globalization;
+using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
+using BadgeSmith.Api.Core.Routing;
+
+namespace BadgeSmith.Api.Core.Observability;
+
+internal static class H2Probe
+{
+    private static readonly long[] Values = new long[200];
+    private static readonly (string, int, int)[] MatchBuffer = new (string, int, int)[8];
+    private static int _count;
+    private static int _routes;
+    private static int _features;
+    private static long _startupThread;
+    private static long _startupGlobal;
+    private static long _startupTicks;
+    private static long _routeThread;
+    private static long _routeGlobal;
+    private static long _routeTicks;
+
+    internal static void StartStartup()
+    {
+        var global = GC.GetTotalAllocatedBytes(precise: true);
+        var current = GC.GetAllocatedBytesForCurrentThread();
+        var ticks = Stopwatch.GetTimestamp();
+        Emit(0, 0, GC.GetAllocatedBytesForCurrentThread() - current, GC.GetTotalAllocatedBytes(precise: true) - global, Stopwatch.GetTimestamp() - ticks);
+        _startupGlobal = GC.GetTotalAllocatedBytes(precise: true);
+        _startupThread = GC.GetAllocatedBytesForCurrentThread();
+        _startupTicks = Stopwatch.GetTimestamp();
+    }
+
+    internal static void StartRoute()
+    {
+        if (++_routes != 1)
+        {
+            throw new InvalidOperationException("Exactly one route initialization is required.");
+        }
+
+        _routeGlobal = GC.GetTotalAllocatedBytes(precise: true);
+        _routeThread = GC.GetAllocatedBytesForCurrentThread();
+        _routeTicks = Stopwatch.GetTimestamp();
+    }
+
+    internal static void FinishRoute()
+    {
+        var ticks = Stopwatch.GetTimestamp() - _routeTicks;
+        var current = GC.GetAllocatedBytesForCurrentThread() - _routeThread;
+        var global = GC.GetTotalAllocatedBytes(precise: true) - _routeGlobal;
+        Emit(1, _routes, current, global, ticks);
+    }
+
+    internal static void CompleteStartup()
+    {
+        var ticks = Stopwatch.GetTimestamp() - _startupTicks;
+        var current = GC.GetAllocatedBytesForCurrentThread() - _startupThread;
+        var global = GC.GetTotalAllocatedBytes(precise: true) - _startupGlobal;
+        Emit(2, 0, current, global, ticks);
+        ConsumeRoutes(3);
+        ConsumeRoutes(4);
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        var start = Stopwatch.GetTimestamp();
+        while (Stopwatch.GetTimestamp() - start < Stopwatch.Frequency / 1000)
+        {
+            // Finite same-domain idle counter control; no GC or scheduler delay.
+        }
+
+        Emit(5, 0, GC.GetAllocatedBytesForCurrentThread() - before, 0, Stopwatch.GetTimestamp() - start);
+    }
+
+    private static void ConsumeRoutes(int kind)
+    {
+        string[] names = ["Health", "NugetPackageBadge", "GithubPackagesBadge", "TestsBadge", "TestIngestion", "BadgeRedirect"];
+        string[] methods = ["GET", "GET", "GET", "GET", "POST", "GET"];
+        string[] paths = ["/health", "/badges/packages/nuget/fake", "/badges/packages/github/fake/fake", "/badges/tests/linux/fake/fake/main", "/tests/results/linux/fake/fake/main", "/redirect/test-results/linux/fake/fake/main"];
+        var routes = RouteTable.Routes;
+        if (routes.Length != 6 || _routes != 1)
+        {
+            throw new InvalidOperationException("Route inventory or once-only invariant failed.");
+        }
+
+        for (var index = 0; index < routes.Length; index++)
+        {
+            var descriptor = routes[index];
+            var values = new RouteValues(paths[index], MatchBuffer);
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var matched = descriptor.Pattern.TryMatch(paths[index], ref values);
+            var bytes = GC.GetAllocatedBytesForCurrentThread() - before;
+            var key = index < 3 ? "package" : "branch";
+            var expected = index < 3 ? "fake" : "main";
+            if (!matched || !string.Equals(descriptor.Name, names[index], StringComparison.Ordinal)
+                || !string.Equals(descriptor.Method, methods[index], StringComparison.Ordinal)
+                || (index > 0 && (!values.TryGetSpan(key, out var value) || !value.Equals(expected, StringComparison.Ordinal))))
+            {
+                throw new InvalidOperationException("Route contract failed.");
+            }
+
+            Emit(kind, index, bytes, 0, 1);
+        }
+    }
+
+    internal static async Task<APIGatewayHttpApiV2ProxyResponse> HandleAsync(
+        LambdaRequestProcessor processor, APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
+    {
+        var global = GC.GetTotalAllocatedBytes(precise: true);
+        var ticks = Stopwatch.GetTimestamp();
+        var response = await processor.HandleAsync(request, context).ConfigureAwait(false);
+        var elapsed = Stopwatch.GetTimestamp() - ticks;
+        var bytes = GC.GetTotalAllocatedBytes(precise: true) - global;
+        var ordinal = Interlocked.Increment(ref _features);
+        Emit(6, ordinal, 0, bytes, elapsed);
+        Emit(7, ordinal, 0, GC.GetTotalAllocatedBytes(precise: true) - _startupGlobal, 0);
+        if (ordinal == 6)
+        {
+            await FlushAsync().ConfigureAwait(false);
+        }
+
+        return response;
+    }
+
+    private static void Emit(int kind, int ordinal, long current, long global, long ticks)
+    {
+        var offset = _count++ * 5;
+        Values[offset] = kind;
+        Values[offset + 1] = ordinal;
+        Values[offset + 2] = current;
+        Values[offset + 3] = global;
+        Values[offset + 4] = ticks;
+    }
+
+    private static async Task FlushAsync()
+    {
+        var text = new System.Text.StringBuilder();
+        for (var index = 0; index < _count; index++)
+        {
+            var offset = index * 5;
+            text.Append(string.Create(CultureInfo.InvariantCulture, $"NP|{Values[offset]}|{Values[offset + 1]}|{Values[offset + 2]}|{Values[offset + 3]}|{Values[offset + 4]}\n"));
+        }
+
+        await File.WriteAllTextAsync("/work/diagnostic-markers", text.ToString()).ConfigureAwait(false);
+    }
+}

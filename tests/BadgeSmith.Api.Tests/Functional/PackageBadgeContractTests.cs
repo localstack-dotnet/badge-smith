@@ -47,7 +47,7 @@ public sealed class PackageBadgeContractTests(AspireContractFixture stack)
         var first = await stack.Api.InvokeAsync("GET", "/badges/packages/nuget/contracttest.pkg", ct: TestContext.Current.CancellationToken);
         Assert.Equal(200, first.StatusCode);
         var second = await stack.Api.InvokeAsync("GET", "/badges/packages/nuget/contracttest.pkg",
-            new Dictionary<string, string>(StringComparer.Ordinal) { ["if-none-match"] = first.Headers!["ETag"] },
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["if-none-match"] = first.Headers["ETag"] },
             ct: TestContext.Current.CancellationToken);
         Assert.Equal(304, second.StatusCode);
     }
@@ -102,7 +102,7 @@ public sealed class PackageBadgeContractTests(AspireContractFixture stack)
         var first = await stack.Api.InvokeAsync("GET", "/badges/packages/github/test-org/contracttest.pkg", ct: TestContext.Current.CancellationToken);
         Assert.Equal(200, first.StatusCode);
         var second = await stack.Api.InvokeAsync("GET", "/badges/packages/github/test-org/contracttest.pkg",
-            new Dictionary<string, string>(StringComparer.Ordinal) { ["if-none-match"] = first.Headers!["ETag"] },
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["if-none-match"] = first.Headers["ETag"] },
             ct: TestContext.Current.CancellationToken);
         Assert.Equal(304, second.StatusCode);
     }
