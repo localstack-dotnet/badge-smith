@@ -21,9 +21,9 @@
     <PackageReference Include="Spectre.Console.Cli.Extensions.DependencyInjection" />
     <PackageReference Include="Spectre.Console.Cli.Testing" />
     <PackageReference Include="Testcontainers" />
-    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="xunit.v3.mtp-off" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\BadgeSmith.Api\BadgeSmith.Api.csproj" />

@@ -20,7 +20,7 @@ internal sealed class LambdaBuildCommand : AsyncCommand<LambdaBuildSettings>
         ArgumentNullException.ThrowIfNull(logger);
     }
 
-    protected override async Task<int> ExecuteAsync(CommandContext context, LambdaBuildSettings settings, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext context, LambdaBuildSettings settings, CancellationToken cancellationToken)
     {
         var outputDirectory = _paths.ResolveFromRoot(settings.OutDir);
 

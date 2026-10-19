@@ -26,7 +26,7 @@ internal sealed class BadgeUpdateCommand : AsyncCommand<BadgeUpdateSettings>
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
-    protected override async Task<int> ExecuteAsync(CommandContext context, BadgeUpdateSettings settings, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext context, BadgeUpdateSettings settings, CancellationToken cancellationToken)
     {
         var repositoryParts = settings.Repository.Split('/', StringSplitOptions.RemoveEmptyEntries);
         var urls = BadgeSmithUrlBuilder.Create(settings.BaseUrl);

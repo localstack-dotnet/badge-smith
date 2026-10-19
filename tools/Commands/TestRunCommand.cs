@@ -20,7 +20,7 @@ internal sealed class TestRunCommand : AsyncCommand<TestRunSettings>
         ArgumentNullException.ThrowIfNull(logger);
     }
 
-    protected override async Task<int> ExecuteAsync(CommandContext context, TestRunSettings settings, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext context, TestRunSettings settings, CancellationToken cancellationToken)
     {
         var projectPath = Path.GetFullPath(Path.Combine(_paths.RepositoryRoot, settings.ProjectPath));
         if (!File.Exists(projectPath))

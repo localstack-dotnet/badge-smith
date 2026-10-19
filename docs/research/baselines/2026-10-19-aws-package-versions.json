@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "observedUtc": "2026-10-19T14:16:24.719Z",
+  "scope": "Public NuGet stable-version indexes and listed latest-version catalog entries; no restore, download of package binaries, installation or project mutation.",
+  "pinnedSource": "Directory.Packages.props",
+  "indexUrlTemplate": "https://api.nuget.org/v3-flatcontainer/{lowercasePackageId}/index.json",
+  "registrationUrlTemplate": "https://api.nuget.org/v3/registration5-gz-semver2/{lowercasePackageId}/{version}.json",
+  "selection": "Highest numeric stable version; prereleases excluded; selected version also checked listed=true in registration metadata.",
+  "packages": [
+    {"id": "Amazon.Lambda.Serialization.SystemTextJson", "pinned": "2.4.5", "latestStable": "3.0.1", "listed": true, "published": "2026-08-17T22:27:21.623Z", "group": "lambda-runtime", "relevantDependency": {"id": "Amazon.Lambda.Core", "range": "[3.3.0, )"}},
+    {"id": "Amazon.Lambda.RuntimeSupport", "pinned": "2.1.2", "latestStable": "2.3.0", "listed": true, "published": "2026-10-08T17:40:16.107Z", "group": "lambda-runtime", "relevantDependency": {"id": "Amazon.Lambda.Core", "range": "[3.4.0, )"}},
+    {"id": "Amazon.Lambda.Core", "pinned": "3.1.1", "latestStable": "3.4.0", "listed": true, "published": "2026-10-08T17:40:06.83Z", "group": "lambda-runtime"},
+    {"id": "Amazon.Lambda.APIGatewayEvents", "pinned": "3.0.0", "latestStable": "3.0.1", "listed": true, "published": "2026-08-17T22:27:10.75Z", "group": "lambda-runtime"},
+    {"id": "AWSSDK.Core", "pinned": "4.0.100.6", "latestStable": "4.0.102.11", "listed": true, "published": "2026-10-14T18:55:32.13Z", "group": "aws-sdk-v4"},
+    {"id": "AWSSDK.DynamoDBv2", "pinned": "4.0.101.1", "latestStable": "4.0.107.3", "listed": true, "published": "2026-10-14T18:57:00.823Z", "group": "aws-sdk-v4", "relevantDependency": {"id": "AWSSDK.Core", "range": "[4.0.102.11, 5.0.0)"}},
+    {"id": "AWSSDK.SecretsManager", "pinned": "4.0.100.3", "latestStable": "4.0.100.19", "listed": true, "published": "2026-10-14T18:58:42.73Z", "group": "aws-sdk-v4", "relevantDependency": {"id": "AWSSDK.Core", "range": "[4.0.102.11, 5.0.0)"}},
+    {"id": "AWSSDK.Extensions.NETCore.Setup", "pinned": "4.0.100.5", "latestStable": "4.0.102.4", "listed": true, "published": "2026-10-14T19:00:07.753Z", "group": "host-tooling", "relevantDependency": {"id": "AWSSDK.Core", "range": "[4.0.102.11, )"}},
+    {"id": "Amazon.Lambda.TestUtilities", "pinned": "4.1.0", "latestStable": "4.3.0", "listed": true, "published": "2026-10-08T17:40:24.17Z", "group": "test", "relevantDependency": {"id": "Amazon.Lambda.Core", "range": "[3.4.0, )"}},
+    {"id": "Amazon.CDK.Lib", "pinned": "2.263.0", "latestStable": "2.273.0", "listed": true, "published": "2026-10-08T19:58:29.54Z", "group": "infrastructure", "relevantDependencies": [{"id": "Amazon.JSII.Runtime", "range": "[1.140.0, 2.0.0)"}, {"id": "Constructs", "range": "[10.5.0, 11.0.0)"}]},
+    {"id": "Aspire.Hosting.AWS", "pinned": "13.3.1", "latestStable": "13.7.2", "listed": true, "published": "2026-08-26T15:05:30.64Z", "group": "local-orchestration", "relevantDependencies": [{"id": "Aspire.Hosting", "range": "[13.5.0, )"}, {"id": "AWSSDK.Core", "range": "[4.0.102.1, )"}]}
+  ],
+  "serializerPin": {
+    "reasonRecordedInRepository": "3.0.0's net10.0 asset lacks the trimmability metadata required by BadgeSmith's Native AOT build.",
+    "latest301PackageBinaryTrimmabilityVerified": false,
+    "latest301TrimmabilityFixDocumentedInUpstreamChangelog": true,
+    "upstreamFixSource": "https://github.com/aws/aws-lambda-dotnet/blob/21d6d91456d967994bcd7da4662427f1f3494ea3/CHANGELOG.md#release-2026-08-17",
+    "verificationDistinction": "The changelog/source confirms the all-framework trimmability fix; latest published binary metadata and BadgeSmith Native build/execution were not verified.",
+    "latest301BinaryReflectionBehaviorAudited": false
+  },
+  "limits": [
+    "Stable and listed does not establish Native AOT compatibility or a performance improvement.",
+    "The configured package pin is not a new resolved restore-graph observation.",
+    "Latest package binaries were not acquired or decompiled by this version-inventory step.",
+    "Aspire/CDK/test package freshness is separate from shipped Lambda startup behavior.",
+    "No package, build, analyzer or infrastructure change is approved or performed by this inventory."
+  ]
+}

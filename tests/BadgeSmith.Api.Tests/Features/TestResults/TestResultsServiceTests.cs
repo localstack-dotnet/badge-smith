@@ -102,7 +102,7 @@ public sealed class TestResultsServiceTests
         _ = await sut.GetLatestTestResultAsync("LocalStack-DotNet", "Badge-Smith", "Linux", "Master", TestContext.Current.CancellationToken);
 
         Assert.NotNull(captured);
-        Assert.Equal("LATEST#localstack-dotnet#badge-smith#linux#master", captured!.ExpressionAttributeValues[":gsi1pk"].S);
+        Assert.Equal("LATEST#localstack-dotnet#badge-smith#linux#master", captured.ExpressionAttributeValues[":gsi1pk"].S);
     }
 
     [Fact]

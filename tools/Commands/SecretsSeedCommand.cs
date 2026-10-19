@@ -29,7 +29,7 @@ internal sealed class SecretsSeedCommand : AsyncCommand<SecretsSeedSettings>
         _console = console ?? throw new ArgumentNullException(nameof(console));
     }
 
-    protected override async Task<int> ExecuteAsync(CommandContext context, SecretsSeedSettings settings, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext context, SecretsSeedSettings settings, CancellationToken cancellationToken)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(settings.TimeoutSeconds));

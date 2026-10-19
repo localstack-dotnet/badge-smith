@@ -12,6 +12,11 @@ Every research doc MUST include its evidence snapshot date. Naming:
 
 ## Recent performance evidence
 
+- [2026-10-19 latest-stable package refresh](2026-10-19-package-refresh.md): package/API adaptations,
+  preserved VSTest behavior and fresh managed validation; new Native qualification remains separate.
+- [2026-10-19 AWS packages and Native AOT](2026-10-19-aws-native-aot-package-review.md):
+  live package currency, annotated reflection versus reflection-free code, the upstream 3.0.1
+  trimmability fix and official guidance; no package upgrade or performance result.
 - [2026-10-19 Native first-request attribution](2026-10-19-native-first-request-attribution.md):
   provider BDN, framing/TLS/certificate-input diagnostics, official AL2023 execution, retained
   failures and offline-verifiable numeric evidence. Local observations, not production SLO proof.

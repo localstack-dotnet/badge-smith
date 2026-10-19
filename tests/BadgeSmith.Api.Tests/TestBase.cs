@@ -45,11 +45,11 @@ public static class TestBase
     {
         times ??= Times.Once();
 
-        Func<object, Type, bool> state;
+        Func<object?, Type, bool> state;
 
         if (!string.IsNullOrEmpty(expectedMessage))
         {
-            state = (v, _) => string.Equals(v.ToString(), expectedMessage, StringComparison.Ordinal);
+            state = (v, _) => string.Equals(v?.ToString(), expectedMessage, StringComparison.Ordinal);
         }
         else
         {

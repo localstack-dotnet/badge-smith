@@ -1,0 +1,643 @@
+{
+  "snapshotScope": "Initial main-checkout package refresh, including unpublished H2; before the separate package-only Native validation recorded in 2026-10-19-package-native-smoke.json",
+  "additionalPackage": {
+    "id": "xunit.v3.mtp-off",
+    "latestStableChecked": "4.0.2",
+    "reason": "Keep current VSTest integration while using latest xUnit framework; no tests disabled",
+    "source": "https://api.nuget.org/v3-flatcontainer/xunit.v3.mtp-off/index.json",
+    "version": "4.0.2"
+  },
+  "baseCommit": "58a5bf017494241f07d7738242722e3e0ca4b46c",
+  "centralPinCount": 57,
+  "feedObservedUtc": "2026-10-19T14:27:19.028956+00:00",
+  "globalTestPlatformUnchanged": true,
+  "limits": [
+    "Feed version snapshot, not a fresh claim of latest forever",
+    "Actual per-test logs are not embedded in this summary",
+    "Historical Native evidence remains bound to old artifacts/dependencies",
+    "No analyzer/test weakening or SLO claim",
+    "No new commit/push/release permission implied"
+  ],
+  "netTargetAndLanguageUnchanged": true,
+  "packages": [
+    {
+      "changed": true,
+      "current": "1.141.0",
+      "id": "Amazon.JSII.Analyzers",
+      "latestStable": "1.141.0",
+      "location": "central props",
+      "pinned": "1.139.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/amazon.jsii.analyzers/index.json"
+    },
+    {
+      "changed": true,
+      "current": "3.1.12",
+      "id": "MessagePack",
+      "latestStable": "3.1.12",
+      "location": "central props",
+      "pinned": "2.5.303",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/messagepack/index.json"
+    },
+    {
+      "changed": true,
+      "current": "3.0.312",
+      "id": "Meziantou.Analyzer",
+      "latestStable": "3.0.312",
+      "location": "central props",
+      "pinned": "3.0.122",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/meziantou.analyzer/index.json"
+    },
+    {
+      "changed": false,
+      "current": "5.6.0",
+      "id": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+      "latestStable": "5.6.0",
+      "location": "central props",
+      "pinned": "5.6.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.bannedapianalyzers/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.0.402",
+      "id": "Microsoft.CodeAnalysis.NetAnalyzers",
+      "latestStable": "10.0.402",
+      "location": "central props",
+      "pinned": "10.0.301",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.netanalyzers/index.json"
+    },
+    {
+      "changed": true,
+      "current": "18.12.1",
+      "id": "Microsoft.VisualStudio.Threading.Analyzers",
+      "latestStable": "18.12.1",
+      "location": "central props",
+      "pinned": "18.7.23",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.visualstudio.threading.analyzers/index.json"
+    },
+    {
+      "changed": true,
+      "current": "5.0.1",
+      "id": "Roslynator.Analyzers",
+      "latestStable": "5.0.1",
+      "location": "central props",
+      "pinned": "4.15.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/roslynator.analyzers/index.json"
+    },
+    {
+      "changed": true,
+      "current": "5.0.1",
+      "id": "Roslynator.Formatting.Analyzers",
+      "latestStable": "5.0.1",
+      "location": "central props",
+      "pinned": "4.15.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/roslynator.formatting.analyzers/index.json"
+    },
+    {
+      "changed": false,
+      "current": "5.6.7",
+      "id": "SecurityCodeScan.VS2019",
+      "latestStable": "5.6.7",
+      "location": "central props",
+      "pinned": "5.6.7",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/securitycodescan.vs2019/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.35.0.4138",
+      "id": "SonarAnalyzer.CSharp",
+      "latestStable": "10.35.0.4138",
+      "location": "central props",
+      "pinned": "10.28.0.143324",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/sonaranalyzer.csharp/index.json"
+    },
+    {
+      "changed": true,
+      "current": "0.31.0",
+      "id": "Spectre.Console.Cli.Extensions.DependencyInjection",
+      "latestStable": "0.31.0",
+      "location": "central props",
+      "pinned": "0.26.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/spectre.console.cli.extensions.dependencyinjection/index.json"
+    },
+    {
+      "changed": true,
+      "current": "0.57.2",
+      "id": "Spectre.Console.Cli.Testing",
+      "latestStable": "0.57.2",
+      "location": "central props",
+      "pinned": "0.55.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/spectre.console.cli.testing/index.json"
+    },
+    {
+      "changed": true,
+      "current": "13.6.1",
+      "id": "Aspire.Hosting.AppHost",
+      "latestStable": "13.6.1",
+      "location": "SDK-implicit AppHost",
+      "pinned": "13.4.6",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/aspire.hosting.apphost/index.json"
+    },
+    {
+      "changed": true,
+      "current": "13.7.2",
+      "id": "Aspire.Hosting.AWS",
+      "latestStable": "13.7.2",
+      "location": "central props",
+      "pinned": "13.3.1",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/aspire.hosting.aws/index.json"
+    },
+    {
+      "changed": false,
+      "current": "13.4.0",
+      "id": "LocalStack.Aspire.Hosting",
+      "latestStable": "13.4.0",
+      "location": "central props",
+      "pinned": "13.4.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/localstack.aspire.hosting/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.0.102.11",
+      "id": "AWSSDK.Core",
+      "latestStable": "4.0.102.11",
+      "location": "central props",
+      "pinned": "4.0.100.6",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/awssdk.core/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.0.107.3",
+      "id": "AWSSDK.DynamoDBv2",
+      "latestStable": "4.0.107.3",
+      "location": "central props",
+      "pinned": "4.0.101.1",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/awssdk.dynamodbv2/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.0.100.19",
+      "id": "AWSSDK.SecretsManager",
+      "latestStable": "4.0.100.19",
+      "location": "central props",
+      "pinned": "4.0.100.3",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/awssdk.secretsmanager/index.json"
+    },
+    {
+      "changed": true,
+      "current": "2.273.0",
+      "id": "Amazon.CDK.Lib",
+      "latestStable": "2.273.0",
+      "location": "central props",
+      "pinned": "2.263.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/amazon.cdk.lib/index.json"
+    },
+    {
+      "changed": true,
+      "current": "3.0.1",
+      "id": "Amazon.Lambda.APIGatewayEvents",
+      "latestStable": "3.0.1",
+      "location": "central props",
+      "pinned": "3.0.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/amazon.lambda.apigatewayevents/index.json"
+    },
+    {
+      "changed": true,
+      "current": "3.4.0",
+      "id": "Amazon.Lambda.Core",
+      "latestStable": "3.4.0",
+      "location": "central props",
+      "pinned": "3.1.1",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/amazon.lambda.core/index.json"
+    },
+    {
+      "changed": true,
+      "current": "2.3.0",
+      "id": "Amazon.Lambda.RuntimeSupport",
+      "latestStable": "2.3.0",
+      "location": "central props",
+      "pinned": "2.1.2",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/amazon.lambda.runtimesupport/index.json"
+    },
+    {
+      "changed": true,
+      "current": "3.0.1",
+      "id": "Amazon.Lambda.Serialization.SystemTextJson",
+      "latestStable": "3.0.1",
+      "location": "central props",
+      "pinned": "2.4.5",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/amazon.lambda.serialization.systemtextjson/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.3.0",
+      "id": "Amazon.Lambda.TestUtilities",
+      "latestStable": "4.3.0",
+      "location": "central props",
+      "pinned": "4.1.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/amazon.lambda.testutilities/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.0.102.4",
+      "id": "AWSSDK.Extensions.NETCore.Setup",
+      "latestStable": "4.0.102.4",
+      "location": "central props",
+      "pinned": "4.0.100.5",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/awssdk.extensions.netcore.setup/index.json"
+    },
+    {
+      "changed": false,
+      "current": "2.0.0",
+      "id": "LocalStack.Client",
+      "latestStable": "2.0.0",
+      "location": "central props",
+      "pinned": "2.0.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/localstack.client/index.json"
+    },
+    {
+      "changed": false,
+      "current": "2.0.1",
+      "id": "LocalStack.Client.Extensions",
+      "latestStable": "2.0.1",
+      "location": "central props",
+      "pinned": "2.0.1",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/localstack.client.extensions/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.0.13",
+      "id": "Microsoft.Extensions.Hosting",
+      "latestStable": "10.0.13",
+      "location": "central props",
+      "pinned": "10.0.9",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.hosting/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.0.13",
+      "id": "Microsoft.Extensions.Http",
+      "latestStable": "10.0.13",
+      "location": "central props",
+      "pinned": "10.0.9",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.http/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.0.13",
+      "id": "Microsoft.Extensions.Caching.Memory",
+      "latestStable": "10.0.13",
+      "location": "central props",
+      "pinned": "10.0.9",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.caching.memory/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.0.13",
+      "id": "Microsoft.Extensions.Logging.Console",
+      "latestStable": "10.0.13",
+      "location": "central props",
+      "pinned": "10.0.9",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging.console/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.0.402",
+      "id": "Microsoft.SourceLink.GitHub",
+      "latestStable": "10.0.402",
+      "location": "central props",
+      "pinned": "10.0.303",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.sourcelink.github/index.json"
+    },
+    {
+      "changed": true,
+      "current": "10.0.13",
+      "id": "System.Text.Json",
+      "latestStable": "10.0.13",
+      "location": "central props",
+      "pinned": "10.0.9",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/system.text.json/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Api",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.api/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Exporter.OpenTelemetryProtocol",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.exporter.opentelemetryprotocol/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Extensions.Hosting",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.extensions.hosting/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Instrumentation.AspNetCore",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.instrumentation.aspnetcore/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Instrumentation.AWS",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.instrumentation.aws/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Instrumentation.AWSLambda",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.instrumentation.awslambda/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Instrumentation.Http",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.instrumentation.http/index.json"
+    },
+    {
+      "changed": true,
+      "current": "1.20.0",
+      "id": "OpenTelemetry.Instrumentation.Runtime",
+      "latestStable": "1.20.0",
+      "location": "central props",
+      "pinned": "1.16.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/opentelemetry.instrumentation.runtime/index.json"
+    },
+    {
+      "changed": false,
+      "current": "0.15.8",
+      "id": "BenchmarkDotNet",
+      "latestStable": "0.15.8",
+      "location": "central props",
+      "pinned": "0.15.8",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/benchmarkdotnet/index.json"
+    },
+    {
+      "changed": true,
+      "current": "3.10.5",
+      "id": "CliWrap",
+      "latestStable": "3.10.5",
+      "location": "central props",
+      "pinned": "3.10.2",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/cliwrap/index.json"
+    },
+    {
+      "changed": false,
+      "current": "10.8.1",
+      "id": "Constructs",
+      "latestStable": "10.8.1",
+      "location": "central props",
+      "pinned": "10.8.1",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/constructs/index.json"
+    },
+    {
+      "changed": true,
+      "current": "7.9.0",
+      "id": "NuGet.Versioning",
+      "latestStable": "7.9.0",
+      "location": "central props",
+      "pinned": "7.6.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/nuget.versioning/index.json"
+    },
+    {
+      "changed": false,
+      "current": "3.0.271",
+      "id": "OneOf",
+      "latestStable": "3.0.271",
+      "location": "central props",
+      "pinned": "3.0.271",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/oneof/index.json"
+    },
+    {
+      "changed": false,
+      "current": "3.0.271",
+      "id": "OneOf.SourceGenerator",
+      "latestStable": "3.0.271",
+      "location": "central props",
+      "pinned": "3.0.271",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/oneof.sourcegenerator/index.json"
+    },
+    {
+      "changed": true,
+      "current": "0.57.2",
+      "id": "Spectre.Console.Cli",
+      "latestStable": "0.57.2",
+      "location": "central props",
+      "pinned": "0.55.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/spectre.console.cli/index.json"
+    },
+    {
+      "changed": false,
+      "current": "1.5.6",
+      "id": "ZLinq",
+      "latestStable": "1.5.6",
+      "location": "central props",
+      "pinned": "1.5.6",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/zlinq/index.json"
+    },
+    {
+      "changed": true,
+      "current": "13.6.1",
+      "id": "Aspire.Hosting.Testing",
+      "latestStable": "13.6.1",
+      "location": "central props",
+      "pinned": "13.4.6",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/aspire.hosting.testing/index.json"
+    },
+    {
+      "changed": true,
+      "current": "18.11.0",
+      "id": "Microsoft.NET.Test.Sdk",
+      "latestStable": "18.11.0",
+      "location": "central props",
+      "pinned": "18.7.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/microsoft.net.test.sdk/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.21.0",
+      "id": "Moq",
+      "latestStable": "4.21.0",
+      "location": "central props",
+      "pinned": "4.20.72",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/moq/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.16.0",
+      "id": "Testcontainers",
+      "latestStable": "4.16.0",
+      "location": "central props",
+      "pinned": "4.14.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/testcontainers/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.16.0",
+      "id": "Testcontainers.LocalStack",
+      "latestStable": "4.16.0",
+      "location": "central props",
+      "pinned": "4.13.0",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/testcontainers.localstack/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.0.2",
+      "id": "xunit.v3",
+      "latestStable": "4.0.2",
+      "location": "central props",
+      "pinned": "3.2.2",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/xunit.v3/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.0.2",
+      "id": "xunit.v3.runner.console",
+      "latestStable": "4.0.2",
+      "location": "central props",
+      "pinned": "3.2.2",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/xunit.v3.runner.console/index.json"
+    },
+    {
+      "changed": true,
+      "current": "4.0.1",
+      "id": "xunit.runner.visualstudio",
+      "latestStable": "4.0.1",
+      "location": "central props",
+      "pinned": "3.1.5",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/xunit.runner.visualstudio/index.json"
+    },
+    {
+      "changed": true,
+      "current": "13.6.1",
+      "id": "Aspire.AppHost.Sdk",
+      "latestStable": "13.6.1",
+      "location": "project SDK",
+      "pinned": "13.4.6",
+      "pinnedPresent": true,
+      "source": "https://api.nuget.org/v3-flatcontainer/aspire.apphost.sdk/index.json"
+    }
+  ],
+  "preservedH2": "Production constructor and allocation fact unchanged; two existing string assertions gain explicit Ordinal comparer only",
+  "schemaVersion": 1,
+  "scope": "latest stable direct/central package refresh, not a deployment or performance result",
+  "serializer301Net10": {
+    "annotatedConstructorReflectionStillPresent": true,
+    "assemblySha256": "0c3fb6e5916129c5fba9ff6d11a1917f73d40c063a36f834fee182c001bc02ee",
+    "inspection": "actual restored package decompilation, no Native application result",
+    "isTrimmableAssemblyMetadata": "True"
+  },
+  "snapshotDate": "2026-10-19",
+  "upstreamSourceRefs": {
+    "Aspire13.6.1": "3751e615ad660621f2a7aa4c390ef48e08a0eed8",
+    "AwsAspire13.7.2": "653c103df4e342a927f7ac0fd533b350ef772c34",
+    "LocalStackHosting13.4.0Unchanged": "6cdc91719e8637346b22d4d4c013a8c124e3d417"
+  },
+  "validation": {
+    "deployment": "NOTRUN",
+    "fileBasedCliBuild": "PASS",
+    "nativePublishAndExecution": "NOTRUN",
+    "performanceComparison": "NOTRUN",
+    "productionConditionalManagedBuild": {
+      "errors": 0,
+      "passed": true,
+      "warnings": 0
+    },
+    "slopwatchIssues": 0,
+    "solutionBuild": {
+      "errors": 0,
+      "passed": true,
+      "warnings": 0
+    },
+    "solutionTest": {
+      "apiPassed": 629,
+      "cdkPassed": 4,
+      "failed": 0,
+      "runner": "VSTest",
+      "skipped": 0
+    }
+  }
+}
