@@ -1,0 +1,766 @@
+{
+  "schemaVersion": 1,
+  "repository": "localstack-dotnet/badge-smith",
+  "evidenceKind": "terminal available matching REPORT retrieval for one fixed post-deploy window; not exhaustive invocation/history attestation",
+  "retrievalStatus": "DONE",
+  "subject": {
+    "sourceSha": "fdf4c4a13df477bae6d4607ecfd922469faec2cc",
+    "artifactId": 12106742202,
+    "ciRunId": 39048346736,
+    "ciAttempt": 1,
+    "deployRunId": 39049154134,
+    "deployAttempt": 1,
+    "account": "377140207735",
+    "region": "eu-central-1",
+    "function": "badge-smith-function",
+    "qualifier": "$LATEST",
+    "packageSha256": "16eb591d0a8ef8e395fdb4e2ff283165d1487cd1ebd31238c0a558626d87e512",
+    "packageBytes": 5993723
+  },
+  "window": {
+    "startUtc": "2026-10-17T16:40:20+00:00",
+    "endUtc": "2026-10-18T15:51:05+00:00",
+    "filterStartInclusiveMs": 1792255220000,
+    "filterEndInclusiveMs": 1792338665000,
+    "durationSeconds": 83445,
+    "startBuffer": "15minutes after later hosted deployment completion",
+    "endBuffer": "five-minute margin before2026-10-18T15:56:05.858727Z setup; not late-arrival proof"
+  },
+  "collection": {
+    "startedUtc": "2026-10-18T15:57:56.847154+00:00",
+    "endedUtc": "2026-10-18T15:58:24.519010+00:00",
+    "elapsedSeconds": 27.671950039919466,
+    "actualHttpDispatches": 24,
+    "paginationComplete": true,
+    "closingChecksComplete": true,
+    "acquisitionStop": null,
+    "limits": {
+      "http": 32,
+      "eventPages": 20,
+      "returnedCandidates": 10000,
+      "combinedReducedBytes": 2097152,
+      "liveSeconds": 120,
+      "retries": 0,
+      "concurrency": 1,
+      "connectSeconds": 3,
+      "readSeconds": 5
+    },
+    "pages": [
+      {
+        "page": 1,
+        "requestedLimit": 1000,
+        "returnedCandidates": 9,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 0,
+        "rejectedBefore": 0,
+        "retainedAfter": 9,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 2,
+        "requestedLimit": 1000,
+        "returnedCandidates": 9,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 9,
+        "rejectedBefore": 0,
+        "retainedAfter": 18,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 3,
+        "requestedLimit": 1000,
+        "returnedCandidates": 41,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 18,
+        "rejectedBefore": 0,
+        "retainedAfter": 59,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 4,
+        "requestedLimit": 1000,
+        "returnedCandidates": 3,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 59,
+        "rejectedBefore": 0,
+        "retainedAfter": 62,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 5,
+        "requestedLimit": 1000,
+        "returnedCandidates": 10,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 62,
+        "rejectedBefore": 0,
+        "retainedAfter": 72,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 6,
+        "requestedLimit": 1000,
+        "returnedCandidates": 7,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 72,
+        "rejectedBefore": 0,
+        "retainedAfter": 79,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 7,
+        "requestedLimit": 1000,
+        "returnedCandidates": 145,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 79,
+        "rejectedBefore": 0,
+        "retainedAfter": 224,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 8,
+        "requestedLimit": 1000,
+        "returnedCandidates": 4,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 224,
+        "rejectedBefore": 0,
+        "retainedAfter": 228,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 9,
+        "requestedLimit": 1000,
+        "returnedCandidates": 1,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 228,
+        "rejectedBefore": 0,
+        "retainedAfter": 229,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 10,
+        "requestedLimit": 1000,
+        "returnedCandidates": 22,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 229,
+        "rejectedBefore": 0,
+        "retainedAfter": 251,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 11,
+        "requestedLimit": 1000,
+        "returnedCandidates": 3,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 251,
+        "rejectedBefore": 0,
+        "retainedAfter": 254,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 12,
+        "requestedLimit": 1000,
+        "returnedCandidates": 6,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 254,
+        "rejectedBefore": 0,
+        "retainedAfter": 260,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 13,
+        "requestedLimit": 1000,
+        "returnedCandidates": 4,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 260,
+        "rejectedBefore": 0,
+        "retainedAfter": 264,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 14,
+        "requestedLimit": 1000,
+        "returnedCandidates": 8,
+        "hasContinuation": true,
+        "tokenChanged": true,
+        "retainedBefore": 264,
+        "rejectedBefore": 0,
+        "retainedAfter": 272,
+        "rejectedAfter": 0
+      },
+      {
+        "page": 15,
+        "requestedLimit": 1000,
+        "returnedCandidates": 0,
+        "hasContinuation": false,
+        "tokenChanged": true,
+        "retainedBefore": 272,
+        "rejectedBefore": 0,
+        "retainedAfter": 272,
+        "rejectedAfter": 0
+      }
+    ],
+    "productionRequests": 0,
+    "awsMutations": 0,
+    "retries": 0
+  },
+  "safeCallReceipts": [
+    {
+      "id": "identity",
+      "operation": "sts.get-caller-identity",
+      "beganUtc": "2026-10-18T15:57:56.847343+00:00",
+      "endedUtc": "2026-10-18T15:57:57.851032+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "sts.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "function_before",
+      "operation": "lambda.get-function-configuration",
+      "beganUtc": "2026-10-18T15:57:57.851190+00:00",
+      "endedUtc": "2026-10-18T15:57:58.930178+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "lambda.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "before_stages",
+      "operation": "apigatewayv2.get-stages",
+      "beganUtc": "2026-10-18T15:57:58.930351+00:00",
+      "endedUtc": "2026-10-18T15:57:59.934714+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "apigateway.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "before_integrations",
+      "operation": "apigatewayv2.get-integrations",
+      "beganUtc": "2026-10-18T15:57:59.935007+00:00",
+      "endedUtc": "2026-10-18T15:58:00.954068+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "apigateway.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "before_routes",
+      "operation": "apigatewayv2.get-routes",
+      "beganUtc": "2026-10-18T15:58:00.954287+00:00",
+      "endedUtc": "2026-10-18T15:58:01.992704+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "apigateway.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_1",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:01.992877+00:00",
+      "endedUtc": "2026-10-18T15:58:03.402545+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_2",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:03.404968+00:00",
+      "endedUtc": "2026-10-18T15:58:04.489194+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_3",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:04.490809+00:00",
+      "endedUtc": "2026-10-18T15:58:05.975454+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_4",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:05.980442+00:00",
+      "endedUtc": "2026-10-18T15:58:07.007372+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_5",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:07.008135+00:00",
+      "endedUtc": "2026-10-18T15:58:08.456764+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_6",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:08.458398+00:00",
+      "endedUtc": "2026-10-18T15:58:09.709372+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_7",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:09.710660+00:00",
+      "endedUtc": "2026-10-18T15:58:11.103054+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_8",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:11.122428+00:00",
+      "endedUtc": "2026-10-18T15:58:12.342561+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_9",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:12.343484+00:00",
+      "endedUtc": "2026-10-18T15:58:13.474506+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_10",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:13.475155+00:00",
+      "endedUtc": "2026-10-18T15:58:14.835702+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_11",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:14.838967+00:00",
+      "endedUtc": "2026-10-18T15:58:15.903842+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_12",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:15.904740+00:00",
+      "endedUtc": "2026-10-18T15:58:17.011109+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_13",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:17.012854+00:00",
+      "endedUtc": "2026-10-18T15:58:18.318655+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_14",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:18.320149+00:00",
+      "endedUtc": "2026-10-18T15:58:19.464323+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "events_15",
+      "operation": "logs.filter-log-events",
+      "beganUtc": "2026-10-18T15:58:19.466569+00:00",
+      "endedUtc": "2026-10-18T15:58:20.498383+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "logs.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "function_after",
+      "operation": "lambda.get-function-configuration",
+      "beganUtc": "2026-10-18T15:58:20.498627+00:00",
+      "endedUtc": "2026-10-18T15:58:21.568638+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "lambda.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "after_stages",
+      "operation": "apigatewayv2.get-stages",
+      "beganUtc": "2026-10-18T15:58:21.568947+00:00",
+      "endedUtc": "2026-10-18T15:58:22.550299+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "apigateway.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "after_integrations",
+      "operation": "apigatewayv2.get-integrations",
+      "beganUtc": "2026-10-18T15:58:22.550530+00:00",
+      "endedUtc": "2026-10-18T15:58:23.525425+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "apigateway.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    },
+    {
+      "id": "after_routes",
+      "operation": "apigatewayv2.get-routes",
+      "beganUtc": "2026-10-18T15:58:23.525645+00:00",
+      "endedUtc": "2026-10-18T15:58:24.514872+00:00",
+      "httpDispatches": 1,
+      "requestHosts": [
+        "apigateway.eu-central-1.amazonaws.com"
+      ],
+      "countBasis": "memory-only-send-trace",
+      "exitCode": 0,
+      "result": "success"
+    }
+  ],
+  "snapshots": {
+    "function_before": {
+      "FunctionArn": "arn:aws:lambda:eu-central-1:377140207735:function:badge-smith-function",
+      "Version": "$LATEST",
+      "RevisionId": "4b3899ff-659d-4238-88a7-a83b33545706",
+      "PackageType": "Zip",
+      "CodeSha256": "FutZHQqO+OOV/bTi/ygxZdFIfNHr0xI4wKVYYm2H5RI=",
+      "CodeSize": 5993723,
+      "LastModified": "2026-10-17T16:25:07.000+0000",
+      "Runtime": "provided.al2023",
+      "Architectures": [
+        "arm64"
+      ],
+      "MemorySize": 512,
+      "State": "Active",
+      "LastUpdateStatus": "Successful",
+      "LoggingConfig": {
+        "LogFormat": "Text",
+        "ApplicationLogLevel": null,
+        "SystemLogLevel": null,
+        "LogGroup": "/aws/lambda/badge-smith-function"
+      },
+      "CodeSha256Hex": "16eb591d0a8ef8e395fdb4e2ff283165d1487cd1ebd31238c0a558626d87e512",
+      "matchesSelectedMasterZip": true
+    },
+    "before_stages": {
+      "Rows": [
+        {
+          "StageName": "$default",
+          "AutoDeploy": true,
+          "DeploymentId": "lccyot",
+          "LastUpdatedDate": "2025-08-28T23:55:55+00:00"
+        }
+      ],
+      "hasContinuation": false
+    },
+    "before_integrations": {
+      "Rows": [
+        {
+          "IntegrationId": "nkcccpl",
+          "IntegrationType": "AWS_PROXY",
+          "IntegrationUri": "arn:aws:lambda:eu-central-1:377140207735:function:badge-smith-function",
+          "PayloadFormatVersion": "2.0"
+        }
+      ],
+      "hasContinuation": false
+    },
+    "before_routes": {
+      "Rows": [
+        {
+          "RouteId": "wkuklad",
+          "RouteKey": "$default",
+          "Target": "integrations/nkcccpl",
+          "AuthorizationType": "NONE"
+        }
+      ],
+      "hasContinuation": false
+    },
+    "function_after": {
+      "FunctionArn": "arn:aws:lambda:eu-central-1:377140207735:function:badge-smith-function",
+      "Version": "$LATEST",
+      "RevisionId": "4b3899ff-659d-4238-88a7-a83b33545706",
+      "PackageType": "Zip",
+      "CodeSha256": "FutZHQqO+OOV/bTi/ygxZdFIfNHr0xI4wKVYYm2H5RI=",
+      "CodeSize": 5993723,
+      "LastModified": "2026-10-17T16:25:07.000+0000",
+      "Runtime": "provided.al2023",
+      "Architectures": [
+        "arm64"
+      ],
+      "MemorySize": 512,
+      "State": "Active",
+      "LastUpdateStatus": "Successful",
+      "LoggingConfig": {
+        "LogFormat": "Text",
+        "ApplicationLogLevel": null,
+        "SystemLogLevel": null,
+        "LogGroup": "/aws/lambda/badge-smith-function"
+      },
+      "CodeSha256Hex": "16eb591d0a8ef8e395fdb4e2ff283165d1487cd1ebd31238c0a558626d87e512",
+      "matchesSelectedMasterZip": true
+    },
+    "after_stages": {
+      "Rows": [
+        {
+          "StageName": "$default",
+          "AutoDeploy": true,
+          "DeploymentId": "lccyot",
+          "LastUpdatedDate": "2025-08-28T23:55:55+00:00"
+        }
+      ],
+      "hasContinuation": false
+    },
+    "after_integrations": {
+      "Rows": [
+        {
+          "IntegrationId": "nkcccpl",
+          "IntegrationType": "AWS_PROXY",
+          "IntegrationUri": "arn:aws:lambda:eu-central-1:377140207735:function:badge-smith-function",
+          "PayloadFormatVersion": "2.0"
+        }
+      ],
+      "hasContinuation": false
+    },
+    "after_routes": {
+      "Rows": [
+        {
+          "RouteId": "wkuklad",
+          "RouteKey": "$default",
+          "Target": "integrations/nkcccpl",
+          "AuthorizationType": "NONE"
+        }
+      ],
+      "hasContinuation": false
+    }
+  },
+  "counts": {
+    "candidatesReturned": 272,
+    "uniqueReports": 272,
+    "reportedInitCount": 90,
+    "missingInitCount": 182,
+    "streamCount": 90,
+    "rejected": {},
+    "duplicates": {},
+    "statusCounts": {
+      "not_reported": 272
+    }
+  },
+  "eventBounds": {
+    "firstUtc": "2026-10-17T16:43:13.627Z",
+    "lastUtc": "2026-10-18T15:34:52.114Z"
+  },
+  "statistics": {
+    "durationMs": {
+      "n": 272,
+      "min": "0.88",
+      "median": "2.905",
+      "p95Rank": 259,
+      "p95": "263.45",
+      "max": "997.63"
+    },
+    "billedDurationMs": {
+      "n": 272,
+      "min": "1",
+      "median": "4",
+      "p95Rank": 259,
+      "p95": "369",
+      "max": "1132"
+    },
+    "maxMemoryUsedMb": {
+      "n": 272,
+      "min": "35",
+      "median": "48",
+      "p95Rank": 259,
+      "p95": "52",
+      "max": "56"
+    },
+    "initDurationMs": {
+      "n": 90,
+      "min": "88.01",
+      "median": "111.595",
+      "p95Rank": 86,
+      "p95": "135.06",
+      "max": "143.63"
+    },
+    "initPlusDurationMs": {
+      "n": 90,
+      "min": "113.22",
+      "median": "291.49",
+      "p95Rank": 86,
+      "p95": "465.34",
+      "max": "1131.15"
+    }
+  },
+  "statisticsMethod": "exact Decimal sort; rank(95*n+99)//100, same-row INIT+Duration; absentINITexcludedfromcoldstats",
+  "descriptiveExceedances": {
+    "initGreaterThan100Ms": 84,
+    "memoryGreaterThan50Mb": 26
+  },
+  "parser": {
+    "regex": "REPORT RequestId: (?P<request>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[ \\t]+Duration: (?P<duration>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms[ \\t]+Billed Duration: (?P<billed>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms[ \\t]+Memory Size: (?P<memory>[0-9]{1,9}) MB[ \\t]+Max Memory Used: (?P<maximum>[0-9]{1,9}) MB(?:[ \\t]+Init Duration: (?P<init>[0-9]{1,12}(?:\\.[0-9]{1,9})?) ms)?(?:[ \\t]+Status: (?P<status>success|error|timeout)(?:[ \\t]+Error Type: (?P<error>Runtime\\.ExitError|Extension\\.Crash))?)?[ \\t]*",
+    "flags": "ASCII/fullmatch",
+    "sourcePath": "docs/research/baselines/2026-10-17-production-window.json",
+    "sourceSha256": "93a8f53209c2ea8b9c5116bd42afc83ce05f1ffa254ee4d00705c062beb0679d",
+    "filterPattern": "\"REPORT RequestId:\"",
+    "maxMessageCharacters": 4096,
+    "rawMessagesRetained": false,
+    "opaqueNamespace": "badgesmith-metrics-20261018",
+    "versionFrom": "stream layout, not a per-event source hash",
+    "missingInit": "null/empty, never zero",
+    "statusAbsent": "not_reported, never inferred success"
+  },
+  "csv": {
+    "file": "2026-10-18-post-deploy-complete-window-reports.csv",
+    "sha256": "7d66280c0b326470fa32e35d0bce5dd09c2587d39de7a270ae6c1a91b759f661",
+    "bytes": 54288,
+    "rows": 272
+  },
+  "priorPacketReconciliation": {
+    "method": "fresh full retrieval; prior rows reconciled afterward, never reused as newly acquired observations",
+    "priorRetainedReports": 264,
+    "priorWindowEndMs": 1792334880000,
+    "priorWindowEndUtc": "2026-10-18T14:48:00+00:00",
+    "allPriorRowsReobservedExactlyExceptPageNumber": true,
+    "additionalReports": 8,
+    "additionalReportedInit": 4,
+    "additionalInsidePriorWindow": 0,
+    "additionalAfterPriorWindow": 8,
+    "interpretation": "The old packet lacked terminal evidence, not demonstrated missing rows; all additional observations are after its earlier end. No causal A/B inference."
+  },
+  "verdicts": {
+    "currentPackageBinding": "PASS at collection snapshots; prior promotion supplies source linkage",
+    "size": "PASS:5993723<=6000000",
+    "availableMatchingWindowRetrieval": "PASS:final page empty and no continuation",
+    "coldSampleMinimum": "UNVERIFIED:90<100",
+    "memorySampleMinimum": "PASS:272>=100",
+    "initGoal": "UNVERIFIED:insufficient cold count and historical qualification limits",
+    "memoryThresholdComparison": "observed full retrieved-window p95=52MB exceeds50MB; not causal old/new evidence",
+    "formalHistoricalRevisionQualifiedMemoryGoal": "UNVERIFIED:bounded operational interval evidence, not exhaustive historical/per-event attestation"
+  },
+  "limitations": [
+    "Terminal pagination establishes available matching records at retrieval time, not future delayed ingestion or every invocation/platform origin",
+    "Current package/source/config/routing and recorded deployment support operational interval attribution; mutable historical/per-event identity is not cryptographically or exhaustively audited",
+    "90 INIT records cannot satisfy100-cold requirement; no requests/configuration/deploy changes generated to obtain them",
+    "All absent text statuses remain not_reported; missing INIT is not a proven warm classification or zero; no suppressed-init census",
+    "Memory is invocation-weighted environment high-water and correlated, not per-request allocation or live managed heap",
+    "Cold companion is same-row INIT+Duration, not client latency or sum of percentiles; routes/workloads unknown",
+    "Calls/pages/rows/time are bounded, but not a hard scan-byte/currency ceiling",
+    "Caller/send/control observations remain collector-attributed; offline checking cannot authenticate discarded AWS responses",
+    "All earlier packets remain immutable and separate; no old/new causal optimization claim"
+  ],
+  "privacy": "Finite identity/configuration/call projections and numeric REPORT fields/scoped opaque keys only; no raw messages/IDs/headers/bodies/debug/tokens/credentials/signed URLs or personal profile/path",
+  "producerControls": "10 offline collector tests passed before acquisition, including all20pages fitting auth+closing reservations; not application test or forensic evidence"
+}

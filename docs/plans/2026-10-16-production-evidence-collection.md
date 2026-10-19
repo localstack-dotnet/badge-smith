@@ -1,6 +1,20 @@
 # Production evidence collection procedure
 
-**Status:** the subsequently authorized bounded last-24-hour wider read executed on 2026-10-16 UTC
+**Latest status (2026-10-18):** the user-directed bounded autonomous
+[complete-window follow-up](../research/2026-10-18-post-deploy-complete-window.md) reached terminal
+pagination: **272 REPORTs / 90 INIT**, 15 pages with the last empty/no token, 24/32 permitted HTTP
+dispatches, unchanged package and routing closing checks. Available matching-window retrieval is
+complete; INIT still lacks ten cold records. Formal historical/per-event qualification remains
+bounded, and no traffic was generated to fill the gap. This pass is closed; the plan remains active.
+
+**Earlier same-day status:** the newly approved [post-deployment pass](../research/2026-10-18-post-deploy-production.md)
+bound the current package to the promoted `fdf4c4a` ZIP and retained **264 REPORTs / 86 reported INIT**.
+It stopped with continuation after **13 pages / 22 HTTP dispatches**, preserving closing reads within
+the approved 24-call/14-page ceiling. The new budget is closed. Prefix p95 is **135.06 ms INIT /
+51 MB memory**; full-window/100-cold-sample qualification remains **UNVERIFIED**. No more reads,
+traffic or mutation are implied; this operational plan remains active and unretired.
+
+**Earlier status:** the subsequently authorized bounded last-24-hour wider read executed on 2026-10-16 UTC
 (October 17 investigation label). The [window packet](../research/2026-10-17-production-evidence-window.md)
 contains **413 rows, 102 with reported INIT**; it stopped at **20 pages with continuation**. Both
 numerical minimum counts are met; complete-window and revision-qualified compliance remain
@@ -119,7 +133,7 @@ prevent reporting the available observations; it prevents presenting them as rev
 - [x] Obtain explicit approval for **Phase B** with those concrete bounds. Any later material
   expansion returns to this checkpoint. Lack of approval leaves Phase B NOT RUN.
 
-**Current checkpoint:** after the accepted diagnostic, the parent proposed a bounded last-24-hour
+**Historical wider-read checkpoint:** after the accepted diagnostic, the parent proposed a bounded last-24-hour
 read and deployed-source check; the user explicitly instructed autonomous execution without more
 questions. Approved bounds: 30 AWS attempts including ordinary authentication, 20 event pages,
 5,000 returned candidates, 2 MiB combined new report/JSON/CSV, concurrency one, zero retries,
@@ -131,6 +145,28 @@ including authentication and five permitted exact-resource metadata calls, in 10
 Before/after configuration matched all 16 accepted fields; all 14 pilot rows reconcile. No extra page
 or request followed. This satisfies authorization of that read, not canonical clean-interval/full-cohort
 proof; any later budget needs its own justified checkpoint.
+
+**Latest approved checkpoint (2026-10-18):** after a fresh metadata preflight and explicit numeric
+proposal, the user approved the fixed post-deploy read autonomously. Bounds: 24 new HTTP dispatches
+including authentication; at most 14 event pages, fewer when closing/authentication reservations
+require; 10,000 returned candidates; 2 MiB combined reduced output; concurrency one; zero retries;
+3/5-second transport timeouts; 120-second request horizon. Exact same function/group and frozen
+2026-10-17T16:40:20Z–2026-10-18T14:48:00Z interval, no traffic/downloads/queries/mutations. The
+[result](../research/2026-10-18-post-deploy-production.md) is partial at 264 rows/86 INIT with
+continuation, despite matching package/routing before/after. The conservative closing reservation
+stopped acquisition at 13 pages/22 dispatches; the two unused units are not permission to resume.
+All prior diagnostic/wider-read data remain unchanged, and no later budget is automatically granted.
+
+**Subsequent autonomous follow-up (2026-10-18):** after the recommended next step was a complete
+same-revision baseline, the user explicitly delegated safe autonomous progress without routine
+questions. A new one-pass 32-HTTP/20-event-page ceiling was announced and frozen before acquisition;
+the other 10,000-candidate/2-MiB/120-second/zero-retry/concurrency-one/3–5-second bounds remained.
+The end advanced to 2026-10-18T15:51:05Z before any new event read, retaining the same start, function,
+group, source and closing checks. This was a fresh bounded read, not reopening the old 24-call cap.
+The [terminal result](../research/2026-10-18-post-deploy-complete-window.md) retains 272 rows/90 INIT,
+including the earlier 264 rows freshly reobserved and eight rows after the old window's end.
+The last empty page has no continuation. The missing ten cold samples were not manufactured;
+there is no unannounced additional round, traffic, periodic monitor or configuration change.
 
 The [StartQuery request](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartQuery.html)
 has time-range and result limits, not a hard byte/currency budget parameter. A result-row limit is
