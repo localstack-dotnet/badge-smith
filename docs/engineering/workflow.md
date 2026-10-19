@@ -1,57 +1,34 @@
 # Repository Workflow
 
-This document owns collaboration, agent-integration boundaries, and harness-neutral session-handoff
-authorship. The [root approval gate](../../AGENTS.md#approval-gate) applies before any task-specific
-route; [quality gates](quality-gates.md) owns verification and
+This document owns review and commit flow, agent-integration boundaries, and harness-neutral
+session-handoff authorship. The root [autonomy and approval rules](../../AGENTS.md#autonomy-and-approval)
+and operating style apply to every task; [quality gates](quality-gates.md) owns verification and
 [documentation](documentation.md) owns placement and lifecycle.
-
-## Collaboration And Scope
-
-- Be direct, practical, and clear. Challenge decisions instead of agreeing into bad architecture.
-- Prefer the smallest correct change within the requested scope. Compatibility code needs a
-  concrete consumer or persisted/shipped contract.
-- Deniz communicates in Turkish and English interchangeably; respond in the language that best
-  matches the current message.
-- Diagnose bugs before proposing or applying production changes. Test-code approval follows the
-  behavior under change; removing or weakening coverage always requires approval.
-- If implementation and current canon disagree, use the [deviation protocol](deviation-protocol.md)
-  rather than choosing a convenient winner. Stop only the affected scope; safe independent work
-  can continue.
 
 ## Reviews And Git
 
 [Slop review](slop-review.md#review-reporting) owns severity-ordered findings, file/line references,
-honest residual/unrun reporting, and the interactive recommendation with effort, risk, impact,
-maintenance cost, and alternatives. Confirm before large changes.
-
-Before **any** commit, present a concise change summary and proposed Conventional Commit message,
-then ask for approval. The allowed types remain `feat`, `fix`, `docs`, `test`, `refactor`, `build`,
-`ci`, and `chore`; do not add AI attribution trailers. Commit, amend, push, PR, and release actions
-each remain approval-gated. A plan, handoff, or tool's presence supplies no additional permission.
+honest residual/unrun reporting, and fix recommendations. Commits, amends, pushes, PRs, and releases
+follow the [root rules](../../AGENTS.md#autonomy-and-approval), which also own the allowed
+Conventional Commit types.
 
 ## Agent-Integration Boundaries
 
-`AGENTS.md` is the canonical always-on contract. `CLAUDE.md`,
-`.github/copilot-instructions.md`, and project discovery shims are thin relays: they may point to it
-or a narrower project guide but cannot override it or own independent policy.
+`AGENTS.md` is the canonical always-on contract. `CLAUDE.md` and project discovery shims are thin
+relays: they may point to it or a narrower project guide but cannot override it or own independent
+policy.
 
 Repository canon controls behavior regardless of available runtime tools. Discover suitable native
 capabilities from the running environment; committed documentation does not inventory or pin
-native skills, agents, plugins, marketplaces, models, or local-tool identifiers. Do not infer
+native skills, agents, plugins, models, or local-tool identifiers. Do not infer
 permission, architecture, or quality policy from a tool's presence. Missing optional tooling is not
 a reason to invent an identifier, install a substitute without an explicit request, or weaken a
 required check.
-
-Keep native capability inventories, marketplace repair, LSP setup, local MCP configuration,
-personal model routing, and other per-developer configuration outside the repository. Never commit
-secrets, OAuth tokens, or personal machine paths.
 
 Keep mandatory cross-environment policy in `AGENTS.md`, project-specific details in their canonical
 guides, and unique current triage facts in [local development](local-development.md#test-triage).
 Keep relays short and link canon instead of restating it. Update
 [documentation ownership](documentation.md#document-roles) when ownership or lifecycle changes.
-Policy, approval, routing, relay, and integration-behavior edits require explicit approval even when
-they are Markdown-only.
 
 Compatibility-sensitive Aspire/AWS/LocalStack work follows
 [source navigation](aspire-source-navigation.md). Read that guide directly; native discovery shims
@@ -113,10 +90,11 @@ Vague status is worse than an absent optional entry.
 
 Recommend one concrete next action with one or two reasonable alternatives, not five parallel
 futures. For each option include its name/classification (well-scoped, multi-session, or optional),
-preflight reads/checks, exact files/sections, and acceptance criteria. Talk to Deniz before
-committing to which option to pursue. In this successor-step guidance, default to the current branch
-unless there is a concrete reason to branch; this is not a universal branch prohibition. Link the
-[approval gate](../../AGENTS.md#approval-gate), do not paraphrase it.
+preflight reads/checks, exact files/sections, and acceptance criteria. Name the option the
+successor starts on unless the user redirects it. In this successor-step guidance, default to the
+current branch unless there is a concrete reason to branch; this is not a universal branch
+prohibition. Link the [autonomy and approval rules](../../AGENTS.md#autonomy-and-approval), do not
+paraphrase them.
 
 ### Scope-Adjusted Grounding
 
@@ -138,7 +116,7 @@ Give a read order the next session actually needs; skip irrelevant entries:
 8. The affected source, tests, CDK/tool/test/action READMEs, workflows, and configuration.
 
 Optional scope-specific guardrails link canon and name only two or three unusually tempting risks
-for the next increment. Omit them when links suffice; do not copy the approval gate, package/AOT/
+for the next increment. Omit them when links suffice; do not copy the approval rules, package/AOT/
 runner rules, Slopwatch command, or integration policy into each pickup. End with a short, specific
 steering note (one or two paragraphs): useful direction, not a hard mandate about session rhythm.
 

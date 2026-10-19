@@ -52,7 +52,7 @@ cdk deploy BadgeSmithStack --require-approval never
 ```
 
 `--require-approval never` disables CDK's interactive prompt; it does not waive the repository
-approval gate or any external AWS/environment approval.
+ask-before-deploy rule or any external AWS/environment approval.
 
 Do not use `--all` for production synth, diff, or deploy commands.
 

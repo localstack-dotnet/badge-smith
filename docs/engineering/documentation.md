@@ -8,7 +8,7 @@ defines those owners and the lifecycle of each document class.
 
 | Home | Audience | Owns | Lifecycle |
 | --- | --- | --- | --- |
-| [`AGENTS.md`](../../AGENTS.md) | All coding agents | Always-on safety, approval, source pointers, and task routing | Living policy; changes are approval-gated |
+| [`AGENTS.md`](../../AGENTS.md) | All coding agents | Always-on safety, autonomy and approval rules, source pointers, and task routing | Living policy |
 | [`README.md`](../../README.md) | Users and contributors | Product purpose, positioning, public endpoints, examples, showcase, and first-run paths | Living public surface |
 | [`docs/guide/`](../guide/README.md) | Badge users and test-result publishers | How to use the shipped package/test badges and supported publishing paths | Living consumer guidance |
 | [`GLOSSARY.md`](../../GLOSSARY.md) | Users, maintainers, and agents | Current domain vocabulary, not implementation or protocol mechanics | Living domain language |

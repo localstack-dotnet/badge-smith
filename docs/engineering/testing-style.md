@@ -34,10 +34,9 @@ Release-mode synchronous facts gate named measured baselines, while asynchronous
 BenchmarkDotNet memory evidence rather than per-thread allocation gates. Raising a recorded ceiling
 is a reviewed performance-contract change with a reason, not a test edit.
 
-## Framework And Approval
+## Framework And Coverage
 
-Tests use xUnit v3 + Moq on VSTest, not TUnit or Microsoft.Testing.Platform. The
-[root approval gate](../../AGENTS.md#approval-gate) governs the behavior under change: removing or
-weakening coverage always requires approval, as do skipping, deleting, or substantially rewriting
-tests to change verified behavior. Diagnose failures before proposing production changes; use
-[local triage](local-development.md#test-triage) for the known environment and internals boundaries.
+Tests use xUnit v3 + Moq on VSTest, not TUnit or Microsoft.Testing.Platform. Deleting, skipping, or
+weakening a test is an ask-first action under the [root rules](../../AGENTS.md#autonomy-and-approval)
+unless the request asked for that behavior change. Use [local triage](local-development.md#test-triage)
+for the known environment and internals boundaries.

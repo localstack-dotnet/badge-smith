@@ -45,7 +45,8 @@ Authentication controls when a nonce can be marked; see
 `badgesmith secrets seed` (in `tools/badgesmith.cs`) seeds organization mappings and secrets for
 LocalStack development or real AWS resources with appropriate credentials. It uses JSON-based
 organization/secret configuration and idempotent operations, so it is safe to repeat against the
-intended target. Real AWS mutation remains subject to the [repository approval gate](../../AGENTS.md).
+intended target. Real AWS mutation is an ask-first action under the
+[repository autonomy rules](../../AGENTS.md#autonomy-and-approval).
 
 The [tooling guide](../../tools/README.md#secret-mapping) owns the mapping format, invocation,
 rotation procedure, and organization-scoped secret name `badgesmith/github/{org}/{key}`. Runtime
@@ -136,7 +137,7 @@ absolute HTTPS URLs without embedded credentials.
 - **Externalized credentials:** credentials live in AWS services, not in code.
 
 HMAC, nonce, secret, and replay-protection changes are security-sensitive. Review the exact
-protocol, threat model, and tests before mutation, under the [repository approval gate](../../AGENTS.md).
+protocol, threat model, and tests before changing them.
 
 ## Public Endpoints
 
