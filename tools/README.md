@@ -278,4 +278,4 @@ orchestration — remains deferred. When implemented, it will consume the dedica
 LocalStack-only `BadgeSmith.CDK.LocalPerformance` app as its infrastructure boundary;
 the app is never deployed to AWS. See the
 [local-performance CDK guide](../build/BadgeSmith.CDK.LocalPerformance/README.md) for the current manual build and
-synthesis workflow, and [the roadmap backlog](../docs/ROADMAP.md#backlog) for the planned command.
+synthesis workflow, and [the roadmap backlog](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md#backlog) for the planned command.

@@ -40,8 +40,8 @@ CLI-launched AppHosts from in-process test sessions and package-matched source e
 
 Write a pickup only for architectural waves, multi-commit refactors, roadmap/planning landings, or
 genuinely stateful in-flight work that needs primed successor context. Do **not** write one for
-routine refreshes, doc-only edits, or a single-bug fix. Use the same-repository
-[handoff location and lifecycle](../handoffs/README.md); this is harness-neutral authoring guidance,
+routine refreshes, doc-only edits, or a single-bug fix. Handoffs live in the organization's private archive
+([documentation](documentation.md#companion-repositories) owns their location and lifecycle); this is harness-neutral authoring guidance,
 not a required native frontmatter/model format.
 
 ### Authoring Snapshot
@@ -106,8 +106,8 @@ Give a read order the next session actually needs; skip irrelevant entries:
    [runtime](../architecture/runtime-and-routing.md), [security](../architecture/security-and-storage.md),
    or [platform](../architecture/platform-and-delivery.md) sections; [GLOSSARY](../../GLOSSARY.md)
    when domain language matters.
-4. [ROADMAP](../ROADMAP.md): current status, backlog, and Inbox / Untriaged.
-5. An active `docs/plans/` plan only when its workstream is in flight.
+4. [BadgeSmith roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md): current status, backlog, and Inbox / Untriaged.
+5. An active plan in the private archive only when its workstream is in flight.
 6. [Agent-integration boundaries](#agent-integration-boundaries) and relevant
    [local triage](local-development.md) when tools or environment matter.
 7. [Coding style](coding-style.md), [testing style](testing-style.md), and
@@ -127,7 +127,7 @@ steering are session-specific. The authoring-as-of reminder is stable; grounding
 until document topology changes. Update grounding when a plan, roadmap section, or owner moves or
 retires. Guardrails stay optional, linked, and specific to upcoming risks.
 
-Update the `docs/ROADMAP.md` Status table in the same change: the handoff supplies deep successor
+Update the [BadgeSmith roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md) Status table alongside the change: the handoff supplies deep successor
 context, while the roadmap row is the permanent concise index. Move durable rules/rationale/evidence
 to their [natural owners](documentation.md#document-roles) before the temporary handoff is consumed
 or superseded.

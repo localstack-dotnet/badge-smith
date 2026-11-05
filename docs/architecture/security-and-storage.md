@@ -147,7 +147,7 @@ failures. The [cache contract](runtime-and-routing.md#cache-strategy) owns the e
 per-response cache intent.
 
 The production stack does not currently configure an application-specific WAF or API
-throttling policy. Explicit abuse controls remain [roadmap work](../ROADMAP.md); generic AWS service
+throttling policy. Explicit abuse controls remain [roadmap work](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md); generic AWS service
 quotas are not treated as an application rate-limit contract.
 
 For public endpoint examples and supported use, see the [README](../../README.md) and
