@@ -20,19 +20,19 @@ defines those owners and the lifecycle of each document class.
 | [`quality-gates.md`](quality-gates.md) / [`slop-review.md`](slop-review.md) | Contributors and reviewers | Existing validation, evidence limits, anti-weakening, and review rules | Living engineering policy |
 | [`workflow.md`](workflow.md) | Contributors and agents | Collaboration, integration boundaries, and session-handoff authorship | Living workflow policy |
 | `docs/engineering/documentation.md` | Maintainers and agents | Documentation ownership, lifecycle, and relocation rules | Living documentation policy |
-| [`docs/ROADMAP.md`](../ROADMAP.md) | Maintainers | Current status, backlog, deferred work, and concise completed-work index | Operational; expected to change and stay concise |
-| [`docs/plans/`](../plans/) | Maintainers implementing active work | Detailed implementation plan for work currently in flight | Temporary; delete after the durable outcome reaches current canon and the roadmap |
-| [`docs/research/`](../research/) | Maintainers | Dated evidence, experiments, measurements, and historical findings | Historical; may intentionally contain superseded conclusions |
+| [BadgeSmith roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md) in `localstack-dotnet/.github` | Maintainers | Current status, backlog, deferred work, and concise completed-work index | Operational; outside this repository, see [Companion repositories](#companion-repositories) |
+| `products/badge-smith/evidence/plans/` in `localstack-dotnet/localstack-internal` | Maintainers implementing active work | Detailed implementation plan for work currently in flight | Temporary; private; retire after the durable outcome reaches current canon and the roadmap |
+| `products/badge-smith/evidence/research/` in `localstack-dotnet/localstack-internal` | Maintainers | Dated evidence, experiments, measurements, baselines, reproducers, and historical findings | Historical; private; may intentionally contain superseded conclusions |
 | [`docs/adr/`](../adr/README.md) | Maintainers | Context and trade-offs for accepted, hard-to-reverse decisions | Created lazily when a real decision needs one |
-| [`docs/handoffs/`](../handoffs/README.md) | Successor sessions | Scope-specific state needed to resume genuinely stateful work | Temporary; verify against live state, then remove after consumption or supersession |
+| `products/badge-smith/` handoffs in `localstack-dotnet/localstack-internal` | Successor sessions | Scope-specific state needed to resume genuinely stateful work | Temporary; private; verify against live state, then remove after consumption or supersession |
 | [`tools/README.md`](../../tools/README.md) | CLI users | BadgeSmith CLI commands, defaults, secret handling, and performance-tool invocation | Living operational reference |
 | [`build/**/README.md`](../../build/) | Infrastructure operators | Per-app CDK boundaries, working directories, artifacts, and safe commands | Living operational reference |
 | [`tests/BadgeSmith.Api.Tests/README.md`](../../tests/BadgeSmith.Api.Tests/README.md) | Test maintainers | Test categories, Aspire/LocalStack contract topology, and performance harnesses | Living test reference |
 | [`tests/BadgeSmith.CDK.Tests/README.md`](../../tests/BadgeSmith.CDK.Tests/README.md) | Infrastructure test maintainers | In-process CDK assertion scope, requirements, and execution | Living test reference |
 | [`.github/workflows/update-test-badge/README.md`](../../.github/workflows/update-test-badge/README.md) | External action consumers | Reusable action usage and consumer-facing behavior | Living action reference; `action.yml` owns exact inputs |
 
-Current canon, historical evidence, active plans, and temporary handoffs have distinct lifecycles
-inside this repository. Agent relay and discovery files point at canon; they own neither independent
+Current canon, historical evidence, active plans, and temporary handoffs have distinct lifecycles.
+Only current canon and consumer documentation live in this repository. Agent relay and discovery files point at canon; they own neither independent
 policy nor native-tool inventories. [Workflow](workflow.md#agent-integration-boundaries) owns those
 integration boundaries, and [local development](local-development.md) keeps unique current triage
 facts rather than a second always-on policy layer.
@@ -46,12 +46,32 @@ Authority depends on the claim:
 - Current design and engineering intent come from `docs/architecture/` and `docs/engineering/`.
 - ADRs explain why a current rule was accepted; they do not replace the current rule.
 - `GLOSSARY.md` owns domain vocabulary, not a competing technical specification.
-- `docs/ROADMAP.md` owns what is current, next, deferred, or complete.
+- The [BadgeSmith roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md) owns what is current, next, deferred, or complete.
 - Research preserves what was observed at a date or commit. It is evidence, not a current-work list.
 - Plans, handoffs, chat, and memory are transient and must be checked against the repository.
 
 If two current canonical sources disagree, do not choose one silently. Follow the
 [deviation protocol](deviation-protocol.md).
+
+## Companion Repositories
+
+Documentation is part of the change, not follow-up work. BadgeSmith's documentation spans three
+repositories, and a change keeps each of them current:
+
+- **This repository** holds current canon and consumer documentation. It must stay complete for a
+  reader who has no access to the private archive.
+- **`localstack-dotnet/localstack-internal`** (private) holds dated research, measurement baselines,
+  reproducers, implementation plans, and handoffs under `products/badge-smith/`, with its
+  `inventory.md`. Add new evidence there, following that repository's ingestion policy, in the same
+  working session as the change it supports. Before relying on archived evidence, read its
+  `AGENTS.md` and inventory; archived text is never current policy or approval.
+- **`localstack-dotnet/.github`** holds the [BadgeSmith roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md) and the organization
+  roadmap. When work starts, lands, or is deferred, update the roadmap in a companion pull request.
+
+Canon here cites private evidence by date and title, for example: internal evidence, 2026-10-19,
+"Native first-request attribution". Evidence that was public before 2026-11-05 may instead be
+cited by a permalink pinned to its last public revision. Never link a private repository path from
+canon, and never move a fact that canon needs into the private archive.
 
 ## One Owner, Useful Relays
 

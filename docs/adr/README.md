@@ -2,8 +2,9 @@
 
 Each ADR records one accepted decision's context, real trade-off and rationale. Current
 normative rules belong in `docs/architecture/` and `docs/engineering/`; an ADR explains why
-a rule was accepted rather than replacing it. Dated evidence stays in this repository's
-`docs/research/` or in cited immutable primary records.
+a rule was accepted rather than replacing it, and states the decision and its reason in full.
+Dated evidence lives in the organization's private archive or in cited immutable primary records;
+cite evidence that was once public by its pinned public permalink, otherwise by date and title.
 
 Create records lazily, only when all three hold:
 

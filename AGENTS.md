@@ -91,8 +91,24 @@ research and handovers may intentionally describe superseded states.
 | Aspire/AWS/LocalStack source compatibility | [Aspire source navigation](docs/engineering/aspire-source-navigation.md) |
 | Documentation placement, refactoring, research, or ADRs | [Documentation](docs/engineering/documentation.md); [ADR convention](docs/adr/README.md) when a real decision needs a record |
 | Domain terminology | [`GLOSSARY.md`](GLOSSARY.md) |
-| Backlog, current work, or deferred decisions | [`docs/ROADMAP.md`](docs/ROADMAP.md); use dated research only as evidence |
+| Backlog, current work, or deferred decisions | [BadgeSmith roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md) in `localstack-dotnet/.github`; use dated research only as evidence |
+| Dated research, baselines, plans, or handoffs | `products/badge-smith/` in the private `localstack-dotnet/localstack-internal`; [companion repositories](docs/engineering/documentation.md#companion-repositories) |
 | Implementation and canon, or two canonical sources, disagree | [Deviation protocol](docs/engineering/deviation-protocol.md) |
+
+## Documentation Is Part Of The Change
+
+Docs are first-class: a change is not complete until its documentation is. In the same change,
+update the canonical owner of every fact the change alters, here or in a companion repository:
+
+- Current behavior, rules, and consumer guidance: this repository, per the
+  [documentation policy](docs/engineering/documentation.md).
+- Dated research, measurements, plans, and handoffs: the private `localstack-dotnet/localstack-internal`
+  archive under `products/badge-smith/`, never this repository.
+- Status, backlog, and deferred work: the [BadgeSmith roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md) in
+  `localstack-dotnet/.github`.
+
+This repository's canon stays complete without the private archive. Pushing to or opening a pull
+request in a companion repository follows the same approval rule as this one.
 
 ## Operating Style
 

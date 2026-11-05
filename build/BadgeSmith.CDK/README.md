@@ -72,7 +72,7 @@ environment subject, and audience (normally `sts.amazonaws.com`). An environment
 subject such as `repo:localstack-dotnet/badge-smith:environment:production` relies
 on that environment's branch restriction.
 
-The accepted 2026-10-16 [closeout](../../docs/research/2026-10-16-delivery-and-diagnostics-closeout.md#trust-and-iam-timeline)
+The accepted 2026-10-16 [closeout](https://github.com/localstack-dotnet/badge-smith/blob/bc7ed07860ec4b0e702add6370c2636daccb2adf/docs/research/2026-10-16-delivery-and-diagnostics-closeout.md#trust-and-iam-timeline)
 records a master-only production branch policy and master protection requiring PRs and
 `build-and-test` (zero approvals). The Windows operator reported environment-only OIDC
 trust and scoped direct role permissions, checked by readback and simulation. These dated
@@ -141,7 +141,7 @@ credentials when lookup-role setup fails. Existing role permissions must suffice
 insufficient permissions must surface as a failure, without widening IAM or adding
 a template fallback.
 
-The [dated CLI source evidence](../../docs/research/2026-10-16-delivery-cdk-diff-semantics.md)
+The [dated CLI source evidence](https://github.com/localstack-dotnet/badge-smith/blob/bc7ed07860ec4b0e702add6370c2636daccb2adf/docs/research/2026-10-16-delivery-cdk-diff-semantics.md)
 records the inspected package identity, integrity, and source locations. Workflow
 pins own the current version; revalidate semantics when changing them. Local shell
 fixtures verify workflow propagation using stand-ins; they do not execute CDK or

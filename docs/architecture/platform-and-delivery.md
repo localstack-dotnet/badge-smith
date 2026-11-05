@@ -103,7 +103,7 @@ those operations. Deployment and AWS mutation remain separately approval-gated. 
 [production](../../build/BadgeSmith.CDK/README.md) and
 [local-performance](../../build/BadgeSmith.CDK.LocalPerformance/README.md) guides own project paths,
 working directories, artifacts, context, and safe commands. Deferred performance-command
-orchestration belongs to the [roadmap](../ROADMAP.md), not a current CLI guarantee.
+orchestration belongs to the [roadmap](https://github.com/localstack-dotnet/.github/blob/main/roadmap/badgesmith.md), not a current CLI guarantee.
 
 ## Local And Production Boundaries
 
@@ -116,7 +116,7 @@ to [local development](../engineering/local-development.md#apphost-and-contract-
 Local benchmark infrastructure uses Docker, LocalStack, and CDK. Production keeps API Gateway HTTP
 v2, while the local-performance stack also exposes a Lambda Function URL as the LocalStack workflow's
 compatibility fallback. The observed limitation that introduced the fallback is preserved in the
-dated [Iteration 0 and Wave 1 closeout](../research/2026-07-09-iteration0-wave1-closeout.md), not a
+dated [Iteration 0 and Wave 1 closeout](https://github.com/localstack-dotnet/badge-smith/blob/bc7ed07860ec4b0e702add6370c2636daccb2adf/docs/research/2026-07-09-iteration0-wave1-closeout.md), not a
 fresh compatibility guarantee.
 
 HTTP harness behavior and published AOT artifact proof are separate boundaries. The
@@ -167,11 +167,11 @@ move latency between phases.
 
 Native AOT removes JIT compilation from Lambda startup, but cold-start latency and
 memory usage must be measured for each deployed revision rather than treated as fixed
-architecture guarantees. Dated measurements live under `docs/research/` and
-`docs/research/baselines/`; CloudWatch Lambda `REPORT` lines are the source of truth for
+architecture guarantees. Dated measurements and baselines live in the organization's private evidence archive; those
+recorded before 2026-11-05 remain readable at their pinned public revision. CloudWatch Lambda `REPORT` lines are the source of truth for
 production INIT duration, execution duration, and memory usage. The initial production
 baseline and optimization plan are recorded in
-[`2026-07-02-performance-opportunities.md`](../research/2026-07-02-performance-opportunities.md).
+[`2026-07-02-performance-opportunities.md`](https://github.com/localstack-dotnet/badge-smith/blob/bc7ed07860ec4b0e702add6370c2636daccb2adf/docs/research/2026-07-02-performance-opportunities.md).
 
 Goal verification uses this protocol:
 

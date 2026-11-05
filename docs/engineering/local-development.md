@@ -38,7 +38,7 @@ normalization consistent with API Gateway HTTP API v2 under Turkish culture.
 Local benchmark infrastructure uses Docker, LocalStack, and CDK. The local-performance stack
 defines API Gateway resources and also exposes a Lambda Function URL as the LocalStack workflow's
 compatibility fallback; production keeps API Gateway HTTP v2. The observed limitation behind that
-fallback is dated [Iteration 0 / Wave 1 evidence](../research/2026-07-09-iteration0-wave1-closeout.md),
+fallback is dated [Iteration 0 / Wave 1 evidence](https://github.com/localstack-dotnet/badge-smith/blob/bc7ed07860ec4b0e702add6370c2636daccb2adf/docs/research/2026-07-09-iteration0-wave1-closeout.md),
 not a newly verified statement about current upstream capabilities. Exact app working directories,
 artifacts, and safe commands live in the [local-performance guide](../../build/BadgeSmith.CDK.LocalPerformance/README.md).
 That app must never be deployed to AWS; production operations use the

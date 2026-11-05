@@ -14,7 +14,7 @@ producer/verifier drift.
 [threat model and compatibility decision](https://github.com/localstack-dotnet/badge-smith/blob/621f2cec25ad725880d90804a2877fce80c89eb2/docs/superpowers/specs/2026-08-07-pr5-second-pass-review-remediation-design.md#L9-L55),
 [envelope and shared-construction consequences](https://github.com/localstack-dotnet/badge-smith/blob/621f2cec25ad725880d90804a2877fce80c89eb2/docs/superpowers/specs/2026-08-07-pr5-second-pass-review-remediation-design.md#L122-L145).
 [Implementation 4d9c699](https://github.com/localstack-dotnet/badge-smith/commit/4d9c6999d0e86b247f4d4eaaf6347db5726da5c0)
-and [PR #5 closeout](../research/2026-08-08-pr5-second-pass-closeout.md) corroborate the
+and [PR #5 closeout](https://github.com/localstack-dotnet/badge-smith/blob/bc7ed07860ec4b0e702add6370c2636daccb2adf/docs/research/2026-08-08-pr5-second-pass-closeout.md) corroborate the
 delivered choice. This records the design's stated date, not an inferred private discussion
 or a claim that its Git commit preceded implementation. The
 [current security owner](../architecture/security-and-storage.md#canonical-hmac-authentication)

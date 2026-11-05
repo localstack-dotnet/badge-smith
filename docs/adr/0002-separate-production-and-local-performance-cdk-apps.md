@@ -13,7 +13,7 @@ is not an AWS deployment target.
 **Retrospective provenance:** reconstructed from the approved design bearing the date above:
 [problem, rejected alternative and boundary](https://github.com/localstack-dotnet/badge-smith/blob/621f2cec25ad725880d90804a2877fce80c89eb2/docs/superpowers/specs/2026-08-07-pr5-second-pass-review-remediation-design.md#L237-L296).
 [Implementation eae8df3](https://github.com/localstack-dotnet/badge-smith/commit/eae8df3d2bafa9d38ebe833e047991d88b4f0d96)
-and [PR #5 closeout](../research/2026-08-08-pr5-second-pass-closeout.md) corroborate the
+and [PR #5 closeout](https://github.com/localstack-dotnet/badge-smith/blob/bc7ed07860ec4b0e702add6370c2636daccb2adf/docs/research/2026-08-08-pr5-second-pass-closeout.md) corroborate the
 delivered choice, without establishing an earlier private approval timestamp or Git ordering.
 The [current infrastructure boundary](../architecture/platform-and-delivery.md#infrastructure-boundaries)
 and [production](../../build/BadgeSmith.CDK/README.md) /
